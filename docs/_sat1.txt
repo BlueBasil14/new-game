@@ -1,0 +1,154 @@
+## vampire survivors  (results=40, sumCCU=43962, >=1k: 5)
+    12121    83%     80956v  Bug Evolution [☀️]
+    11760    93%    118829v  [🎃] Lethal Ape Experience
+     7471    91%   4883479v  Natural Disaster Survival
+     3633    97%    140410v  Zombie Rush Survival 🧟‍♂️
+     2531    95%    741211v  Survive Overnight in a Mega Store
+      844    78%      5337v  Fear Elevator 😱
+
+## horde survival  (results=40, sumCCU=82245, >=1k: 7)
+    41282    88%     55915v  Survive Your Ideas
+    11806    93%    118829v  [🎃] Lethal Ape Experience
+     9024    80%     11308v  [VULTURE🐦] FERAL 🐺 Animal Survival
+     5282    94%    214737v  [⚒️UPD] 🧟 Survive the Apocalypse
+     3574    97%    140406v  Zombie Rush Survival 🧟‍♂️
+     1739    95%    469712v  [🎃] Survive Zombie Arena
+
+## merge fruit  (results=40, sumCCU=751718, >=1k: 7)
+   508265    91%   4538274v  Steal An Egg
+   219133    92%  13925835v  [🎃] Blox Fruits
+     9684    92%      6322v  [2x WEEKEND] Farm Evolution
+     6817    97%     28541v  +1 Power Fruit Evolution
+     2393    85%    352246v  Secret Staycation
+     1382    95%    833899v  [UPD 🌊] Merge a Nuke!
+
+## suika  (results=40, sumCCU=233441, >=1k: 4)
+   226153    92%  13925855v  [🎃] Blox Fruits
+     2393    85%    352246v  Secret Staycation
+     1506    90%   1270269v  [OPE V2] Fruit Battlegrounds
+     1436    70%      1014v  Melon Playground [All Ages]
+      549    95%    234298v  💣 Bomb Chip
+      533    90%     27311v  Apple iPad Original
+
+## power wash  (results=40, sumCCU=35391, >=1k: 6)
+    20510    90%     37734v  Ragdoll Physics 🩸
+     4383    94%     33302v  [MARS] Clean the Moon!
+     2612    89%     14449v  Wash the Car 🧽
+     2225    86%    161807v  🍂[NEW MAPS] Clean all the Leaves
+     2024    83%     14151v  Renovate A House
+     1750    99%    152150v  Clean a Painting
+
+## pressure washing  (results=40, sumCCU=53332, >=1k: 6)
+    37692    86%    162139v  DONT SPLASH
+     4383    94%     33302v  [MARS] Clean the Moon!
+     4005    92%     41026v  Firefighting Sim 🚒
+     2612    89%     14448v  Wash the Car 🧽
+     2027    83%     14151v  Renovate A House
+     1426    79%      6110v  Pave the Road
+
+## unpacking  (results=40, sumCCU=19266, >=1k: 3)
+    11971    91%     15968v  🍦Cozy Lucky Scoop Order
+     2320    89%      5894v  Grab and Decorate
+     1099    88%     26503v  Apple iPad Original
+      852    94%     32566v  Make Rugs!
+      606    94%    181987v  STAY INSIDE! 
+      494    91%    419710v  Unboxing Simulator [UPDATE]
+
+## poker roguelike  (results=40, sumCCU=770675, >=1k: 19)
+   226153    92%  13925835v  [🎃] Blox Fruits
+   204343    86%  10179165v  Brookhaven 🏡RP
+   167516    94%     95613v  Throw Food For Animals
+    68357    94%  11728963v  RIVALS
+    37692    86%    162154v  DONT SPLASH
+    18233    87%    283420v  [🏆] Huss Valley
+
+## balatro  (results=40, sumCCU=27049, >=1k: 8)
+     4260    97%    437855v  [ 👻 🎃] Anime Card Clash
+     4004    76%      6607v  Game Of Life
+     2314    84%      3391v  [🧉BREWER] Breach the Bastion: Spire Deck Builder
+     2262    90%      3829v  [🃏UPD] My Trading Card Shop! [BETA]
+     2049    97%    114324v  [UPD📖] Anime Card Farm
+     1362    82%      2951v  Chess Duels
+
+## plinko  (results=0, sumCCU=0, >=1k: 0)
+
+## peggle  (results=40, sumCCU=617407, >=1k: 17)
+   508265    91%   4538274v  Steal An Egg
+    37690    86%    162139v  DONT SPLASH
+    10903    83%     14245v  [🎩] Ragdoll Research
+     8235    95%     76374v  [👥UPD] Ragdoll Playground
+     8066    97%    337527v  +1 Spider Arm🕷️
+     7218    61%    676202v  🚨BARRY'S PRISON RUN! (OBBY)
+
+## hole io  (results=40, sumCCU=561957, >=1k: 5)
+   528677    91%   4538339v  Steal An Egg
+    13695    97%     56850v  [UPD5 ✨] Depth Incremental
+    13037    90%  10501122v  [🐪] Grow a Garden 🌶️
+     2324    98%   1177014v  ⛏️Dig to Escape
+     1379    95%   1174476v  [🎃] Eat the World
+      639    73%      3129v  Become the Potato!
+
+## black hole eat  (results=40, sumCCU=6311, >=1k: 2)
+     3359    91%      5151v  [🍨CH2] Eat THE Ice Cream 
+     1379    95%   1174476v  [🎃] Eat the World
+      330    83%    432938v  Get Eaten!
+      252    95%     11107v  +1 Black Hole Mass
+      246    62%       431v  Eat Food To Be Strong
+      222    85%    318395v  🕳️ Be a Hole
+
+## katamari  (results=40, sumCCU=237806, >=1k: 18)
+    35477    94%     32222v  [🌎2] Tap Simulator REBORN
+    30387    91%   1570644v  Sol's RNG [ Halloween Event 🎃]
+    28923    92%   1866549v  [🐉UPD 11 PART 1🎃] King Legacy
+    24034    99%    785802v  [🍂] Anime Dice
+    18882    93%      9685v  [🐟] Net a Fish!
+    17328    99%    186668v  ⛏️ My Anime Mine
+
+## roll up  (results=40, sumCCU=542404, >=1k: 6)
+   508265    91%   4538274v  Steal An Egg
+    11971    91%     15982v  🍦Cozy Lucky Scoop Order
+    10286    89%     19848v  [🎃] 🧈 Stack A Butter Squishy [ASMR]
+     4900    96%     29319v  [🎉UPD 3] Roll A Stickman!
+     1797    86%      3290v  [2X GEMS] Ice Cream Shop [Anomaly] 🍦
+     1113    96%      2157v  Roll Pets to Fight
+
+## crossy road  (results=40, sumCCU=32976, >=1k: 8)
+     9103    92%    263871v  [🚧UPD🚧] Southern Mudding 🚜 OffRoading
+     6766    85%     15887v  Can You Pass A Driving Test?
+     5117    90%      3579v  [MINI UPDATE & MODIFFICATION] Onthel Purwodadi
+     3616    87%     25715v  [UPD] Tesla Roadster Chase
+     3035    64%     13551v  Flying Tesla Roadster [Military Escape Event]
+     1426    79%      6110v  Pave the Road
+
+## dave the diver  (results=40, sumCCU=61126, >=1k: 5)
+    37692    86%    162154v  DONT SPLASH
+    13695    97%     56830v  [UPD5 ✨] Depth Incremental
+     3786    97%     60221v  [☯️] Deep Fishing🎣
+     1637    87%      2644v  DEEPER
+     1565    61%     16341v  Crazy Diver
+      649    85%      5644v  Dead Shore
+
+## diving sushi  (results=40, sumCCU=117580, >=1k: 9)
+    43970    91%   3410334v  Fisch 🦈
+    37692    86%    162154v  DONT SPLASH
+    10544    93%    342515v  Mukbang Game [Testing]🫓🍲!
+     6570    99%    161578v  Sell a Million Sushi
+     4409    89%      9381v  Ro-BassFishing [MASSIVEE UPDATE]
+     3786    97%     60221v  [☯️] Deep Fishing🎣
+
+## slime rancher  (results=40, sumCCU=29657, >=1k: 2)
+    20510    90%     37734v  Ragdoll Physics 🩸
+     6111    88%     43066v  Realistic Ragdoll Engine 🩸
+      947    87%      3169v  [UPD❤️] Create Slime Mart ! [Testing] 
+      542    60%       183v  Eat All The Slime!
+      290    87%      6245v  (🎃) +1 Speed Slime ASMR Keyboard escape
+      264    98%    834311v  Slime RNG
+
+## plants vs zombies  (results=40, sumCCU=52802, >=1k: 9)
+    13037    90%  10501122v  [🐪] Grow a Garden 🌶️
+    12121    83%     80933v  Bug Evolution [☀️]
+     9730    92%      6317v  [2x WEEKEND] Farm Evolution
+     4054    72%       249v  Build to Fight Zombies
+     3633    97%    140406v  Zombie Rush Survival 🧟‍♂️
+     3499    98%   1457923v  [🕸️] Garden Tower Defense 🌻
+
