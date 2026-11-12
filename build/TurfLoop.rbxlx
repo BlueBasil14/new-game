@@ -6478,6 +6478,19 @@ function ClientState.dailyState(): { canClaim: boolean, nextStreak: number }
 	return Formulas.dailyClaimState(p.daily.lastClaimDay, p.daily.streak, Formulas.dayNumber(ClientState.serverNow()))
 end
 
+-- True while the Starter Pack is unbought and its offer window is open (session flag or the 48 h window).
+function ClientState.starterOfferOpen(): boolean
+	local p = ClientState.profile
+	if p == nil or p.starterPackBought then
+		return false
+	end
+	if ClientState.session.starterOffer then
+		return true
+	end
+	local seen = p.starterOfferSeenAt
+	return seen > 0 and ClientState.serverNow() - seen < Config.Products.starterPack.OfferWindowHours * 3600
+end
+
 function ClientState.questClaimable(): boolean
 	local p = ClientState.profile
 	if p == nil then
@@ -6535,6 +6548,9 @@ end
 
 UiKit.onClickSound = function()
 	FeedbackController.play("uiClick")
+end
+UiKit.onHoverSound = function()
+	FeedbackController.play("uiHover")
 end
 PanelController.onSound = function(name: string)
 	if name == "click" then
@@ -6743,7 +6759,7 @@ local function handleEvent(ev: Types.ArenaEvent)
 	elseif ev.kind == "king" then
 		arena.kingId = ev.id
 	elseif ev.kind == "claim" then
-		TurfRenderer.claimFlash(ev.id)
+		TurfRenderer.claimFlash(ev.id, ev.stolen > 0)
 	end
 	markChanged()
 	ClientState.arenaEvent:Fire(ev)
@@ -6825,6 +6841,11 @@ function ArenaClient.start()
 			remote.OnClientEvent:Connect(applyRunnerInfo)
 		end
 	end)
+
+	-- Startup ping (GAP-27): lets the server re-send the snapshot once our listeners exist.
+	task.spawn(function()
+		ClientState.request("Ready")
+	end)
 end
 
 return ArenaClient
@@ -6859,6 +6880,11 @@ local shakeTotal = 0
 
 function CameraController.setTurfShare(s: number)
 	share = math.clamp(s, 0, 1)
+end
+
+-- Smoothed world point the camera looks at (nil before the character exists).
+function CameraController.getFocus(): Vector3?
+	return focus
 end
 
 function CameraController.punch(amount: number)
@@ -6980,6 +7006,22 @@ local BEAM_WIDTH = 1.5
 local BEAM_RESOLVE = 0.5
 local SHIELD_SIZE = 7
 local SOUND_POOL = 4
+local MUSIC_VOLUME = 0.15
+local FIRST_POPUP_SCALE = 2.5
+local OTHER_BURST_SCALE = 0.4
+local OTHER_BURST_RANGE = 150 -- studs from the camera focus
+local OTHER_BURST_SLOTS = 8
+local CUBE_COUNT = 24
+local CUBE_SIZE = 0.8
+local CUBE_FLIGHT = 0.4
+local CUBE_SEARCH = 12 -- cells around the victim
+local CUBE_TRIES = 96
+local CROWN_DROP = 8 -- studs the crown falls
+local CROWN_DROP_TIME = 0.35
+local CROWN_SPIKES = 5
+local CROWN_RADIUS = 0.55
+local CROWN_RETRY = 0.5
+local BAND_ROT = CFrame.Angles(0, 0, math.rad(90)) -- cylinder axis is X; stand it upright
 
 local CONFETTI_MIN_CELLS = Config.Income.CaptureBonus[1].MinCells
 local SHAKE_FULL_CELLS = Config.Income.CaptureBonus[#Config.Income.CaptureBonus].MinCells
@@ -7079,6 +7121,19 @@ local effectsFolder: Folder? = nil
 local vignetteEdges: { Frame } = {}
 local colorCorrection: ColorCorrectionEffect? = nil
 local beam: BasePart? = nil
+local rng = Random.new()
+local musicSound: Sound? = nil
+local firstClaimShown = false
+local questReady: { [string]: boolean } = {}
+local questSeeded = false
+local otherBursts: { { anchor: BasePart, pe: ParticleEmitter } } = {}
+local otherBurstNext = 0
+type Cube = { part: BasePart, from: Vector3, t0: number }
+local cubePool: { BasePart } = {}
+local flyingCubes: { Cube } = {}
+type Crown = { model: Model, base: BasePart, head: BasePart, kingId: number, t0: number, landed: boolean }
+local crown: Crown? = nil
+local crownTryAt = 0
 
 local soundPools: { [string]: { Sound } } = {}
 local soundNext: { [string]: number } = {}
@@ -7178,10 +7233,11 @@ local function tempAnchor(pos: Vector3, lifetime: number): BasePart
 	return p
 end
 
-local function popup(pos: Vector3, text: string, color: Color3)
+local function popup(pos: Vector3, text: string, color: Color3, scale: number?)
 	local anchor = tempAnchor(pos, POPUP_TIME + 0.1)
 	local bb = Instance.new("BillboardGui")
-	bb.Size = UDim2.fromOffset(160, 56)
+	local k = scale or 1
+	bb.Size = UDim2.fromOffset(160 * k, 56 * k)
 	bb.AlwaysOnTop = true
 	bb.LightInfluence = 0
 	bb.Adornee = anchor
@@ -7228,7 +7284,7 @@ local function lowDetail(): boolean
 	return s ~= nil and s.lowDetail
 end
 
-local function burst(pos: Vector3, effectId: string)
+local function burst(pos: Vector3, effectId: string, scale: number?)
 	local preset = PRESETS[effectId] or PRESETS.sparkle
 	local item = Catalog.byId(effectId)
 	local a = if item then Color3.fromHex(item.colorA) else COIN_COLOR
@@ -7238,7 +7294,41 @@ local function burst(pos: Vector3, effectId: string)
 	configureEmitter(pe, preset, ColorSequence.new(a, b))
 	pe.Parent = anchor
 	local n = if lowDetail() then preset.count // 2 else preset.count
-	pe:Emit(n)
+	pe:Emit(math.max(1, math.floor(n * (scale or 1))))
+end
+
+-- Other runners' capture effect: a fixed ring of reusable emitters, reduced count, no Instance churn.
+local function burstOther(pos: Vector3, effectId: string)
+	local folder = effectsFolder
+	if not folder then
+		return
+	end
+	local preset = PRESETS[effectId] or PRESETS.sparkle
+	local item = Catalog.byId(effectId)
+	local a = if item then Color3.fromHex(item.colorA) else COIN_COLOR
+	local b = if item and item.colorB then Color3.fromHex(item.colorB) else a
+	otherBurstNext = otherBurstNext % OTHER_BURST_SLOTS + 1
+	local slot = otherBursts[otherBurstNext]
+	if not slot then
+		local anchor = Instance.new("Part")
+		anchor.Name = "OtherBurst"
+		anchor.Anchored = true
+		anchor.CanCollide = false
+		anchor.CanTouch = false
+		anchor.CanQuery = false
+		anchor.CastShadow = false
+		anchor.Transparency = 1
+		anchor.Size = Vector3.new(1, 1, 1)
+		local pe = Instance.new("ParticleEmitter")
+		pe.Parent = anchor
+		anchor.Parent = folder
+		slot = { anchor = anchor, pe = pe }
+		otherBursts[otherBurstNext] = slot
+	end
+	local s = slot :: { anchor: BasePart, pe: ParticleEmitter }
+	s.anchor.CFrame = CFrame.new(pos)
+	configureEmitter(s.pe, preset, ColorSequence.new(a, b))
+	s.pe:Emit(math.max(1, math.floor(preset.count * OTHER_BURST_SCALE)))
 end
 
 local confettiPreset: Preset = {
@@ -7379,12 +7469,97 @@ local function onClaim(ev: { id: number, cells: number, neutral: number, stolen:
 	if not pos then
 		return
 	end
-	if cells >= CONFETTI_MIN_CELLS then
+	-- G7.3: the very first capture of a new player always gets confetti and an oversized popup.
+	local profile = ClientState.profile
+	local first = not firstClaimShown and profile ~= nil and not profile.tutorialDone
+	if first then
+		firstClaimShown = true
+		popup(pos + Vector3.new(0, POPUP_HEIGHT, 0), "+" .. cells, COIN_COLOR, FIRST_POPUP_SCALE)
+	end
+	if cells >= CONFETTI_MIN_CELLS or first then
 		FeedbackController.play("bigClaim")
 		confetti(pos)
 	end
 	local info = ClientState.arena.runners[ev.id]
 	burst(pos, if info then info.effect else "sparkle")
+end
+
+-- Capture effect of another runner's claim: reduced, skipped in low detail and when far from the camera focus.
+local function onOtherClaim(ev: { id: number, cells: number, neutral: number, stolen: number, cx: number, cy: number })
+	if lowDetail() then
+		return
+	end
+	local pos = cellWorld(ev.cx, ev.cy, 1)
+	local focus = CameraController.getFocus()
+	if not pos or not focus then
+		return
+	end
+	local d = pos - focus
+	if Vector3.new(d.X, 0, d.Z).Magnitude > OTHER_BURST_RANGE then
+		return
+	end
+	local info = ClientState.arena.runners[ev.id]
+	burstOther(pos, if info then info.effect else "sparkle")
+end
+
+-- Turf shatter: small cubes in the victim's colour fly from their former turf to the killer.
+local function cubeFor(index: number): BasePart?
+	local p = cubePool[index]
+	if p then
+		return p
+	end
+	local folder = effectsFolder
+	if not folder then
+		return nil
+	end
+	local created = Instance.new("Part")
+	created.Name = "ShatterCube"
+	created.Anchored = true
+	created.CanCollide = false
+	created.CanTouch = false
+	created.CanQuery = false
+	created.CastShadow = false
+	created.Size = Vector3.new(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE)
+	created.Material = Enum.Material.SmoothPlastic
+	cubePool[index] = created
+	return created
+end
+
+local function shatterTurf(victim: number)
+	if lowDetail() or #flyingCubes > 0 then
+		return
+	end
+	local g = ArenaClient.getGrid()
+	local folder = effectsFolder
+	local root = myRootPosition()
+	if not (g and folder and root) then
+		return
+	end
+	local inst = runnerInstance(victim)
+	local origin = if inst then inst:GetPivot().Position else root
+	local ox, oy = g:worldToCell(origin.X, origin.Z)
+	local color = TurfRenderer.colorOf(victim)
+	local now = os.clock()
+	local made = 0
+	for _ = 1, CUBE_TRIES do
+		if made >= CUBE_COUNT then
+			break
+		end
+		local x = ox + rng:NextInteger(-CUBE_SEARCH, CUBE_SEARCH)
+		local y = oy + rng:NextInteger(-CUBE_SEARCH, CUBE_SEARCH)
+		if g:inBounds(x, y) and g:get(x, y) == victim then
+			local part = cubeFor(made + 1)
+			if part then
+				made += 1
+				local wx, wz = g:cellToWorld(x, y)
+				local from = Vector3.new(wx, FLOOR + 1, wz)
+				part.Color = color
+				part.CFrame = CFrame.new(from)
+				part.Parent = folder
+				table.insert(flyingCubes, { part = part, from = from, t0 = now })
+			end
+		end
+	end
 end
 
 local function runnerName(id: number): string
@@ -7418,18 +7593,29 @@ local function onSpawn(info: Types.RunnerInfo)
 	shields[id] = { part = p, ends = ArenaClient.shieldEnds[id] or os.clock() }
 end
 
+local function removeCrown()
+	local c = crown
+	crown = nil
+	if c then
+		c.model:Destroy()
+	end
+end
+
 local function onEvent(ev: Types.ArenaEvent)
 	local arena = ClientState.arena
 	local myId = arena.myId
 	if ev.kind == "claim" then
 		if ev.id == myId then
 			onClaim(ev)
+		else
+			onOtherClaim(ev)
 		end
 	elseif ev.kind == "cut" then
 		if ev.killer == myId then
 			lastCutAt = os.clock()
 			CameraController.punch(PUNCH_FOV)
 			FeedbackController.play("snip")
+			shatterTurf(ev.victim)
 		end
 		if ev.victim == myId then
 			FeedbackController.play("deathPop")
@@ -7438,6 +7624,7 @@ local function onEvent(ev: Types.ArenaEvent)
 	elseif ev.kind == "king" then
 		kingTarget = nil
 		kingResolveAt = 0
+		removeCrown()
 		if ev.id ~= 0 then
 			FeedbackController.play("crownFanfare")
 			local toast = FeedbackController.onToast
@@ -7481,6 +7668,171 @@ local function onReward(payload: { coins: number?, gems: number?, reason: string
 	end
 end
 
+-- Head part of a runner: the character's Head for players, the Head of the rig under workspace.Bots for bots.
+local function headOf(id: number): BasePart?
+	local info = ClientState.arena.runners[id]
+	if not info then
+		return nil
+	end
+	local owner: Instance? = nil
+	if info.isBot then
+		local bots = workspace:FindFirstChild("Bots")
+		owner = bots and bots:FindFirstChild(tostring(id))
+	else
+		local player = Players:GetPlayerByUserId(info.userId)
+		owner = player and player.Character
+	end
+	local head = owner and owner:FindFirstChild("Head")
+	if head and head:IsA("BasePart") then
+		return head
+	end
+	return nil
+end
+
+local function crownPart(model: Model, size: Vector3, shape: Enum.PartType): Part
+	local p = Instance.new("Part")
+	p.Shape = shape
+	p.Size = size
+	p.Anchored = true -- until the drop-in lands
+	p.CanCollide = false
+	p.CanTouch = false
+	p.CanQuery = false
+	p.CastShadow = false
+	p.Massless = true
+	p.Material = Enum.Material.Metal
+	p.Color = COIN_COLOR
+	p.Parent = model
+	return p
+end
+
+local function weld(a: BasePart, b: BasePart)
+	local w = Instance.new("WeldConstraint")
+	w.Part0 = a
+	w.Part1 = b
+	w.Parent = a
+end
+
+-- Crown for the King: gold band plus CROWN_SPIKES ball spikes (6 Parts), dropped onto the head.
+local function attachCrown(kingId: number, head: BasePart)
+	local model = Instance.new("Model")
+	model.Name = "KingCrown"
+	model:SetAttribute("Placeholder", "M3")
+	local band = crownPart(model, Vector3.new(0.4, CROWN_RADIUS * 2.2, CROWN_RADIUS * 2.2), Enum.PartType.Cylinder)
+	model.PrimaryPart = band
+	band.CFrame = BAND_ROT
+	for i = 1, CROWN_SPIKES do
+		local a = (i - 1) / CROWN_SPIKES * math.pi * 2
+		local spike = crownPart(model, Vector3.new(0.35, 0.35, 0.35), Enum.PartType.Ball)
+		spike.CFrame = CFrame.new(math.cos(a) * CROWN_RADIUS, 0.3, math.sin(a) * CROWN_RADIUS)
+		weld(band, spike)
+	end
+	local rest = head.CFrame * CFrame.new(0, head.Size.Y * 0.5 + 0.3, 0)
+	model:PivotTo(rest * CFrame.new(0, CROWN_DROP, 0) * BAND_ROT)
+	model.Parent = head
+	crown = { model = model, base = band, head = head, kingId = kingId, t0 = os.clock(), landed = false }
+end
+
+local function stepCrown(now: number, kingId: number)
+	local c = crown
+	if c and (c.kingId ~= kingId or not c.model:IsDescendantOf(workspace)) then
+		removeCrown()
+		c = nil
+	end
+	if not c then
+		if kingId ~= 0 and now >= crownTryAt then
+			crownTryAt = now + CROWN_RETRY
+			local head = headOf(kingId)
+			if head then
+				attachCrown(kingId, head)
+			end
+		end
+		return
+	end
+	local rest = c.head.CFrame * CFrame.new(0, c.head.Size.Y * 0.5 + 0.3, 0)
+	if c.landed then
+		return
+	end
+	local a = math.clamp((now - c.t0) / CROWN_DROP_TIME, 0, 1)
+	local eased = a * a -- accelerate like a fall
+	c.model:PivotTo(rest * CFrame.new(0, CROWN_DROP * (1 - eased), 0) * BAND_ROT)
+	if a >= 1 then
+		-- Landed: release the anchors and weld the band to the head.
+		c.landed = true
+		for _, d in c.model:GetDescendants() do
+			if d:IsA("BasePart") then
+				d.Anchored = false
+			end
+		end
+		weld(c.head, c.base)
+	end
+end
+
+local function stepCubes(now: number)
+	local n = #flyingCubes
+	if n == 0 then
+		return
+	end
+	local root = myRootPosition()
+	for i = n, 1, -1 do
+		local cube = flyingCubes[i]
+		local a = (now - cube.t0) / CUBE_FLIGHT
+		if a >= 1 or not root then
+			cube.part.Parent = nil
+			table.remove(flyingCubes, i)
+		else
+			cube.part.CFrame = CFrame.new(cube.from:Lerp(root, a * a))
+		end
+	end
+end
+
+local function startMusic()
+	local id = SoundIds.arenaMusic
+	if not id or id == 0 then
+		return
+	end
+	local s = settings()
+	local want = s ~= nil and s.music
+	local snd = musicSound
+	if want then
+		if not snd then
+			local created = Instance.new("Sound")
+			created.Name = "ArenaMusic"
+			created.SoundId = "rbxassetid://" .. id
+			created.Looped = true
+			created.Volume = MUSIC_VOLUME
+			created.Parent = SoundService
+			musicSound = created
+			snd = created
+		end
+		if not (snd :: Sound).Playing then
+			(snd :: Sound):Play()
+		end
+	elseif snd and snd.Playing then
+		snd:Stop()
+	end
+end
+
+-- Plays questComplete when a quest newly becomes claimable (the first profile only seeds the state).
+local function checkQuests()
+	local profile = ClientState.profile
+	if not profile then
+		return
+	end
+	local newly = false
+	for _, entry in profile.quests.list do
+		local def = ClientState.quest(entry.id)
+		local ready = def ~= nil and not entry.claimed and entry.progress >= def.target
+		if ready and not questReady[entry.id] and questSeeded then
+			newly = true
+		end
+		questReady[entry.id] = ready
+	end
+	questSeeded = true
+	if newly then
+		FeedbackController.play("questComplete")
+	end
+end
+
 local function step(dt: number)
 	local now = os.clock()
 	dangerAcc += dt
@@ -7500,6 +7852,10 @@ local function step(dt: number)
 			FeedbackController.play("heartbeat")
 		end
 	end
+
+	stepCubes(now)
+
+	stepCrown(now, ClientState.arena.kingId)
 
 	local b = beam
 	if b then
@@ -7602,6 +7958,8 @@ function FeedbackController.start()
 		if s then
 			CameraController.shakeEnabled = s.shake
 		end
+		startMusic()
+		checkQuests()
 	end
 	ClientState.profileChanged:Connect(readSettings)
 	readSettings()
@@ -7621,6 +7979,7 @@ return FeedbackController
 							<string name="Name">HudController</string>
 							<ProtectedString name="Source"><![CDATA[--!strict
 -- Always-on HUD: wallet, map %, boost/weekend chips, leaderboard, kill feed, button rail, playtime bar.
+local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -7632,6 +7991,9 @@ local Remotes = require(Shared.Remotes)
 local UiKit = require(script.Parent.Parent.ui.UiKit)
 local ClientState = require(script.Parent.Parent.ClientState)
 local PanelController = require(script.Parent.PanelController)
+local ArenaClient = require(script.Parent.ArenaClient)
+local TurfRenderer = require(script.Parent.TurfRenderer)
+local FeedbackController = require(script.Parent.FeedbackController)
 
 local S = {
 	coinsIcon = "C",
@@ -7642,6 +8004,7 @@ local S = {
 	boost = "%dx %s",
 	weekend = "%dx WEEKEND",
 	kingMark = "K",
+	starterBadge = "!",
 	cutFeed = "%s cut %s",
 	unknownRunner = "Someone",
 	timeFormat = "%d:%02d",
@@ -7664,11 +8027,19 @@ local FEED_SECONDS = 5
 local FEED_FADE = 0.5
 local ROLL_SECONDS = 0.5
 local TICK_SECONDS = 0.5
+local COIN_TICK_INTERVAL = 0.1 -- coinTick plays at most 10 times per second while the wallet rolls
+local MINI_BLOCK = 8 -- cells per minimap block side
+local MINI_HEIGHT = 0.16 -- fraction of screen height
+local MINI_BLOCKS_PER_TICK = 100
+local MINI_DOT = 7
+local MINI_DOT_PERIOD = 0.1
+local MINI_BLOCK_EVERY = 5 -- dot periods per block refresh (2 Hz)
 
 local theme = UiKit.theme
 local PANEL_BG = Color3.fromHex(Config.Colors.UiDark)
 
 local started = false
+local railButtons: { [string]: TextButton } = {}
 
 local function formatTime(seconds: number): string
 	seconds = math.max(0, math.floor(seconds))
@@ -7681,6 +8052,13 @@ end
 
 local function playerColorHex(colorIndex: number): string
 	return Config.Colors.Players[colorIndex] or Config.Colors.UiLight
+end
+
+local VIP_GOLD_HEX = Config.Colors.Yellow
+
+-- RunnerInfo.vip is added by the server later; nil counts as false.
+local function isVip(runner: Types.RunnerInfo): boolean
+	return (runner :: any).vip == true
 end
 
 local function currencyColor(currency: string): Color3
@@ -7744,6 +8122,15 @@ local function buildWallet(gui: ScreenGui)
 		crowns = walletRow(wallet, 3, S.crownsIcon, theme.Pink),
 	}
 	local shown: { [string]: number } = {}
+	local lastTick = -math.huge
+	local function tickFormat(n: number): string
+		local now = os.clock()
+		if now - lastTick >= COIN_TICK_INTERVAL then
+			lastTick = now
+			FeedbackController.play("coinTick")
+		end
+		return UiKit.formatNumber(n)
+	end
 
 	local function update()
 		local p = ClientState.profile
@@ -7757,7 +8144,7 @@ local function buildWallet(gui: ScreenGui)
 			if old == nil then
 				UiKit.rollNumber(label, new, new, 0)
 			elseif old ~= new then
-				UiKit.rollNumber(label, old, new, ROLL_SECONDS)
+				UiKit.rollNumber(label, old, new, ROLL_SECONDS, if key == "coins" then tickFormat else nil)
 			end
 			shown[key] = new
 		end
@@ -7948,6 +8335,7 @@ local function buildLeaderboard(gui: ScreenGui)
 				row.root.Visible = true
 				row.swatch.BackgroundColor3 = Color3.fromHex(playerColorHex(entry.runner.colorIndex))
 				row.name.Text = entry.runner.name
+				row.name.TextColor3 = if isVip(entry.runner) then theme.Yellow else theme.UiLight
 				row.percent.Text = string.format(S.percent, entry.cells / arena.totalCells * 100)
 				row.crown.Visible = entry.id == arena.kingId
 				local mine = entry.id == arena.myId
@@ -7980,7 +8368,8 @@ local function buildKillFeed(gui: ScreenGui)
 		if runner == nil then
 			return S.unknownRunner
 		end
-		return string.format('<font color="%s">%s</font>', playerColorHex(runner.colorIndex), escapeRich(runner.name))
+		local hex = if isVip(runner) then VIP_GOLD_HEX else playerColorHex(runner.colorIndex)
+		return string.format('<font color="%s">%s</font>', hex, escapeRich(runner.name))
 	end
 
 	local function remove(entry: Frame)
@@ -8057,6 +8446,28 @@ local function buildRail(gui: ScreenGui): (() -> ())
 		})
 		b.Name = def.panel
 		b.LayoutOrder = i
+		railButtons[def.panel] = b
+		if def.panel == "Shop" then
+			local badge = UiKit.frame({
+				Name = "StarterBadge",
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				Position = UDim2.fromScale(0.94, 0.08),
+				Size = UDim2.fromScale(0.24, 0.24),
+				BackgroundColor3 = theme.Pink,
+				Visible = false,
+				parent = b,
+			})
+			UiKit.corner(badge, 100)
+			UiKit.aspect(badge, 1)
+			UiKit.stroke(badge, theme.UiLight, 2)
+			UiKit.label({
+				Text = S.starterBadge,
+				Size = UDim2.fromScale(0.7, 0.7),
+				Position = UDim2.fromScale(0.15, 0.15),
+				parent = badge,
+			})
+			dots.Shop = badge
+		end
 		if def.panel == "Daily" or def.panel == "Quests" then
 			local dot = UiKit.frame({
 				Name = "Dot",
@@ -8083,7 +8494,157 @@ local function buildRail(gui: ScreenGui): (() -> ())
 		if quests then
 			quests.Visible = ClientState.questClaimable()
 		end
+		local shop = dots.Shop
+		if shop then
+			shop.Visible = ClientState.starterOfferOpen()
+		end
 	end
+end
+
+-- Minimap -----------------------------------------------------------------------------------
+
+local function runnerPosition(id: number): Vector3?
+	local info = ClientState.arena.runners[id]
+	if not info then
+		return nil
+	end
+	local inst: Instance? = nil
+	if info.isBot then
+		local bots = workspace:FindFirstChild("Bots")
+		inst = bots and bots:FindFirstChild(tostring(id))
+	else
+		local player = Players:GetPlayerByUserId(info.userId)
+		local char = player and player.Character
+		inst = char and char:FindFirstChild("HumanoidRootPart")
+	end
+	if inst and inst:IsA("PVInstance") then
+		return inst:GetPivot().Position
+	end
+	return nil
+end
+
+-- Square overview of the arena: one Frame per MINI_BLOCK x MINI_BLOCK cells (built once), coloured by
+-- the majority owner of the block's 4 centre cells. Blocks refresh round-robin at 2 Hz.
+local function buildMinimap(gui: ScreenGui)
+	local blocks = Config.Arena.GridSize // MINI_BLOCK
+	local neutral = PANEL_BG:Lerp(theme.UiLight, 0.12)
+	local root = UiKit.frame({
+		Name = "Minimap",
+		AnchorPoint = Vector2.new(1, 1),
+		Position = UDim2.fromScale(0.988, 0.78),
+		Size = UDim2.fromScale(MINI_HEIGHT, MINI_HEIGHT),
+		BackgroundColor3 = PANEL_BG,
+		BackgroundTransparency = 0.2,
+		ClipsDescendants = true,
+		parent = gui,
+	})
+	UiKit.corner(root, 8)
+	UiKit.aspect(root, 1)
+
+	local frames: { Frame } = {}
+	local shown: { Color3 } = {}
+	local step = 1 / blocks
+	for by = 0, blocks - 1 do
+		for bx = 0, blocks - 1 do
+			local i = by * blocks + bx + 1
+			frames[i] = UiKit.frame({
+				Name = "B" .. i,
+				Position = UDim2.fromScale(bx * step, by * step),
+				Size = UDim2.fromScale(step, step),
+				BackgroundColor3 = neutral,
+				parent = root,
+			})
+			shown[i] = neutral
+		end
+	end
+
+	local function makeDot(name: string, color: Color3, z: number): Frame
+		local d = UiKit.frame({
+			Name = name,
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Size = UDim2.fromOffset(MINI_DOT, MINI_DOT),
+			BackgroundColor3 = color,
+			ZIndex = z,
+			Visible = false,
+			parent = root,
+		})
+		UiKit.corner(d, 100)
+		return d
+	end
+	local kingDot = makeDot("King", theme.Yellow, 2)
+	local meDot = makeDot("Me", theme.UiLight, 3)
+
+	local samples: { number } = { 0, 0, 0, 0 }
+	local half = MINI_BLOCK // 2
+	local cursor = 0
+	local lastGrid: any = nil
+
+	local function refreshBlock(g: any, i: number)
+		local bx, by = (i - 1) % blocks, (i - 1) // blocks
+		local x0, y0 = bx * MINI_BLOCK + half - 1, by * MINI_BLOCK + half - 1
+		samples[1], samples[2] = g:get(x0, y0), g:get(x0 + 1, y0)
+		samples[3], samples[4] = g:get(x0, y0 + 1), g:get(x0 + 1, y0 + 1)
+		local best, bestN = 0, 0
+		for k = 1, 4 do
+			local o = samples[k]
+			if o ~= 0 then
+				local n = 0
+				for j = 1, 4 do
+					if samples[j] == o then
+						n += 1
+					end
+				end
+				if n > bestN then
+					best, bestN = o, n
+				end
+			end
+		end
+		local color = if best == 0 then neutral else TurfRenderer.colorOf(best)
+		if shown[i] ~= color then
+			shown[i] = color
+			frames[i].BackgroundColor3 = color
+		end
+	end
+
+	local function placeDot(dot: Frame, g: any, pos: Vector3?)
+		if pos == nil then
+			dot.Visible = false
+			return
+		end
+		local cx, cy = g:worldToCell(pos.X, pos.Z)
+		dot.Position = UDim2.fromScale((cx + 0.5) / g.size, (cy + 0.5) / g.size)
+		dot.Visible = true
+	end
+
+	task.spawn(function()
+		local periods = 0
+		while true do
+			task.wait(MINI_DOT_PERIOD)
+			local profile = ClientState.profile
+			local low = profile ~= nil and profile.settings.lowDetail
+			root.Visible = not low
+			local g: any = ArenaClient.getGrid()
+			if low or g == nil then
+				continue
+			end
+			periods += 1
+			if g ~= lastGrid then
+				lastGrid = g
+				for i = 1, #frames do
+					refreshBlock(g, i)
+				end
+			elseif periods % MINI_BLOCK_EVERY == 0 then
+				for _ = 1, MINI_BLOCKS_PER_TICK do
+					cursor = cursor % #frames + 1
+					refreshBlock(g, cursor)
+				end
+			end
+			local arena = ClientState.arena
+			local myId = arena.myId
+			placeDot(meDot, g, if myId and arena.alive then runnerPosition(myId) else nil)
+			placeDot(kingDot, g, if arena.kingId ~= 0 then runnerPosition(arena.kingId) else nil)
+		end
+	end)
 end
 
 -- Playtime reward bar -----------------------------------------------------------------------
@@ -8223,6 +8784,11 @@ end
 
 local HudController = {}
 
+-- Rail button by panel name ("Upgrades", "Shop", ...); nil until the HUD is built.
+function HudController.getRailButton(name: string): TextButton?
+	return railButtons[name]
+end
+
 function HudController.start()
 	if started then
 		return
@@ -8235,6 +8801,7 @@ function HudController.start()
 	local updateTimers, updateMap = buildTopCentre(gui)
 	buildLeaderboard(gui)
 	buildKillFeed(gui)
+	buildMinimap(gui)
 	local updateDots = buildRail(gui)
 	local updatePlaytime = buildPlaytime(gui)
 
@@ -8456,6 +9023,15 @@ local S = {
 	starterCoins = "%s Coins",
 	starterSkin = "Starter Spark skin",
 	starterNo = "No thanks",
+
+	neonBanner = "Neon Pack: 5 neon skins + trail  R$ %d",
+	boostQuest = "%dx Coins %d min",
+	awayTitle = "Welcome back",
+	awayStreak = "Daily streak: %d",
+	awayDailyReady = "Daily reward is ready",
+	awayDailyDone = "Daily reward claimed",
+	awayQuests = "Quests ready: %d",
+	awayView = "View",
 }
 
 -- Server error key -> friendly text. Unknown keys fall back to S.genericError.
@@ -8509,6 +9085,11 @@ local REBIRTH_CONFIRM_SECONDS = 3
 local DEATH_GUARD_SECONDS = 0.5
 local STARTER_DELAY = 0.6
 local COUNTDOWN_STEP = 0.1
+local COIN_COUNT = 6
+local COIN_PX = 16
+local COIN_TIME = 0.45
+local COIN_STAGGER = 0.05
+local AWAY_DELAY = 1.2
 
 local theme = UiKit.theme
 local PANEL_BG = Color3.fromHex(Config.Colors.UiDark)
@@ -8581,6 +9162,51 @@ local function pulseFor(inst: GuiObject, seconds: number)
 	task.delay(seconds, function()
 		UiKit.stopPulse(inst)
 	end)
+end
+
+-- Coin shower: a few pooled Frames fly from the HUD wallet to the pressed button.
+local coinFrames: { Frame } = {}
+
+local function coinShower(target: GuiObject, currency: string?)
+	local playerGui = Players.LocalPlayer:FindFirstChild("PlayerGui")
+	local hud = playerGui and playerGui:FindFirstChild("Hud")
+	local wallet = hud and hud:FindFirstChild("Wallet")
+	if wallet == nil or not wallet:IsA("GuiObject") then
+		return
+	end
+	local walletGui = wallet :: GuiObject
+	if #coinFrames == 0 then
+		local gui = UiKit.screenGui("CoinShower", 90)
+		for i = 1, COIN_COUNT do
+			local f = UiKit.frame({
+				Name = "Coin" .. i,
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				Size = UDim2.fromOffset(COIN_PX, COIN_PX),
+				Visible = false,
+				parent = gui,
+			})
+			UiKit.corner(f, 100)
+			UiKit.stroke(f, theme.UiDark, 2)
+			coinFrames[i] = f
+		end
+	end
+	local from = walletGui.AbsolutePosition + walletGui.AbsoluteSize * Vector2.new(0.1, 0.17)
+	local to = target.AbsolutePosition + target.AbsoluteSize * 0.5
+	local color = if currency == "gems" then theme.Gem else theme.Yellow
+	for i, f in coinFrames do
+		local delay = (i - 1) * COIN_STAGGER
+		task.delay(delay, function()
+			f.BackgroundColor3 = color
+			f.Position = UDim2.fromOffset(from.X, from.Y)
+			f.Visible = true
+			TweenService:Create(f, TweenInfo.new(COIN_TIME, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {
+				Position = UDim2.fromOffset(to.X, to.Y),
+			}):Play()
+		end)
+		task.delay(delay + COIN_TIME, function()
+			f.Visible = false
+		end)
+	end
 end
 
 local function button(props: {
@@ -8765,6 +9391,7 @@ local function buildUpgrades(): PanelEntry
 				busy = false
 				if ok then
 					squash(cost)
+					coinShower(cost, "coins")
 					sound("buy")
 					toastGood(string.format(S.upgraded, S.upgradeNames[id]))
 				else
@@ -8821,6 +9448,7 @@ type CardSpec = {
 	action: string,
 	actionColor: Color3,
 	dim: boolean,
+	pulse: boolean?,
 	onAction: (btn: TextButton) -> (),
 }
 
@@ -8874,6 +9502,9 @@ local function makeCard(parent: Instance, spec: CardSpec, order: number)
 		})
 	end
 	plainLabel(card, spec.name, UDim2.fromScale(0.06, 0.48), UDim2.fromScale(0.88, 0.14), Enum.TextXAlignment.Center)
+	if spec.pulse then
+		pulseFor(card, PULSE_SECONDS)
+	end
 	local sub = plainLabel(card, spec.sub, UDim2.fromScale(0.06, 0.62), UDim2.fromScale(0.88, 0.11), Enum.TextXAlignment.Center)
 	sub.TextColor3 = spec.subColor
 	local btn: TextButton = nil :: any
@@ -8926,6 +9557,7 @@ local function buildShop(): PanelEntry
 	local ownedOnly = false
 	local lastSig = ""
 	local busy = false
+	local passPulse = false
 	local tabButtons: { [string]: TextButton } = {}
 	local toggleButton: TextButton
 	local refresh: () -> ()
@@ -8970,6 +9602,19 @@ local function buildShop(): PanelEntry
 		busy = true
 		fn()
 		busy = false
+	end
+
+	-- Insufficient coins: bring the 2x Coins pass forward (Passes tab, pulsing card) unless owned.
+	local function offerCoinsPass()
+		if ClientState.session.passes.doubleCoins == true then
+			return
+		end
+		passPulse = true
+		setTab("passes")
+	end
+
+	local function neonOffered(): boolean
+		return Config.Ids.Passes.neonPack ~= 0 and ClientState.session.passes.neonPack ~= true
 	end
 
 	local function itemSpec(item: Catalog.Item, p: Types.Profile, featuredSet: { [string]: boolean }): CardSpec
@@ -9071,6 +9716,8 @@ local function buildShop(): PanelEntry
 						toastBad(if price.currency == "gems" then S.notEnoughGems else S.notEnoughCoins)
 						if price.currency == "gems" then
 							setTab("gems")
+						else
+							offerCoinsPass()
 						end
 						return
 					end
@@ -9078,11 +9725,15 @@ local function buildShop(): PanelEntry
 						local ok, result = ClientState.request(Remotes.Requests.BuyItem, item.id)
 						if ok then
 							squash(btn)
+							coinShower(btn, price.currency)
 							sound("buy")
 							toastGood(string.format(S.boughtToast, item.name))
 						else
 							sound("error")
 							toastBad(errorText(result))
+							if result == "insufficient_funds" and price.currency == "coins" then
+								offerCoinsPass()
+							end
 						end
 					end)
 				end
@@ -9119,6 +9770,32 @@ local function buildShop(): PanelEntry
 		}
 	end
 
+	local function passSpec(key: string): CardSpec
+		local owned = ClientState.session.passes[key] == true
+		local robux = (ROBUX.passes :: any)[key]
+		local colorA = if key == "vip" then theme.Yellow elseif key == "doubleCoins" then theme.Success else theme.Pink
+		return {
+			key = specKey({ key, if owned then "o" else "b" }),
+			name = S.passNames[key],
+			sub = S.passDescs[key],
+			subColor = theme.UiLight,
+			colorA = colorA,
+			colorB = theme.UiLight,
+			big = nil,
+			badge = nil,
+			borderColor = colorA,
+			action = if owned then S.owned else string.format(S.priceRobux, robux),
+			actionColor = theme.Yellow,
+			dim = owned,
+			pulse = key == "doubleCoins" and passPulse and not owned,
+			onAction = function()
+				if not owned then
+					promptPass(key)
+				end
+			end,
+		}
+	end
+
 	local function buildSpecs(p: Types.Profile): { CardSpec }
 		local specs: { CardSpec } = {}
 		if tab == "gems" then
@@ -9141,28 +9818,7 @@ local function buildShop(): PanelEntry
 			end
 		elseif tab == "passes" then
 			for _, key in PASS_ORDER do
-				local owned = ClientState.session.passes[key] == true
-				local robux = (ROBUX.passes :: any)[key]
-				local colorA = if key == "vip" then theme.Yellow elseif key == "doubleCoins" then theme.Success else theme.Pink
-				table.insert(specs, {
-					key = specKey({ key, if owned then "o" else "b" }),
-					name = S.passNames[key],
-					sub = S.passDescs[key],
-					subColor = theme.UiLight,
-					colorA = colorA,
-					colorB = theme.UiLight,
-					big = nil,
-					badge = nil,
-					borderColor = colorA,
-					action = if owned then S.owned else string.format(S.priceRobux, robux),
-					actionColor = theme.Yellow,
-					dim = owned,
-					onAction = function()
-						if not owned then
-							promptPass(key)
-						end
-					end,
-				})
+				table.insert(specs, passSpec(key))
 			end
 		else
 			local featuredSet: { [string]: boolean } = {}
@@ -9179,6 +9835,10 @@ local function buildShop(): PanelEntry
 				end
 			else
 				items = Catalog.ofType(TAB_TYPES[tab])
+			end
+			-- VIP is the top slot of Featured until owned.
+			if tab == "featured" and not ownedOnly and ClientState.session.passes.vip ~= true then
+				table.insert(specs, passSpec("vip"))
 			end
 			for _, item in items do
 				if not ownedOnly or ClientState.owns(item.id) then
@@ -9202,7 +9862,12 @@ local function buildShop(): PanelEntry
 		toggleButton.TextColor3 = if ownedOnly then theme.UiDark else theme.UiLight
 
 		local specs = buildSpecs(p)
+		passPulse = false
 		local keys = { tab, if ownedOnly then "own" else "all" }
+		local showNeon = tab == "skins" and neonOffered()
+		if showNeon then
+			table.insert(keys, "neon")
+		end
 		for _, spec in specs do
 			table.insert(keys, spec.key)
 		end
@@ -9216,6 +9881,20 @@ local function buildShop(): PanelEntry
 			if child:IsA("GuiObject") then
 				child:Destroy()
 			end
+		end
+		if showNeon then
+			local banner = button({
+				text = string.format(S.neonBanner, ROBUX.passes.neonPack),
+				color = theme.Pink,
+				size = UDim2.new(0.98, 0, 0, 44),
+				parent = scroller,
+				onClick = function()
+					promptPass("neonPack")
+				end,
+			})
+			banner.Name = "NeonBanner"
+			banner.TextColor3 = theme.UiLight
+			banner.LayoutOrder = 0
 		end
 		if #specs == 0 then
 			local empty = UiKit.label({
@@ -9377,13 +10056,27 @@ end
 local function buildQuests(): PanelEntry
 	local panel = UiKit.panel({ title = S.questsTitle, size = UDim2.fromScale(0.66, 0.7) })
 	local body = panel.body
+	local hasBoost = Config.Ids.Products.boost15 ~= 0
 	local list = UiKit.frame({
 		BackgroundTransparency = 1,
 		Position = UDim2.fromScale(0.03, 0.04),
-		Size = UDim2.fromScale(0.94, 0.92),
+		Size = UDim2.fromScale(0.94, if hasBoost then 0.82 else 0.92),
 		parent = body,
 	})
 	UiKit.list(list, { Padding = UDim.new(0.03, 0) })
+	if hasBoost then
+		local boost = button({
+			text = string.format(S.boostQuest, Config.Income.BoostMultiplier, round(Config.Products.boost15.Seconds / 60)),
+			color = theme.Pink,
+			size = UDim2.fromScale(0.4, 0.09),
+			position = UDim2.fromScale(0.57, 0.89),
+			parent = body,
+			onClick = function()
+				promptProduct("boost15")
+			end,
+		})
+		boost.TextColor3 = theme.UiLight
+	end
 
 	type Row = { root: Frame, desc: TextLabel, fill: Frame, progress: TextLabel, reward: TextLabel, claim: TextButton }
 	local rows: { Row } = {}
@@ -9548,6 +10241,7 @@ local function buildRebirth(): PanelEntry
 			if ok then
 				squash(confirm)
 				sound("reward")
+				sound("rebirthSwell")
 				local crowns = if type(result) == "table" and type(result.crowns) == "number" then result.crowns else ClientState.profile and ClientState.profile.crowns or 0
 				toastGood(string.format(S.rebirthDone, crowns))
 			else
@@ -9889,7 +10583,8 @@ local function tryStarter()
 		return
 	end
 	death.justClosed = false
-	if starterShown or not ClientState.session.starterOffer then
+	local profile = ClientState.profile
+	if starterShown or not ClientState.session.starterOffer or profile == nil or profile.starterOfferSeenAt ~= 0 then
 		return
 	end
 	starterShown = true
@@ -9917,6 +10612,93 @@ local function closeDeath()
 	tryStarter()
 end
 
+-- "While you were away" return panel ---------------------------------------------------------
+
+local function claimableQuests(): number
+	local p = ClientState.profile
+	local n = 0
+	if p then
+		for _, entry in p.quests.list do
+			local def = ClientState.quest(entry.id)
+			if def and not entry.claimed and entry.progress >= def.target then
+				n += 1
+			end
+		end
+	end
+	return n
+end
+
+local function buildAway(): PanelEntry
+	local panel = UiKit.panel({ title = S.awayTitle, size = UDim2.fromScale(0.5, 0.5) })
+	local body = panel.body
+	local streak = plainLabel(body, "", UDim2.fromScale(0.08, 0.06), UDim2.fromScale(0.84, 0.16), Enum.TextXAlignment.Center)
+	streak.TextColor3 = theme.Yellow
+
+	local function row(y: number): (TextLabel, TextButton, Frame)
+		local box = UiKit.frame({
+			Position = UDim2.fromScale(0.08, y),
+			Size = UDim2.fromScale(0.84, 0.24),
+			BackgroundColor3 = CARD_BG,
+			parent = body,
+		})
+		UiKit.corner(box, 12)
+		local label = plainLabel(box, "", UDim2.fromScale(0.04, 0.15), UDim2.fromScale(0.56, 0.7))
+		local btn = button({
+			text = "",
+			size = UDim2.fromScale(0.32, 0.6),
+			position = UDim2.fromScale(0.64, 0.2),
+			parent = box,
+		})
+		return label, btn, box
+	end
+
+	local dailyLabel, dailyBtn = row(0.28)
+	local questLabel, questBtn = row(0.6)
+
+	local busy = false
+	dailyBtn.Activated:Connect(function()
+		local state = ClientState.dailyState()
+		if busy or not state.canClaim then
+			return
+		end
+		busy = true
+		local ok, result = ClientState.request(Remotes.Requests.ClaimDaily)
+		busy = false
+		if ok then
+			squash(dailyBtn)
+			coinShower(dailyBtn, "coins")
+			sound("reward")
+			local day = if type(result) == "table" and type(result.streak) == "number" then result.streak else state.nextStreak
+			toastGood(string.format(S.dailyClaimed, day, PanelController.rewardText(result, "")))
+		else
+			sound("error")
+			toastBad(errorText(result))
+		end
+	end)
+	questBtn.Activated:Connect(function()
+		panel.hide()
+		PanelController.open("Quests")
+	end)
+
+	local function refresh()
+		local p = ClientState.profile
+		if p == nil then
+			return
+		end
+		streak.Text = string.format(S.awayStreak, p.daily.streak)
+		local state = ClientState.dailyState()
+		dailyLabel.Text = if state.canClaim then S.awayDailyReady else S.awayDailyDone
+		dailyBtn.Visible = state.canClaim
+		styleButton(dailyBtn, string.format(S.dailyClaim, state.nextStreak), theme.Yellow, false)
+		local n = claimableQuests()
+		questLabel.Text = string.format(S.awayQuests, n)
+		questBtn.Visible = n > 0
+		styleButton(questBtn, S.awayView, theme.Success, false)
+	end
+	return { panel = panel, refresh = refresh }
+end
+
+builders.Away = buildAway
 builders.Upgrades = buildUpgrades
 builders.Shop = buildShop
 builders.Daily = buildDaily
@@ -9963,6 +10745,23 @@ function PanelController.start()
 				entry.refresh()
 			end
 		end
+	end)
+	-- First profile of the session: welcome returning players who have something to claim.
+	local awayChecked = false
+	ClientState.profileChanged:Connect(function(profile: Types.Profile?)
+		if awayChecked or profile == nil then
+			return
+		end
+		awayChecked = true
+		if profile.firstJoin == profile.lastJoin or not profile.tutorialDone then
+			return
+		end
+		if not (ClientState.dailyState().canClaim or ClientState.questClaimable()) then
+			return
+		end
+		task.delay(AWAY_DELAY, function()
+			PanelController.open("Away")
+		end)
 	end)
 	ClientState.death:Connect(showDeath)
 	ClientState.arenaChanged:Connect(function()
@@ -10014,6 +10813,7 @@ local TRAIL_BRIGHTEN = 0.35
 local FLASH_TIME = 0.25
 local FLASH_LIGHTEN = 0.6
 local FLASH_MAX = 40
+local STOLEN_TINT = 0.7 -- stolen-claim flash starts this far from the owner colour toward Danger
 local FLASH_WINDOW = 0.6 -- seconds a claim event and its cell delta may arrive apart
 local BLINK_HZ = 4
 local TEXTURE_TILE_CELLS = 2
@@ -10022,6 +10822,7 @@ local CS = Config.Arena.CellSize
 local FLOOR = Config.Arena.FloorY
 local WHITE = Color3.new(1, 1, 1)
 local FALLBACK = Color3.fromHex(Config.Colors.GridLine)
+local STOLEN_COLOR = Color3.fromHex(Config.Colors.Danger)
 
 type Style = {
 	a: Color3,
@@ -10059,6 +10860,7 @@ local blinkOn = false
 
 local claimAt: { [number]: number } = {}
 local flashLeft: { [number]: number } = {}
+local claimStolen: { [number]: boolean } = {} -- owner -> latest claim took cells from others
 local flashStart: { [BasePart]: number } = {}
 local flashFrom: { [BasePart]: Color3 } = {}
 local flashTo: { [BasePart]: Color3 } = {}
@@ -10208,7 +11010,7 @@ local function startFlash(p: BasePart, owner: number, color: Color3, now: number
 		return
 	end
 	flashLeft[owner] = left - 1
-	local from = color:Lerp(WHITE, FLASH_LIGHTEN)
+	local from = if claimStolen[owner] then color:Lerp(STOLEN_COLOR, STOLEN_TINT) else color:Lerp(WHITE, FLASH_LIGHTEN)
 	p.Color = from
 	flashStart[p] = now
 	flashFrom[p] = from
@@ -10347,6 +11149,7 @@ local function resetAll()
 	table.clear(styles)
 	table.clear(claimAt)
 	table.clear(flashLeft)
+	table.clear(claimStolen)
 	dirtyHead = 1
 	half = size * CS / 2
 	cps = TrailRuns.chunksPerSide(size, CHUNK)
@@ -10462,10 +11265,11 @@ end
 
 -- Claim wave trigger (GDD G6). Chunks whose delta already arrived and were rebuilt flash now;
 -- the rest flash when rebuilt within FLASH_WINDOW.
-function TurfRenderer.claimFlash(owner: number)
+function TurfRenderer.claimFlash(owner: number, stolen: boolean?)
 	if lowDetail or owner == 0 then
 		return
 	end
+	claimStolen[owner] = stolen == true
 	local now = os.clock()
 	local estimate = 0
 	for c = 1, cps * cps do
@@ -10544,6 +11348,14 @@ function TurfRenderer.removeRunner(id: number)
 	danger[id] = nil
 end
 
+-- Base turf colour of a runner (same lookup the renderer uses); neutral grey for unknown ids.
+function TurfRenderer.colorOf(runnerId: number): Color3
+	if runnerId == 0 then
+		return FALLBACK
+	end
+	return styleOf(runnerId).a
+end
+
 function TurfRenderer.runnerChanged(id: number)
 	styles[id] = nil
 	local g = grid
@@ -10602,6 +11414,10 @@ local Config = require(Shared.Config)
 local ClientState = require(script.Parent.Parent.ClientState)
 local UiKit = require(script.Parent.Parent.ui.UiKit)
 local ArenaClient = require(script.Parent.ArenaClient)
+local HudController = require(script.Parent.HudController)
+local PanelController = require(script.Parent.PanelController)
+
+local TweenService = game:GetService("TweenService")
 
 local TutorialController = {}
 
@@ -10614,6 +11430,8 @@ local CUT_TIMEOUT = 60
 local CUT_POLL = 0.25
 local UPGRADE_TIMEOUT = 45
 local POLL = 0.2
+local HAND_GAP = 6 -- px between the rail button and the hand
+local RING_THICKNESS = 6
 -- Three legs in cells: +X 5, +Z 4, -X 5; four dots per leg.
 local LEGS = { Vector2.new(5, 0), Vector2.new(0, 4), Vector2.new(-5, 0) }
 
@@ -10791,21 +11609,55 @@ local function runUpgradeHint()
 	end
 
 	local gui = UiKit.screenGui("Tutorial", 50)
-	local arrow = UiKit.label({
-		Text = "👆",
-		Size = UDim2.fromScale(0.06, 0.1),
-		Position = UDim2.fromScale(0.09, 0.3),
-		BackgroundTransparency = 1,
-		TextScaled = true,
-		Parent = gui,
-	})
+	-- The hand is a button: tapping it opens the Upgrades panel.
+	local arrow = Instance.new("TextButton")
+	arrow.Name = "Hand"
+	arrow.Text = "👆"
+	arrow.Font = Enum.Font.GothamBold
+	arrow.TextScaled = true
+	arrow.BackgroundTransparency = 1
+	arrow.AutoButtonColor = false
+	arrow.Size = UDim2.fromScale(0.06, 0.1)
+	arrow.Position = UDim2.fromScale(0.09, 0.3) -- fallback until the rail button exists
+	arrow.Parent = gui
 	UiKit.pulse(arrow)
+	arrow.Activated:Connect(function()
+		PanelController.open("Upgrades")
+	end)
+
+	-- Pulse the real rail button with a breathing outline (the button already owns a UIScale for hover).
+	local ring: UIStroke? = nil
+	local ringTween: Tween? = nil
 
 	local deadline = os.clock() + UPGRADE_TIMEOUT
 	while coinBoostLevel() <= 0 and os.clock() < deadline do
+		local button = HudController.getRailButton("Upgrades")
+		if button then
+			if ring == nil then
+				local stroke = UiKit.stroke(button, Color3.new(1, 1, 1), 2)
+				stroke.Name = "TutorialRing"
+				ring = stroke
+				local tween = TweenService:Create(
+					stroke,
+					TweenInfo.new(0.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+					{ Thickness = RING_THICKNESS }
+				)
+				tween:Play()
+				ringTween = tween
+			end
+			local pos, size = button.AbsolutePosition, button.AbsoluteSize
+			arrow.Position = UDim2.fromOffset(pos.X + size.X + HAND_GAP, pos.Y + size.Y * 0.2)
+			arrow.Size = UDim2.fromOffset(size.Y, size.Y)
+		end
 		task.wait(POLL)
 	end
 
+	if ringTween then
+		ringTween:Cancel()
+	end
+	if ring then
+		ring:Destroy()
+	end
 	UiKit.stopPulse(arrow)
 	gui:Destroy()
 end
@@ -10854,6 +11706,7 @@ local Config = require(Shared.Config)
 local UiKit = {}
 
 UiKit.onClickSound = nil :: (() -> ())?
+UiKit.onHoverSound = nil :: (() -> ())?
 
 function UiKit.color(hex: string): Color3
 	return Color3.fromHex(hex)
@@ -11011,6 +11864,10 @@ function UiKit.button(props: {
 	end
 	b.MouseEnter:Connect(function()
 		hover = true
+		local hoverSnd = UiKit.onHoverSound
+		if hoverSnd then
+			hoverSnd()
+		end
 		refresh()
 	end)
 	b.MouseLeave:Connect(function()
