@@ -18,6 +18,8 @@ Remotes.Reward = "Reward" -- (payload: { coins: number?, gems: number?, reason: 
 -- Sent in full on load and after every profile change (throttled to 4 Hz per player).
 Remotes.ProfileUpdate = "ProfileUpdate"
 Remotes.Toast = "Toast" -- (text: string, kind: "info" | "good" | "bad")
+-- (runners: {RunnerInfo}) every alive or pending runner, re-sent when someone's equipped cosmetics change
+Remotes.RunnerInfo = "RunnerInfo"
 
 -- client -> server RemoteFunction; server returns (ok: boolean, resultOrErrorKey: any)
 Remotes.Request = "Request"

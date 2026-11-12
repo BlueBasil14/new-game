@@ -679,7 +679,15 @@ local function tick(now: number)
 	sim:step(now, positions)
 
 	for _, ev in sim:drainEvents() do
-		broadcast(Remotes.ArenaEvent, ev)
+		local e = ev :: any
+		if e.kind == "spawn" then
+			-- Clients cannot read os.clock; give them shieldUntil on the synchronized server clock.
+			local copy = table.clone(e)
+			copy.shieldUntil = workspace:GetServerTimeNow() + (e.shieldUntil - now)
+			broadcast(Remotes.ArenaEvent, copy)
+		else
+			broadcast(Remotes.ArenaEvent, ev)
+		end
 		local ok, err = pcall(handleEvent, ev, now)
 		if not ok then
 			warn("[ArenaService] event handler failed:", (ev :: any).kind, err)

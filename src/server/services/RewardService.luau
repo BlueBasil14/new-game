@@ -171,6 +171,20 @@ function RewardService.redeemCode(player: Player, code: any): (boolean, any)
 	return true, { currency = reward.currency, amount = reward.amount }
 end
 
+-- Playtime rewards claimed this session as a dense array (sparse tables do not survive remotes).
+function RewardService.playtimeClaimed(player: Player): { boolean }
+	local out = table.create(#Catalog.playtime, false)
+	local claimed = claimedPlaytime[player]
+	if claimed ~= nil then
+		for i in claimed do
+			if out[i] ~= nil then
+				out[i] = true
+			end
+		end
+	end
+	return out
+end
+
 -- One DataService update per call, however many quests match.
 function RewardService.progress(player: Player, kind: string, amount: number, mode: string)
 	if type(kind) ~= "string" or type(amount) ~= "number" then

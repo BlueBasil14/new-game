@@ -66,3 +66,24 @@ applying a delta is idempotent and order inside one batch does not matter.
   `addRunner`/`revive` emit `spawn` then maybe `king`; `removeRunner` emits `despawn` then maybe `king`.
 - Trail deltas: `clear = true` means drop the client's copy of that trail before appending `append`
   (in walk order). Trail cells are not reported as cell changes.
+
+## Server runtime
+`ArenaService` (src/server/services) drives one `ArenaSim` at `TickRate` on Heartbeat; `now` = `os.clock()` everywhere in the sim.
+- Fields: `sim`, `now()`, `botPositions: {[id]: {x, y}}` (cell units, merged into each step), `preStep: ((now, dt) -> ())?`
+  (one hook, run at the start of every tick; BotService), `onEvent:Connect(fn(ev))` (sync, after ArenaService handled the event).
+- Functions: `start()`, `join(player)` (after profile load), `leave(player)`, `clientReady(player)`, `respawn(player)`,
+  `declineSecondChance(player)`, `secondChance(player) -> boolean` (= `MonetizationService.onSecondChance`),
+  `refreshWalkSpeed(player)`, `freeColorIndex()`, `gentleRunnerIds(now)`, `runnerIdOf(player)`.
+- Players have a runner only while their character is alive; Humanoid death = `removeRunner`, re-added on the next character
+  (new snapshot). A cut player's character is anchored 20 studs under the floor at its XZ until respawn/revive.
+
+Join / snapshot sequence (per client):
+1. Profile loads → `ProfileUpdate` (full) → character spawns → runner added → `ArenaSnapshot(rle, runners, yourRunnerId)`
+   immediately followed by `ArenaDelta(emptyCells, trails)` where every alive/pending runner has `clear = true, append = full trail`.
+2. Only after that does the client receive `ArenaEvent` / `ArenaDelta` / `RunnerInfo` broadcasts (sent per ready client).
+3. The snapshot pair is re-sent on the client's first `Request` and every time the player gets a new runner (after a character
+   death), so treat it as a full reset. A `spawn` for a runner already in the snapshot may follow; handle it idempotently.
+4. `spawn.shieldUntil` sent to clients is on `workspace:GetServerTimeNow()` time, not the sim clock.
+- `Death` goes to the victim only; `Reward` after the player's own claim (`cx, cy` = claim centroid in cells) or kill.
+- Added remote `RunnerInfo(runners: {RunnerInfo})`: full list of alive + pending runners after any equipped-cosmetic change.
+- Bot rigs: `workspace.Bots[tostring(id)]` Model, PrimaryPart = body.
