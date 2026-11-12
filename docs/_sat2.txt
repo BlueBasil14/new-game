@@ -1,0 +1,56 @@
+## be a hole  (results=40, sumCCU=10567, >=1k: 3)
+     4383    94%     33302v  [MARS] Clean the Moon!
+     1379    95%   1174476v  [🎃] Eat the World
+     1247    45%       962v  Be The Wall
+      710    98%    246065v  Get Tall and Fall
+      581    64%      1467v  Be a Natural Disaster
+      554    78%     13958v  Become Hungry Worm
+
+## eat everything grow  (results=40, sumCCU=523313, >=1k: 5)
+   508265    91%   4538274v  Steal An Egg
+     3751    67%      3005v  [🏗️] Build Everything!
+     3359    91%      5152v  [🍨CH2] Eat THE Ice Cream 
+     1376    95%   1174477v  [🎃] Eat the World
+     1104    81%      1094v  Melt Everything With Acid! [CH2] 
+      995    53%     45492v  eat stuf get fat
+
+## snake io  (results=40, sumCCU=21710, >=1k: 4)
+    12121    83%     80933v  Bug Evolution [☀️]
+     4470    98%    232375v  Scare Your Neighbor
+     1497    89%     79758v  Climb Scary Worm Tower 3
+     1153    46%      8933v  🪱 worm odyssey [slither update !]
+      554    78%     13958v  Become Hungry Worm
+      225    87%    129284v  Be a Snake
+
+## paint territory  (results=40, sumCCU=59600, >=1k: 6)
+    37692    86%    162154v  DONT SPLASH
+     6522    72%      5735v  Paint and Hide! 🎨
+     3040    75%     27165v  [UPD] Paint to Get Rich 🎨
+     2754    63%      2069v  Paint the Face
+     1480    66%       424v  Paint the Flag
+     1115    53%     20640v  Color My Flag
+
+## splatoon  (results=40, sumCCU=189565, >=1k: 16)
+    67424    94%  11728936v  RIVALS
+    37692    86%    162154v  DONT SPLASH
+    17993    87%    283429v  [🏆] Huss Valley
+    15703    94%   2062833v  🔥Hypershot
+    10422    87%    121990v  [DUELS⚔️] Deagle Arena
+     9388    88%    275721v  [FPS] One Tap
+
+## block blast  (results=40, sumCCU=11706, >=1k: 4)
+     1643    73%    140492v  Escape Waves For Lucky Blocks
+     1202    63%    137265v  Dash World
+     1141    96%    102607v  [W2] Power Blast Lucky Blocks!
+     1013    70%       651v  🔥 KICK FREE BLOCK 💸 (X999)
+      979    72%    383642v  BEAT BOUNCE 🎶 (GEOMETRY DASH)
+      857    84%     30732v  Logo Color Bridge
+
+## tetris  (results=40, sumCCU=20251, >=1k: 5)
+     7334    61%    676202v  🚨BARRY'S PRISON RUN! (OBBY)
+     2046    77%      4476v  Solve The Cube
+     1882    92%    398911v  IQ Test 🧠
+     1260    49%     76106v  Teamwork Puzzles (Obby)
+     1202    63%    137265v  Dash World
+      979    72%    383642v  BEAT BOUNCE 🎶 (GEOMETRY DASH)
+

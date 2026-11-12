@@ -152,3 +152,251 @@
      3633    97%    140406v  Zombie Rush Survival 🧟‍♂️
      3499    98%   1457923v  [🕸️] Garden Tower Defense 🌻
 
+## lawn mowing  (results=40, sumCCU=19057, >=1k: 3)
+     9235    92%    263871v  [🚧UPD🚧] Southern Mudding 🚜 OffRoading
+     4864    89%    437919v  [📡ANTENNAS📡] American Plains Mudding
+     1426    79%      6110v  Pave the Road
+      663    97%      9032v  Rock In My Lawn
+      595    88%      1636v  Yard Rescue Crew
+      534    93%      6752v  Lawn Care Empire 🌱
+
+## house flipper  (results=40, sumCCU=227367, >=1k: 8)
+   204343    86%  10179138v  Brookhaven 🏡RP
+     5579    75%      1731v  [UPD] Build a REAL House
+     2320    89%      5896v  Grab and Decorate
+     2217    74%      1583v  Build and Sell Houses!
+     2024    83%     14151v  Renovate A House
+     1770    97%    755318v  Mansion Tycoon 🌴🏠
+
+## storage auction  (results=40, sumCCU=566503, >=1k: 10)
+   528677    91%   4538339v  Steal An Egg
+    10642    95%    146608v  [UPD 🪖] Storage Hunters: Open World
+     7119    94%      4706v  [👽] Steal a PC 
+     4123    94%    395218v  Sell Lemons 🍋
+     3961    86%      2807v  Thrift&Flip: Resell Tycoon
+     2448    95%    741211v  Survive Overnight in a Mega Store
+
+## pawn shop  (results=40, sumCCU=34623, >=1k: 8)
+    10642    95%    146608v  [UPD 🪖] Storage Hunters: Open World
+     5958    96%     47535v  🧸 My Small Business
+     3961    86%      2807v  Thrift&Flip: Resell Tycoon
+     2648    88%     69089v  Junk Mechanics
+     2262    90%      3829v  [🃏UPD] My Trading Card Shop! [BETA]
+     1820    94%      9367v  Trading Tycoon
+
+## card shop  (results=40, sumCCU=549364, >=1k: 8)
+   528677    91%   4538274v  Steal An Egg
+     5977    96%     47535v  🧸 My Small Business
+     2262    90%      3829v  [🃏UPD] My Trading Card Shop! [BETA]
+     2226    98%    608419v  [⭐UPD] Anime Card Collection
+     2049    97%    114324v  [UPD📖] Anime Card Farm
+     1820    94%      9367v  Trading Tycoon
+
+## metal detecting  (results=40, sumCCU=25372, >=1k: 6)
+    10653    95%    146608v  [UPD 🪖] Storage Hunters: Open World
+     4111    84%      4454v  Detect and Steal an Egg
+     2350    98%   1177014v  ⛏️Dig to Escape
+     2292    96%    353386v  [🎃] Prospecting! 💎
+     2221    91%     12225v  🎃 Dig For Eggs
+     1198    95%    455625v  [⚔️] Search For The Needle
+
+## gold panning  (results=40, sumCCU=54137, >=1k: 5)
+    37692    86%    162139v  DONT SPLASH
+     6997    93%   3934233v  Build A Boat For Treasure
+     2330    96%    353386v  [🎃] Prospecting! 💎
+     2158    90%    110084v  Ice Fishing Simulator 🐟
+     1160    97%    193810v  Miners World [Mayors]
+      622    69%      5810v  +1 DONT SPLASH
+
+## coin pusher  (results=40, sumCCU=7103, >=1k: 2)
+     1523    91%      5531v  [👹] Collect The Coins
+     1390    98%    199671v  [🌎W10] Throw a Coin
+      979    89%     25842v  [ 🃏3.5 ] RE:Heads, Please! [RNG]
+      956    89%     11017v  +1 Money Per Click 💸
+      555    79%      7565v  Claw Machine Hub
+      543    85%       340v  Collect 1 Million Coins
+
+## claw machine  (results=40, sumCCU=5925, >=1k: 1)
+     2375    81%     94346v  Bendy and the ink Machine
+      571    82%     86538v  [🎂]Tokyo Claw Machine
+      561    79%      7565v  Claw Machine Hub
+      432    96%   2834318v  [🎩] Knockout! 🐧
+      332    72%     20809v  Lucky Scoop Order [BETA]
+      244    89%    623025v  [UPD] Slippery Stairs
+
+## arcade  (results=40, sumCCU=21081, >=1k: 5)
+     8956    92%    372573v  [🔥UPD] Sniper Arena
+     5062    85%      3668v  [FPS] Pixel Arena
+     1829    89%   2344693v  Theme Park Tycoon 2
+     1269    88%    348327v  🕹️[Arcade] Youtuber Tycoon!
+     1123    74%     39797v  [⚽] Beatball
+      571    82%     86538v  [🎂]Tokyo Claw Machine
+
+## bridge building  (results=40, sumCCU=31656, >=1k: 11)
+     5877    96%     51774v  Build a Bridge
+     3751    67%      3005v  [🏗️] Build Everything!
+     3707    66%     19001v  Build with Voxels 🔨
+     3087    97%    198970v  Build a Keyboard!
+     1898    37%      6128v  Last Bridge Standing
+     1865    63%     57162v  Easy Glass Bridge (Possible Squid Game)
+
+## learn to fly  (results=40, sumCCU=20608, >=1k: 6)
+     5710    93%     93487v  TROLL Fly & Carry Tower
+     3211    57%      6974v  Don’t Miss Your Flight! ✈️
+     2960    64%     13549v  Flying Tesla Roadster [Military Escape Event]
+     2271    76%     22922v  A Long Flight [BIOMES]
+     1651    93%    953877v  Pilot Training Flight Simulator
+     1483    91%     50807v  [🏜] Fly Hide & Seek
+
+## launch  (results=40, sumCCU=16635, >=1k: 4)
+     6766    85%     15887v  Can You Pass A Driving Test?
+     3616    87%     25715v  [UPD] Tesla Roadster Chase
+     1914    85%    244693v  ✈️ Build A Plane
+     1350    95%    833899v  [UPD 🌊] Merge a Nuke!
+      790    74%      7105v  Launch Things And People
+      636    84%      2736v  Steal and Launch a Nuke
+
+## duck life  (results=40, sumCCU=18557, >=1k: 4)
+     9024    80%     11308v  [VULTURE🐦] FERAL 🐺 Animal Survival
+     3073    88%     71924v  Duck Duck (Tag) 🦆
+     1981    92%    518329v  Feather Family 🍂
+     1705    94%    325590v  Savannah Life
+      410    70%      1085v  [🌊LEVIATHAN] My Animal Life!🐾
+      371    98%     40062v  Tame An Animal
+
+## pet racing  (results=40, sumCCU=564922, >=1k: 8)
+   528677    91%   4538339v  Steal An Egg
+    11869    94%     36544v  [🏁] Steal A Pet And Ride It!
+     7533    96%     31877v  ⚽ Be a Soccer Legend
+     4515    96%    492089v  [♻️] Ride A Pet
+     3616    87%     25715v  [UPD] Tesla Roadster Chase
+     2611    92%    276356v  Wild Horse Islands
+
+## earn to die  (results=40, sumCCU=106736, >=1k: 7)
+    73740    91%   6141105v  99 Nights in the Forest 🔦
+    13792    97%     56830v  [UPD5 ✨] Depth Incremental
+     7218    61%    676202v  🚨BARRY'S PRISON RUN! (OBBY)
+     3121    92%    160287v  🍁 Bake or Die 💀 
+     1659    81%    149919v  🔊Quiet or Die!
+     1642    90%   1828107v  Color or Die 🎨
+
+## hill climb  (results=40, sumCCU=34215, >=1k: 7)
+     9847    99%    232302v  Climb For Animals Eggs🥚
+     9103    92%    263869v  [🚧UPD🚧] Southern Mudding 🚜 OffRoading
+     4081    92%      7286v  Impossible Hill Climb
+     2434    97%   1344466v  Climb and Jump Tower [🎃EVENT]
+     2092    78%     30256v  Climb The Rake Tower
+     1515    86%    589385v  🚩Expedition Antarctica
+
+## age of war  (results=40, sumCCU=38034, >=1k: 9)
+     8364    83%     36642v  RoWorld [World PvP]
+     5330    94%     21107v  Ragdoll Wars!
+     5327    96%    853735v  [💥] Mini War
+     4782    95%    197110v  [⚓ NAVAL] Command An Army
+     2774    91%   1225603v  [Blackhawk DAP] War Tycoon
+     2544    81%    160742v  Conquer The World WW2 [🎨]
+
+## lane battle  (results=40, sumCCU=140086, >=1k: 13)
+    67424    94%  11728936v  RIVALS
+    34364    84%   6410337v  [HALLOWEEN] The Strongest Battlegrounds
+     5819    89%      2759v  +1 Boxing Battle Evolution
+     4382    73%     71078v  Cat Battles 🐾
+     3783    87%    579965v  Legends Battlegrounds
+     3223    93%      6559v  [💬] Word Battle!
+
+## bomberman  (results=40, sumCCU=72511, >=1k: 12)
+    17993    87%    283429v  [🏆] Huss Valley
+    10485    87%    121990v  [DUELS⚔️] Deagle Arena
+     9388    88%    275721v  [FPS] One Tap
+     6257    84%     23357v  [⚔️RANKED] Urban Reload 💀
+     4570    95%    716160v  [ZOMBIES!] BloxStrike
+     4430    65%    374895v  🎃 Timebomb Duels [Alpha]
+
+## fireboy watergirl  (results=40, sumCCU=74396, >=1k: 9)
+    37692    86%    162139v  DONT SPLASH
+     8133    86%    107393v  TROLL Hug Tower
+     7127    34%     39464v  obby but you get smaller every stage
+     5216    75%      6043v  DONT SWIM 🚫🏊
+     4005    92%     41029v  Firefighting Sim 🚒
+     2374    89%     39384v  Carry the Glass Together! [2 Player Obby]
+
+## paper io  (results=40, sumCCU=13481, >=1k: 2)
+     6522    72%      5735v  Paint and Hide! 🎨
+     1115    53%     20639v  Color My Flag
+      979    72%    383642v  BEAT BOUNCE 🎶 (GEOMETRY DASH)
+      857    84%     30732v  Logo Color Bridge
+      541    95%    234298v  💣 Bomb Chip
+      505    83%     11696v  🦃 Paint Wars 🎨
+
+## territory  (results=40, sumCCU=30260, >=1k: 7)
+     8364    83%     36642v  RoWorld [World PvP]
+     5327    96%    853733v  [💥] Mini War
+     4788    95%    197110v  [⚓ NAVAL] Command An Army
+     2544    81%    160742v  Conquer The World WW2 [🎨]
+     1319    85%     19727v  [SHIPS] Build and Conquer 
+     1179    74%      1318v  WarFront [AIRPORT]
+
+## slither snake  (results=40, sumCCU=15722, >=1k: 2)
+    12121    83%     80933v  Bug Evolution [☀️]
+     1178    46%      8933v  🪱 worm odyssey [slither update !]
+      876    88%      3423v  🐛 +1 Shrink Worm Escape
+      237    87%    129284v  Be a Snake
+      222    85%    318395v  🕳️ Be a Hole
+      197    55%       287v  Snake Wars! 🐍
+
+## angry birds  (results=40, sumCCU=44501, >=1k: 5)
+    24354    98%    289782v  [🌟FIX] Cameraman Tower Defense
+    12121    83%     80933v  Bug Evolution [☀️]
+     1981    92%    518329v  Feather Family 🍂
+     1611    75%    127719v  Think Twice
+     1194    63%    137265v  Dash World
+      979    72%    383642v  BEAT BOUNCE 🎶 (GEOMETRY DASH)
+
+## slingshot destroy  (results=40, sumCCU=534234, >=1k: 4)
+   508265    91%   4538339v  Steal An Egg
+    16527    80%   1206789v  Fling Things and People
+     2035    72%     52171v  [🧤] Defusal
+     1199    92%    275090v  Destroy Grandma
+      916    95%     25424v  Destroy The Sun ☀️
+      817    89%     19488v  iPads!🧪Realistic Phone Drop Test
+
+## fruit ninja  (results=40, sumCCU=296518, >=1k: 7)
+   226153    92%  13925855v  [🎃] Blox Fruits
+    54326    86%   3172365v  [🎃] Jujutsu Shenanigans
+     6817    97%     28541v  +1 Power Fruit Evolution
+     2418    85%    352246v  Secret Staycation
+     1718    77%    291615v  [UPD] 💪Ninja Challenge [BETA]
+     1506    90%   1270269v  [OPE V2] Fruit Battlegrounds
+
+## teardown  (results=40, sumCCU=57246, >=1k: 9)
+    20333    90%     37734v  Ragdoll Physics 🩸
+     8235    95%     76374v  [👥UPD] Ragdoll Playground
+     6111    88%     43066v  Realistic Ragdoll Engine 🩸
+     6101    83%     43784v  Ragdoll Reality 🩸
+     3275    88%      9221v  [UPD] Destruction Engine Testing 💥
+     2939    79%      9247v  Realistic Car Destruction
+
+## destruction  (results=40, sumCCU=53221, >=1k: 10)
+    20333    90%     37715v  Ragdoll Physics 🩸
+     6111    88%     43062v  Realistic Ragdoll Engine 🩸
+     6101    83%     43784v  Ragdoll Reality 🩸
+     3275    88%      9221v  [UPD] Destruction Engine Testing 💥
+     2939    79%      9247v  Realistic Car Destruction
+     2786    94%    132064v  [UPD] Plane Crash Simulator
+
+## backpack battles  (results=40, sumCCU=152429, >=1k: 14)
+    67424    94%  11728936v  RIVALS
+    34364    84%   6410337v  [HALLOWEEN] The Strongest Battlegrounds
+    17993    87%    283429v  [🏆] Huss Valley
+     4654    88%    130503v  Anime Ability Arena
+     4524    73%     71075v  Cat Battles 🐾
+     3130    93%      6559v  [💬] Word Battle!
+
+## inventory  (results=40, sumCCU=625887, >=1k: 10)
+   528677    91%   4538274v  Steal An Egg
+    48668    94%   3301257v  Catalog Avatar Creator
+    13995    91%    200060v  🛍️ My Avatar!
+    11361    92%    107050v  🎃 Catalog Avatar Runway
+    10642    95%    146608v  [UPD 🪖] Storage Hunters: Open World
+     3616    87%     25715v  [UPD] Tesla Roadster Chase
+
