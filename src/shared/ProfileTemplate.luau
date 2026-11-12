@@ -14,8 +14,8 @@ function ProfileTemplate.default(now: number): Profile
 		crowns = 0,
 		lifetimeCoinsSinceRebirth = 0,
 		upgrades = { speed = 0, startSize = 0, coinBoost = 0, shield = 0 },
-		owned = { default = true, sparkle = true },
-		equipped = { skin = "default", trail = "default", effect = "sparkle" },
+		owned = { default = true, default_trail = true, sparkle = true },
+		equipped = { skin = "default", trail = "default_trail", effect = "sparkle" },
 		stats = {
 			cells = 0,
 			kills = 0,
