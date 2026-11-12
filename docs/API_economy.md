@@ -41,3 +41,5 @@ Signals: `sig:Connect(fn)` returns `{Disconnect}`; callbacks run via task.spawn.
 - `progress(player, kind, amount, mode: "add"|"max")` kinds: cells, kills, bigCapture, mapPct, kingSeconds, playMinutes
 
 Shared pure logic: `Shared/EconomyRules` (`shouldOfferStarter`, `applyQuestProgress`).
+
+- `MonetizationService.onPassOwned: ((Player) -> ())?` and `onProductBought: ((Player, productKey, robux) -> ())?` pluggable hooks (ArenaService / Main). `AnalyticsService.funnelOnce(player, step, name)` logs a funnel step once per session.

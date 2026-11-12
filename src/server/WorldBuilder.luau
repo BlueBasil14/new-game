@@ -188,8 +188,12 @@ local function buildProps(root: Folder)
 	local stand = Instance.new("Model")
 	stand.Name = "LeaderboardStand"
 	stand:SetAttribute("Placeholder", "M8")
-	makePart(stand, "Post", Vector3.new(2, 8, 2), CFrame.new(30, FLOOR_Y + 4, out), dark)
-	local panel = makePart(stand, "BoardPanel", Vector3.new(16, 10, 1), CFrame.new(30, FLOOR_Y + 13, out), dark)
+	-- Just outside the north wall, raised above it, facing the arena centre (+Z): the Back face is visible from inside.
+	local boardW, boardH, boardLift = 48, 24, 2
+	local northZ = -(HALF + WALL_T + 6)
+	local boardY = FLOOR_Y + WALL_H + boardLift + boardH / 2
+	makePart(stand, "Post", Vector3.new(2, boardY - FLOOR_Y, 2), CFrame.new(0, FLOOR_Y + (boardY - FLOOR_Y) / 2, northZ - 1.5), dark)
+	local panel = makePart(stand, "BoardPanel", Vector3.new(boardW, boardH, 1), CFrame.new(0, boardY, northZ), dark)
 	local gui = Instance.new("SurfaceGui")
 	gui.Name = "BoardGui"
 	gui.Face = Enum.NormalId.Back

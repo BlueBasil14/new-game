@@ -13,6 +13,10 @@ local MonetizationService = {}
 
 -- Pluggable: return true when the respawn was applied.
 MonetizationService.onSecondChance = nil :: ((Player) -> boolean)?
+-- Pluggable: called after a game pass is marked owned (ArenaService refreshes the VIP tag).
+MonetizationService.onPassOwned = nil :: ((Player) -> ())?
+-- Pluggable: called after a receipt is granted (productKey, Robux price or 0); Main logs analytics.
+MonetizationService.onProductBought = nil :: ((Player, string, number) -> ())?
 
 local SECOND_CHANCE_REFUND_GEMS = 20
 
@@ -36,6 +40,10 @@ local function markPassOwned(player: Player, passKey: string)
 	EconomyService.setPassOwned(player, passKey, true)
 	if DataService.get(player) ~= nil then
 		ShopService.reconcile(player)
+	end
+	local hook = MonetizationService.onPassOwned
+	if hook ~= nil then
+		pcall(hook, player)
 	end
 end
 
@@ -153,6 +161,10 @@ local function processReceipt(info: { [string]: any }): Enum.ProductPurchaseDeci
 	end
 	-- Persist the receipt before telling Roblox the purchase is granted.
 	pcall(DataService.save, player)
+	local bought = MonetizationService.onProductBought
+	if bought ~= nil then
+		pcall(bought, player, productKey, tonumber(info.CurrencySpent) or 0)
+	end
 	return Enum.ProductPurchaseDecision.PurchaseGranted
 end
 

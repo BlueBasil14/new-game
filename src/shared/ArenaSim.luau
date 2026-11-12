@@ -585,6 +585,14 @@ function ArenaSim.runners(self: ArenaSim): { Runner }
 	return out
 end
 
+-- Drops a runner's trail (e.g. out-of-bounds teleport); emits the usual clearing trail delta.
+function ArenaSim.clearTrail(self: ArenaSim, id: number)
+	local r = self.runnersById[id]
+	if r then
+		clearTrail(self, r)
+	end
+end
+
 function ArenaSim.isAlive(self: ArenaSim, id: number): boolean
 	local r = self.runnersById[id]
 	return r ~= nil and r.alive

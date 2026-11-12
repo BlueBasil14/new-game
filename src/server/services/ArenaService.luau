@@ -52,6 +52,7 @@ type PState = {
 	pendingUntil: number?,
 	secondChanceUsed: boolean,
 	respawning: boolean,
+	autoRespawn: boolean, -- cut without a Second Chance offer: respawn after RespawnDelay without a request
 	kingAccum: number,
 	ready: boolean,
 }
@@ -74,7 +75,9 @@ local BELOW_FLOOR = 6
 local ABOVE_FLOOR = 20
 -- Cut players wait anchored under the floor; the chase camera then still sits above the arena.
 local HIDE_DEPTH = 20
-local SECOND_CHANCE_GRACE = 20 -- purchase dialogs take time
+-- Seconds the victim's turf is held after the prompt. A purchase in flight cannot be detected (the client
+-- opens the dialog), so this stays generous.
+local SECOND_CHANCE_GRACE = 12
 local ZERO_TURF_RECYCLE = 2
 local IDLE_RESPAWN = 30 -- server respawns a released player who never sent Respawn
 local CHARACTER_WAIT = 10
@@ -273,6 +276,7 @@ local function resetLife(st: PState, now: number)
 	st.secondChanceUsed = false
 	st.pendingUntil = nil
 	st.respawning = false
+	st.autoRespawn = false
 	st.kingAccum = 0
 	st.overTicks = 0
 end
@@ -287,6 +291,50 @@ local function removePlayerRunner(st: PState, now: number)
 	playerById[id] = nil
 	zeroSince[id] = nil
 	sim:removeRunner(id, now)
+end
+
+-- Gold DisplayName tag above the head for VIP players; removed when absent.
+local function applyVipTag(st: PState)
+	local head = if st.character ~= nil then st.character:FindFirstChild("Head") else nil
+	if head == nil then
+		return
+	end
+	local old = head:FindFirstChild("VipTag")
+	if old ~= nil then
+		old:Destroy()
+	end
+	if not EconomyService.hasPass(st.player, "vip") then
+		return
+	end
+	local gui = Instance.new("BillboardGui")
+	gui.Name = "VipTag"
+	gui.Size = UDim2.fromOffset(200, 40)
+	gui.StudsOffset = Vector3.new(0, 2.5, 0)
+	gui.AlwaysOnTop = true
+	local label = Instance.new("TextLabel")
+	label.Size = UDim2.fromScale(1, 1)
+	label.BackgroundTransparency = 1
+	label.Font = Enum.Font.GothamBold
+	label.TextScaled = true
+	label.TextColor3 = Color3.fromHex(Config.Colors.Yellow)
+	label.TextStrokeTransparency = 0.4
+	label.Text = st.player.DisplayName
+	label.Parent = gui
+	gui.Parent = head
+end
+
+-- Re-reads the VIP pass into RunnerInfo, refreshes the world tag and re-broadcasts (pass bought or loaded).
+function ArenaService.refreshVip(player: Player)
+	local st = states[player]
+	if st == nil then
+		return
+	end
+	applyVipTag(st)
+	local r = if st.id ~= 0 then sim:runner(st.id) else nil
+	if r ~= nil then
+		r.info.vip = EconomyService.hasPass(player, "vip")
+		broadcast(Remotes.RunnerInfo, liveInfos())
+	end
 end
 
 local function addPlayerRunner(st: PState, now: number)
@@ -304,10 +352,12 @@ local function addPlayerRunner(st: PState, now: number)
 		trail = profile.equipped.trail,
 		effect = profile.equipped.effect,
 		isBot = false,
+		vip = EconomyService.hasPass(player, "vip"),
 	}
 	local id = sim:addRunner(info, UpgradeService.startPatch(player), UpgradeService.shieldSeconds(player), now)
 	st.id = id
 	playerById[id] = st
+	applyVipTag(st)
 	st.walkSpeed = UpgradeService.walkSpeed(player)
 	resetLife(st, now)
 	local r = sim:runner(id)
@@ -386,6 +436,30 @@ local function snapBack(st: PState, r: Runner, now: number)
 	teleport(st, cellCFrame(st, r.x, r.y), now)
 end
 
+-- G11.6: out of bounds sends the runner to the cell of its own turf nearest its last accepted cell
+-- (its last cell when it owns nothing) and drops its trail.
+local function outOfBounds(st: PState, r: Runner, now: number)
+	local bx, by, bd = r.x, r.y, math.huge
+	local x0, y0, x1, y1 = sim.grid:bounds(r.id)
+	if x0 and y0 and x1 and y1 then
+		local size = sim.size
+		for y = y0, y1 do
+			for x = x0, x1 do
+				if sim.grid:getIndex(y * size + x) == r.id then
+					local d = (x - r.x) ^ 2 + (y - r.y) ^ 2
+					if d < bd then
+						bx, by, bd = x, y, d
+					end
+				end
+			end
+		end
+	end
+	-- Move the sim position too, so the next step does not walk a line from the old cell.
+	r.x, r.y = bx, by
+	sim:clearTrail(r.id)
+	snapBack(st, r, now)
+end
+
 local function speedAllowance(st: PState, now: number): number
 	if now < st.speedGraceUntil then
 		return math.max(st.walkSpeed, st.prevWalkSpeed)
@@ -430,7 +504,7 @@ local function readPlayer(st: PState, r: Runner, now: number, positions: { [numb
 		or pos.Y < FLOOR_Y - BELOW_FLOOR
 		or pos.Y > FLOOR_Y + ABOVE_FLOOR
 	then
-		snapBack(st, r, now)
+		outOfBounds(st, r, now)
 		return
 	end
 	local last = st.lastPos
@@ -502,6 +576,7 @@ local function onClaim(e: any, now: number)
 	end
 	remote(Remotes.Reward):FireClient(player, { coins = coins, reason = "capture", cx = e.cx, cy = e.cy })
 	AnalyticsService.log(player, "capture", { cells = e.cells, stolen = e.stolen })
+	AnalyticsService.funnelOnce(player, 2, "first_capture")
 	if firstCapture then
 		AnalyticsService.log(player, "first_capture", { seconds = math.floor(now - st.joinClock) })
 	end
@@ -558,9 +633,11 @@ local function onCut(e: any, now: number)
 		killerName = if killerRunner ~= nil then killerRunner.info.name else nil,
 	})
 	AnalyticsService.log(player, "death", { cells = e.victimCells, lifeSeconds = lifeSeconds, killerWasBot = killerWasBot })
+	AnalyticsService.funnelOnce(player, 4, "first_death")
 	if canSecondChance then
 		vs.pendingUntil = now + Config.Products.secondChance.PromptSeconds + SECOND_CHANCE_GRACE
 	else
+		vs.autoRespawn = true
 		sim:releaseVictim(e.victim)
 	end
 end
@@ -597,6 +674,7 @@ end
 local function doRespawn(st: PState, now: number)
 	local player = st.player
 	st.pendingUntil = nil
+	AnalyticsService.funnelOnce(player, 5, "respawn")
 	sim:respawn(st.id, UpgradeService.startPatch(player), UpgradeService.shieldSeconds(player), now)
 	st.walkSpeed = UpgradeService.walkSpeed(player)
 	resetLife(st, now)
@@ -650,7 +728,11 @@ local function housekeeping(now: number)
 			if r.pending and pendingUntil ~= nil and now >= pendingUntil then
 				st.pendingUntil = nil
 				sim:releaseVictim(st.id)
-			elseif not r.pending and not st.respawning and now - st.deathTime > IDLE_RESPAWN then
+			elseif
+				not r.pending
+				and not st.respawning
+				and now - st.deathTime > (if st.autoRespawn then Config.Arena.RespawnDelay else IDLE_RESPAWN)
+			then
 				doRespawn(st, now)
 			end
 		end
@@ -761,6 +843,7 @@ function ArenaService.join(player: Player)
 		pendingUntil = nil,
 		secondChanceUsed = false,
 		respawning = false,
+		autoRespawn = false,
 		kingAccum = 0,
 		ready = false,
 	}
@@ -917,6 +1000,7 @@ function ArenaService.start()
 	end
 
 	MonetizationService.onSecondChance = ArenaService.secondChance
+	MonetizationService.onPassOwned = ArenaService.refreshVip
 	EconomyService.cellsProvider = function(player: Player): number
 		local st = states[player]
 		if st == nil or st.id == 0 or not sim:isAlive(st.id) then
@@ -935,6 +1019,7 @@ function ArenaService.start()
 			return
 		end
 		r.info.skin, r.info.trail, r.info.effect = equipped.skin, equipped.trail, equipped.effect
+		r.info.vip = EconomyService.hasPass(player, "vip")
 		broadcast(Remotes.RunnerInfo, liveInfos())
 	end)
 

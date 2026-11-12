@@ -11,6 +11,7 @@ export type RunnerInfo = {
 	trail: string, -- Catalog item id
 	effect: string, -- Catalog item id
 	isBot: boolean,
+	vip: boolean?, -- VIP pass owner (gold name tag)
 }
 
 -- Events emitted by ArenaSim.step and forwarded to clients on Remotes.ArenaEvent.

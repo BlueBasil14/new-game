@@ -29,6 +29,7 @@ local PROFILE_PERIOD = 0.25 -- 4 Hz ProfileUpdate throttle
 local MAX_ARGS = 4
 local MAX_STRING = 64
 local RESPAWN_TIME = 0.5
+local FUNNEL_MINUTE_10 = 600 -- seconds, GDD G12 funnel
 local SETTINGS = { music = true, sfx = true, shake = true, lowDetail = true }
 
 -- 1. world and remotes ---------------------------------------------------------------------------
@@ -123,9 +124,100 @@ EconomyService.granted:Connect(function(player: Player, currency: string, amount
 	end
 end)
 
--- Leaderboard stand in the world (WorldBuilder's LeaderboardStand) is not wired yet.
-local function updateLeaderboardStand(_board: string, _entries: { any }) end
+-- Leaderboard stand (WorldBuilder's LeaderboardStand): title + top 10 of the "cells" board. Rows are built
+-- once; names resolve asynchronously, cached per userId ("Player" until known).
+local STAND_BOARD = "cells"
+local STAND_ROWS = 10
+local standRows: { { rank: TextLabel, name: TextLabel, value: TextLabel } }? = nil
+local nameCache: { [number]: string } = {}
+local nameResolving: { [number]: boolean } = {}
+
+local function standLabel(parent: Instance, pos: UDim2, size: UDim2, align: Enum.TextXAlignment, color: Color3): TextLabel
+	local l = Instance.new("TextLabel")
+	l.BackgroundTransparency = 1
+	l.Position, l.Size = pos, size
+	l.Font = Enum.Font.GothamBold
+	l.TextScaled = true
+	l.TextXAlignment = align
+	l.TextColor3 = color
+	l.Text = ""
+	l.Parent = parent
+	return l
+end
+
+local function buildStand(): { { rank: TextLabel, name: TextLabel, value: TextLabel } }?
+	local node: Instance? = workspace
+	for _, name in { "World", "Decor", "Props", "LeaderboardStand", "BoardPanel", "BoardGui", "Board" } do
+		node = if node ~= nil then node:FindFirstChild(name) else nil
+	end
+	local board = node
+	if board == nil or not board:IsA("Frame") then
+		return nil
+	end
+	local white, yellow = Color3.fromHex(Config.Colors.UiLight), Color3.fromHex(Config.Colors.Yellow)
+	local title = standLabel(board, UDim2.fromScale(0.05, 0.02), UDim2.fromScale(0.9, 0.1), Enum.TextXAlignment.Center, yellow)
+	title.Text = "TOP PLAYERS - CELLS CAPTURED"
+	local rows = {}
+	local rowH = 0.8 / STAND_ROWS
+	for i = 1, STAND_ROWS do
+		local y = 0.15 + (i - 1) * rowH
+		rows[i] = {
+			rank = standLabel(board, UDim2.fromScale(0.05, y), UDim2.fromScale(0.1, rowH * 0.85), Enum.TextXAlignment.Left, yellow),
+			name = standLabel(board, UDim2.fromScale(0.17, y), UDim2.fromScale(0.5, rowH * 0.85), Enum.TextXAlignment.Left, white),
+			value = standLabel(board, UDim2.fromScale(0.68, y), UDim2.fromScale(0.27, rowH * 0.85), Enum.TextXAlignment.Right, white),
+		}
+	end
+	return rows
+end
+
+local function renderStand()
+	if standRows == nil then
+		standRows = buildStand()
+	end
+	local rows = standRows
+	if rows == nil then
+		return
+	end
+	local entries = LeaderboardService.top(STAND_BOARD)
+	for i, row in rows do
+		local e = entries[i]
+		if e == nil then
+			row.rank.Text, row.name.Text, row.value.Text = "", "", ""
+		else
+			row.rank.Text = "#" .. i
+			row.name.Text = nameCache[e.userId] or "Player"
+			row.value.Text = tostring(e.value)
+			if nameCache[e.userId] == nil and not nameResolving[e.userId] then
+				nameResolving[e.userId] = true
+				task.spawn(function()
+					local ok, name = pcall(function()
+						return Players:GetNameFromUserIdAsync(e.userId)
+					end)
+					nameResolving[e.userId] = nil
+					if ok and type(name) == "string" then
+						nameCache[e.userId] = name
+						renderStand()
+					end
+				end)
+			end
+		end
+	end
+end
+
+local function updateLeaderboardStand(board: string, _entries: { any })
+	if board == STAND_BOARD then
+		renderStand()
+	end
+end
 LeaderboardService.changed:Connect(updateLeaderboardStand)
+renderStand()
+
+MonetizationService.onProductBought = function(player: Player, productKey: string, robux: number)
+	AnalyticsService.log(player, "product_bought", { id = productKey, robux = robux })
+	if productKey == "starterPack" then
+		AnalyticsService.log(player, "offer_bought", { id = productKey })
+	end
+end
 
 -- 4. request router ---------------------------------------------------------------------------------
 
@@ -137,6 +229,7 @@ local handlers: { [string]: Handler } = {
 		if ok then
 			ArenaService.refreshWalkSpeed(player)
 			AnalyticsService.log(player, "upgrade_buy", { id = upgradeId, level = result.level })
+			AnalyticsService.funnelOnce(player, 3, "first_upgrade")
 		end
 		return ok, result
 	end,
@@ -212,6 +305,11 @@ local handlers: { [string]: Handler } = {
 		DataService.update(player, function(p)
 			p.tutorialDone = true
 		end)
+		AnalyticsService.log(player, "tutorial_step", { n = "done" })
+		return true, nil
+	end,
+	-- Client startup ping: the router below already re-sends the snapshot on a player's first Request.
+	Ready = function(_player: Player): (boolean, any)
 		return true, nil
 	end,
 	StarterOfferSeen = function(player: Player): (boolean, any)
@@ -293,6 +391,12 @@ local function onPlayerAdded(player: Player)
 	sendProfile(player)
 	ArenaService.join(player)
 	AnalyticsService.log(player, "session_start")
+	AnalyticsService.funnelOnce(player, 1, "join")
+	task.delay(FUNNEL_MINUTE_10, function()
+		if player.Parent ~= nil then
+			AnalyticsService.funnelOnce(player, 6, "minute_10")
+		end
+	end)
 end
 
 Players.PlayerAdded:Connect(function(player: Player)

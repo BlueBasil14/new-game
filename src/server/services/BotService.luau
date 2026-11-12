@@ -9,6 +9,7 @@ local Catalog = require(Shared.Catalog)
 local Config = require(Shared.Config)
 local Types = require(Shared.Types)
 local ArenaService = require(script.Parent.ArenaService)
+local DataService = require(script.Parent.DataService)
 
 type RunnerInfo = Types.RunnerInfo
 type Bot = {
@@ -32,6 +33,8 @@ local NAMES = {
 }
 
 local GENTLE_RADIUS = 20 -- cells
+local TUTORIAL_NEAR_CELLS = 25 -- a new player should have a bot this close (GDD G7.4)
+local TUTORIAL_RELEASE_CELLS = 15 -- a steered bot is released once this close
 local BODY_HEIGHT = 4
 local BODY_WIDTH = 3
 local HEAD_SIZE = 2
@@ -48,6 +51,8 @@ local folder: Folder? = nil
 local maintainAcc = 0
 local warnedBrain = false
 local started = false
+-- One bot at a time is steered toward a tutorial player who has no bot nearby (GAP-07).
+local steer: { botId: number, targetId: number }? = nil
 
 local function pickName(): string
 	local used: { [string]: boolean } = {}
@@ -228,6 +233,51 @@ local function maintain(now: number)
 	end
 end
 
+local function cellDist2(a: any, b: any): number
+	return (a.x - b.x) ^ 2 + (a.y - b.y) ^ 2
+end
+
+-- Runs once per maintain period: keeps or ends the current steer, or starts one.
+local function updateSteer()
+	local sim = ArenaService.sim
+	local cur = steer
+	if cur ~= nil then
+		local br, tr = sim:runner(cur.botId), sim:runner(cur.targetId)
+		if br == nil or tr == nil or not br.alive or not tr.alive or bots[cur.botId] == nil
+			or cellDist2(br, tr) <= TUTORIAL_RELEASE_CELLS ^ 2 then
+			steer = nil
+		end
+		return
+	end
+	local now = ArenaService.now()
+	local gentleSet: { [number]: boolean } = {}
+	for _, id in ArenaService.gentleRunnerIds(now) do
+		gentleSet[id] = true
+	end
+	for _, player in Players:GetPlayers() do
+		local id = ArenaService.runnerIdOf(player)
+		local profile = DataService.get(player)
+		local t = sim:runner(id)
+		if gentleSet[id] and profile ~= nil and not profile.tutorialDone and t ~= nil and t.alive then
+			local nearest, farthest, farD = math.huge, nil :: any, -1
+			for botId, b in bots do
+				local r = sim:runner(botId)
+				if r ~= nil and r.alive and r.info == b.info then
+					local d = cellDist2(r, t)
+					nearest = math.min(nearest, d)
+					if d > farD and #r.trail == 0 then
+						farthest, farD = botId, d
+					end
+				end
+			end
+			if nearest > TUTORIAL_NEAR_CELLS ^ 2 and farthest ~= nil then
+				steer = { botId = farthest :: number, targetId = id }
+				return
+			end
+		end
+	end
+end
+
 local function approach(value: number, target: number, maxDelta: number): number
 	if math.abs(target - value) <= maxDelta then
 		return target
@@ -253,6 +303,18 @@ local function moveBot(b: Bot, r: any, now: number, dt: number, gentle: { number
 	end
 	if dx ~= 0 and dy ~= 0 then
 		dy = 0
+	end
+	local sv = steer
+	if sv ~= nil and sv.botId == b.id then
+		local t = sim:runner(sv.targetId)
+		if t ~= nil then
+			local tx, ty = t.x - r.x, t.y - r.y
+			if math.abs(tx) >= math.abs(ty) then
+				dx, dy = math.sign(tx), 0
+			else
+				dx, dy = 0, math.sign(ty)
+			end
+		end
 	end
 
 	-- Never cut a player in their gentle window: stop before entering their trail.
@@ -299,6 +361,7 @@ local function preStep(now: number, dt: number)
 	if maintainAcc >= MAINTAIN_PERIOD then
 		maintainAcc = 0
 		maintain(now)
+		updateSteer()
 	end
 	local sim = ArenaService.sim
 	local gentle = ArenaService.gentleRunnerIds(now)

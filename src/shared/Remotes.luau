@@ -38,6 +38,7 @@ Remotes.Requests = {
 	TutorialDone = "TutorialDone", -- ()
 	StarterOfferSeen = "StarterOfferSeen", -- ()
 	DeclineSecondChance = "DeclineSecondChance", -- ()
+	Ready = "Ready", -- () client startup ping; the server (re)sends the arena snapshot
 }
 
 return Remotes

@@ -42,4 +42,26 @@ function Analytics.funnel(player: Player, step: number, name: string)
 	end)
 end
 
+-- Funnel step logged at most once per player per session (GDD G12: join, first capture, first upgrade,
+-- first death, respawn, minute 10).
+local funnelSeen: { [Player]: { [number]: boolean } } = {}
+
+function Analytics.funnelOnce(player: Player, step: number, name: string)
+	local seen = funnelSeen[player]
+	if seen == nil then
+		seen = {}
+		funnelSeen[player] = seen
+	end
+	local set = seen :: { [number]: boolean }
+	if set[step] then
+		return
+	end
+	set[step] = true
+	Analytics.funnel(player, step, name)
+end
+
+game:GetService("Players").PlayerRemoving:Connect(function(player: Player)
+	funnelSeen[player] = nil
+end)
+
 return Analytics

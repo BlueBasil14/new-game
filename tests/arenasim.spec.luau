@@ -144,6 +144,21 @@ do
 	assert(#sim:drainCellChanges() == 0, "trail is not a cell change")
 end
 
+-- clearTrail: drops the trail, frees the trail overlay and emits a clearing delta
+do
+	local sim = newSim()
+	local a = add(sim, 10, 10, 3)
+	mv(sim, 0.1, { [a] = { 14, 10 } })
+	sim:drainTrailDeltas()
+	sim:clearTrail(a)
+	assert(#assert(sim:runner(a)).trail == 0 and sim:trailOwnerAt(13, 10) == 0, "trail cleared")
+	local d = sim:drainTrailDeltas()
+	assert(#d == 1 and d[1].id == a and d[1].clear and #d[1].append == 0, "clear delta")
+	sim:clearTrail(a)
+	sim:clearTrail(99)
+	assert(#sim:drainTrailDeltas() == 0, "no-op when already empty or unknown")
+end
+
 -- Claim: re-entering own turf converts trail and enclosed cells, steals enemy turf
 do
 	local sim = newSim()

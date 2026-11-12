@@ -34,6 +34,7 @@ applying a delta is idempotent and order inside one batch does not matter.
 - `sim:step(now, positions: { [id]: {x, y} })`: target cells; walks `Grid.line` from the runner's cell. Absent/dead runners stay.
 - `sim:releaseVictim(id) -> (givenToKiller, madeNeutral)`; `sim:revive(id, shieldSeconds, now) -> boolean`
 - `sim:respawn(id, startPatch, shieldSeconds, now)`: dead runner only; releases first if still pending.
+- `sim:clearTrail(id)`: drops the runner's trail (overlay + `clear` trail delta); no-op for unknown ids. Does not move the runner.
 - `sim:drainEvents() -> {ArenaEvent}`, `sim:drainCellChanges() -> {i}` (deduped; feed to `grid:encodeIndices`),
   `sim:drainTrailDeltas() -> {TrailDelta}` (sorted by id)
 - Getters: `cellsOf(id)`, `share(id)`, `kingId()`, `runner(id) -> Runner?`, `runners() -> {Runner}` (id order),
@@ -73,7 +74,7 @@ applying a delta is idempotent and order inside one batch does not matter.
   (one hook, run at the start of every tick; BotService), `onEvent:Connect(fn(ev))` (sync, after ArenaService handled the event).
 - Functions: `start()`, `join(player)` (after profile load), `leave(player)`, `clientReady(player)`, `respawn(player)`,
   `declineSecondChance(player)`, `secondChance(player) -> boolean` (= `MonetizationService.onSecondChance`),
-  `refreshWalkSpeed(player)`, `freeColorIndex()`, `gentleRunnerIds(now)`, `runnerIdOf(player)`.
+  `refreshWalkSpeed(player)`, `refreshVip(player)` (re-reads the VIP pass into `RunnerInfo.vip`, refreshes the gold name tag, re-broadcasts), `freeColorIndex()`, `gentleRunnerIds(now)`, `runnerIdOf(player)`.
 - Players have a runner only while their character is alive; Humanoid death = `removeRunner`, re-added on the next character
   (new snapshot). A cut player's character is anchored 20 studs under the floor at its XZ until respawn/revive.
 
@@ -87,3 +88,6 @@ Join / snapshot sequence (per client):
 - `Death` goes to the victim only; `Reward` after the player's own claim (`cx, cy` = claim centroid in cells) or kill.
 - Added remote `RunnerInfo(runners: {RunnerInfo})`: full list of alive + pending runners after any equipped-cosmetic change.
 - Bot rigs: `workspace.Bots[tostring(id)]` Model, PrimaryPart = body.
+
+- Out of bounds (G11.6): runner moved to its nearest own-turf cell (sim `r.x/r.y` set directly), trail cleared via `sim:clearTrail`.
+- Dead players without a Second Chance offer are respawned automatically after `Config.Arena.RespawnDelay`.

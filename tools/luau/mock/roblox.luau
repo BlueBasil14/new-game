@@ -1993,6 +1993,30 @@ Classes.Players.methods = {
 		end
 		return nil
 	end,
+	GetNameFromUserIdAsync = function(self, uid)
+		local d = instData(self, "GetNameFromUserIdAsync", 2)
+		needNum(uid, "GetNameFromUserIdAsync", 2)
+		d.S.sleep(0.05)
+		if uid <= 0 then
+			error("Players:GetNameFromUserIdAsync() failed because HTTP 400 (Bad Request)", 2)
+		end
+		for _, c in d.children do
+			if isPlayer(c) and DATA[c].props.UserId == uid then
+				return DATA[c].props.Name
+			end
+		end
+		return "User" .. tostring(uid)
+	end,
+	GetUserIdFromNameAsync = function(self, name)
+		local d = instData(self, "GetUserIdFromNameAsync", 2)
+		d.S.sleep(0.05)
+		for _, c in d.children do
+			if isPlayer(c) and DATA[c].props.Name == name then
+				return DATA[c].props.UserId
+			end
+		end
+		error("Players:GetUserIdFromNameAsync() failed: unknown user", 2)
+	end,
 	GetPlayerFromCharacter = function(self, char)
 		local d = instData(self, "GetPlayerFromCharacter", 2)
 		for _, c in d.children do
