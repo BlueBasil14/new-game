@@ -12,11 +12,14 @@ Phase 4 — Build (code only; Studio/Blender steps blocked, see Blockers)
 - API references: `docs/API_arena.md`, `docs/API_economy.md`
 - Last completed task ID: T-CLI-07
 
-## In progress (third work block, 2026-11-12)
-- Opus (resumed after a usage-limit stop): headless playtest. Mock is written (`tools/luau/mock/roblox.luau`). Remaining: `tools/luau/headless.mjs` runner and scenarios boot, join_and_play, cut_and_respawn, requests, short soak. Notes in `docs/HEADLESS.md`. If interrupted again: resume from HEADLESS.md, or drop it in favour of the real Studio playtest.
-- Sonnet: server-side gap fixes from `docs/GAPS.md` (GAP-27 Ready request, GAP-18 vip flag + name tag, GAP-11 auto-respawn, GAP-24 out-of-bounds, GAP-13, GAP-23 analytics, GAP-03 leaderboard stand, GAP-07 tutorial bot)
-- Done this block: `docs/GAPS.md` audit (27 gaps); client-side gap fixes (GAP-04, 05, 06, 08, 09 partial, 10, 12, 13 client half, 15, 16, 18 client half, 21, 22, 27 client half); local setup (`.mcp.json`, `CLAUDE.md`, `docs/LOCAL_SETUP.md`)
-- Last completed task ID: **T-INT-01** (gap fixes are tracked in GAPS.md, not TASKS.md)
+## In progress
+- Nothing. All work possible without Studio/Blender is complete as of the third work block (2026-11-12).
+
+## Done in work blocks 2–3
+- `docs/GAPS.md`: audit of code vs GDD MVP (27 gaps). Closed in code: GAP-03, 04, 05, 06, 07, 08, 10, 11, 12, 13, 15, 16, 18, 21, 22, 23, 24, 26, 27. Partial: GAP-01 (calls wired, ids missing), 09 (no hit-stop), 25 (hold is PromptSeconds + 12). Open, need Studio: GAP-02, 14, 17, 19, 20.
+- Headless playtest (`node tools/luau/headless.mjs`, notes in `docs/HEADLESS.md`): the real server boots and runs on a strict mock of the Roblox API; 9/9 scenarios pass (boot with bots, join and claim, cut and respawn, every request incl. hostile args, persistence across restart, DataStores down, 3-minute soak, leave mid-life, mock self-test). One real defect found and fixed: saves and lock release were lost on server shutdown (DataService onClose).
+- Local setup: `.mcp.json` (Roblox_Studio), `CLAUDE.md`, `docs/LOCAL_SETUP.md`
+- Last completed task ID: **T-INT-01**; next: **T-INT-02** (needs Studio)
 
 ## Not started (cannot be done in a cloud session)
 - **Nothing has been run in Roblox Studio.** T-INT-02 / T-INT-03 are the next real milestone.
@@ -55,3 +58,4 @@ Phase 4 — Build (code only; Studio/Blender steps blocked, see Blockers)
 - 2026-11-12: `build/TurfLoop.rbxlx` is committed (not ignored) so the owner can download it without running the builder.
 - 2026-11-12: Owner is moving to a local Windows session with the Roblox Studio MCP server; `.mcp.json` declares it for this repo. Cloud sessions cannot start it (expected).
 - 2026-11-12: Gaps deferred until Studio is available because they need eyes/ears: GAP-01 sound ids, GAP-02 Roblox ids, GAP-14 claim wave, GAP-17 pattern textures, GAP-19 ragdoll, GAP-20 speed lines.
+- 2026-11-12: Headless mock run is a test tool only. It does not model physics, replication lag, rendering or the client; it does not replace T-INT-02.

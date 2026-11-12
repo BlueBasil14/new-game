@@ -20,13 +20,14 @@ Fable = lead and final decisions. Opus/Sonnet = sub-orchestrators per system. Ha
 cd tools/luau && npm install        # first time only
 node tools/luau/check.mjs           # compiles every .luau, runs tests/*.spec.luau
 python tools/xref.py                # cross-module reference check
+node tools/luau/headless.mjs        # boots the real server on a mocked Roblox API (docs/HEADLESS.md)
 python tools/build_place.py         # writes build/TurfLoop.rbxlx
 ```
 
 ## Studio
 - The Roblox Studio MCP server is declared in `.mcp.json` (Windows, needs Studio open with the MCP plugin). In a cloud session it cannot start; that is expected.
 - Sync code into Studio either by opening `build/TurfLoop.rbxlx` or with `rojo serve` (`default.project.json`).
-- **As of 2026-11-12 nothing has been run in Studio.** The next milestone is T-INT-02 in `docs/TASKS.md`: press Play, read the Output window, fix errors, then walk `docs/PLAYTEST.md`.
+- **As of 2026-11-12 nothing has been run in Studio.** The server passes a headless run on a mocked Roblox API; the client has never executed at all. The next milestone is T-INT-02 in `docs/TASKS.md`: press Play, read the Output window, fix errors, then walk `docs/PLAYTEST.md`.
 - Playtest after every system change: start play, read the console, fix errors before moving on. Save the place after every system.
 
 ## Code rules

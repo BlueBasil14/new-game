@@ -47,6 +47,7 @@ DataService.changed = {
 local store: Store? = nil
 local sessions: { [Player]: Session } = {}
 local loading: { [Player]: boolean } = {}
+local releasing = 0 -- release writes in flight
 local started = false
 
 local function deepCopy(value: any): any
@@ -292,7 +293,9 @@ function DataService.release(player: Player)
 		return
 	end
 	session.released = true
+	releasing += 1
 	write(session, true)
+	releasing -= 1
 	if sessions[player] == session then
 		sessions[player] = nil
 	end
@@ -337,18 +340,15 @@ local function autosaveLoop()
 end
 
 local function onClose()
-	local pending = 0
 	for player, session in sessions do
 		if not session.released then
-			pending += 1
-			task.spawn(function()
-				DataService.release(player)
-				pending -= 1
-			end)
+			task.spawn(DataService.release, player)
 		end
 	end
+	-- Also waits for releases PlayerRemoving started during shutdown: the server stops as soon as
+	-- BindToClose returns, which would drop those in-flight saves.
 	local deadline = os.clock() + CLOSE_CAP
-	while pending > 0 and os.clock() < deadline do
+	while releasing > 0 and os.clock() < deadline do
 		task.wait(0.1)
 	end
 end
