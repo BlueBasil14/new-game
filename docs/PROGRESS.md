@@ -7,7 +7,7 @@ Phase 4 — Build (code only; Studio/Blender steps blocked, see Blockers)
 
 ## Completed
 - Phase 1 `docs/research.md` (concept: territory-loop arena, working title **Turf Loop**), Phase 2 `docs/GDD.md`, Phase 3 `docs/TASKS.md` + `docs/HEAVY_QUEUE.md`, `docs/CHATGPT_TASKS.md` (45 entries)
-- **Every MVP code task in TASKS.md groups A–D plus T-WLD-01 is written** (38 Luau files in `src/`). All compile, all 11 specs pass, `tools/xref.py` reports 0 unresolved cross-module references.
+- **Every MVP code task in TASKS.md groups A–D plus T-WLD-01 is written** (38 Luau files in `src/`). All compile, all 10 specs pass, `tools/xref.py` reports 0 unresolved cross-module references.
 - `python3 tools/build_place.py` produces `build/TurfLoop.rbxlx` (1 Script, 1 LocalScript, 36 ModuleScripts).
 - API references: `docs/API_arena.md`, `docs/API_economy.md`
 - Last completed task ID: T-CLI-07

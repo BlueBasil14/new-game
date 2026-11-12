@@ -1,6 +1,6 @@
 # First playtest (T-INT-02) — what the owner does
 
-Nothing in this repo has been run in Roblox Studio yet. The code compiles with the real Luau compiler, 11 unit specs pass on the game rules, and two read-through reviews fixed 13 defects, but the first Play press will still surface problems. This page is the shortest path to finding them.
+Nothing in this repo has been run in Roblox Studio yet. The code compiles with the real Luau compiler, 10 unit specs pass on the game rules, and two read-through reviews fixed 13 defects, but the first Play press will still surface problems. This page is the shortest path to finding them.
 
 ## 1. Open the game
 - Download `build/TurfLoop.rbxlx` from the repo and open it in Roblox Studio (File → Open from File).
