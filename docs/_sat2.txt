@@ -54,3 +54,507 @@
      1202    63%    137265v  Dash World
       979    72%    383642v  BEAT BOUNCE 🎶 (GEOMETRY DASH)
 
+## draw and guess  (results=40, sumCCU=42316, >=1k: 14)
+     6522    72%      5734v  Paint and Hide! 🎨
+     5792    78%      1068v  Draw My Prompt! 🎨
+     3809    65%       696v  🎨 Draw the Other Half!
+     3383    70%      2054v  Draw an aquarium
+     3276    60%      2616v  Draw a Flag!
+     3040    75%     27165v  [UPD] Paint to Get Rich 🎨
+
+## marble race  (results=40, sumCCU=14211, >=1k: 3)
+     8498    89%    415821v  Ball VS Ball [RANKED]
+     1521    88%    104432v  Math Tower Race
+     1140    89%     84508v  Spelling Race
+      979    72%    383642v  BEAT BOUNCE 🎶 (GEOMETRY DASH)
+      535    85%     37156v  Squishy Ball Tower
+      446    69%     22622v  Huge Marble Slide
+
+## marble run  (results=40, sumCCU=3369, >=1k: 0)
+      965    72%    383642v  BEAT BOUNCE 🎶 (GEOMETRY DASH)
+      777    81%      5735v  [UPD] Ball Pit Simulator
+      535    85%     37156v  Squishy Ball Tower
+      446    69%     22622v  Huge Marble Slide
+      125    87%     58663v  SLIDE 999,999 MILES IN A BOX OBBY!
+       78    73%      4611v  Marble Race Creator
+
+## pinball  (results=40, sumCCU=33867, >=1k: 5)
+    10485    87%    121990v  [DUELS⚔️] Deagle Arena
+     9388    88%    275721v  [FPS] One Tap
+     8066    97%    337527v  +1 Spider Arm🕷️
+     1091    74%     39797v  [⚽] Beatball
+     1035    93%    213256v  [UPD] Phantom Ball
+      777    81%      5735v  [UPD] Ball Pit Simulator
+
+## mini golf  (results=40, sumCCU=18883, >=1k: 4)
+     8444    92%    156398v  Turbo Soccer [BETA]
+     2561    74%     19039v  8 Ball Duels
+     2408    75%      1893v  [🔥 PRO CLUBS] SOCCER FRENZY 3 ⚽✨
+     1719    93%      1285v  [⛳] Golf a Lucky Egg
+      764    73%     24537v  Realistic Golf ⛳
+      645    91%    304501v  [UPD] Neo Tennis
+
+## bowling  (results=40, sumCCU=28311, >=1k: 8)
+     8444    92%    156414v  Turbo Soccer [BETA]
+     5227    98%     77080v  [JUJUTSU] CRAZY 8 Ball
+     3334    87%      5198v  [⭐] HOOP JAM! 🏀
+     2561    74%     19039v  8 Ball Duels
+     2408    75%      1893v  [🔥 PRO CLUBS] SOCCER FRENZY 3 ⚽✨
+     1875    80%     41334v  Soccer Stars 26
+
+## tower stack  (results=40, sumCCU=61392, >=1k: 19)
+     8133    86%    107391v  TROLL Hug Tower
+     7497    91%     23940v  [🌈🚂UPDATE] Wax ASMR Tower
+     5710    93%     93487v  TROLL Fly & Carry Tower
+     5078    69%      2969v  TROLL Jail Hug Tower
+     4060    95%    298377v  [🔥AURA] Phonk Edit Tower 🎶
+     4059    85%     19888v  [💥] Troll Ragdoll Tower
+
+## jetpack  (results=40, sumCCU=14428, >=1k: 2)
+     8721    97%  10456407v  +1 Speed Keyboard Escape | Candy & Chocolate
+     2960    64%     13549v  Flying Tesla Roadster [Military Escape Event]
+      416    93%   1080571v  Glide Tower
+      407    90%      9117v  +1 Jetpack for Brainrots
+      358    60%      4817v  [🏆X99👟X111] +1 Keyboard Tower Escape
+      321    97%      4942v  +1 Plane Flight
+
+## trampoline  (results=40, sumCCU=56651, >=1k: 7)
+    20333    90%     37734v  Ragdoll Physics 🩸
+    10815    83%     14257v  [🎩] Ragdoll Research
+     6111    88%     43066v  Realistic Ragdoll Engine 🩸
+     6101    83%     43782v  Ragdoll Reality 🩸
+     3883    92%    280087v  Gym Star Simulator 💪
+     3738    92%     28200v  Skate Tree
+
+## sledding  (results=40, sumCCU=34765, >=1k: 6)
+     9109    92%    263871v  [🚧UPD🚧] Southern Mudding 🚜 OffRoading
+     8525    94%     34231v  Night Rider 🏍️ [TESTING]
+     7618    94%     16113v  Low Range: Offroad 4x4 [EARLY ACCESS]
+     3738    92%     28194v  Skate Tree
+     1838    82%      9785v  [UPD] Drive a Cart Downhill!
+     1515    86%    589385v  🚩Expedition Antarctica
+
+## paper airplane  (results=40, sumCCU=14510, >=1k: 4)
+     3345    95%     39192v  WRECKED [Realistic Crashes]
+     2960    64%     13551v  Flying Tesla Roadster [Military Escape Event]
+     2786    94%    132064v  [UPD] Plane Crash Simulator
+     1957    85%    244693v  ✈️ Build A Plane
+      961    96%      6076v  [W8] +1 Plane Throw
+      416    93%   1080571v  Glide Tower
+
+## domino  (results=40, sumCCU=34288, >=1k: 5)
+    24094    99%    785802v  [🍂] Anime Dice
+     3139    90%     46734v  📸 Say Cheese! [STORY]
+     1478    68%     51340v  Chaos Jenga
+     1441    94%     80982v  Find and Mark!
+     1105    81%      2248v  +1 Domino Per Step
+      972    87%    308270v  LOCOfficial!
+
+## bubble shooter  (results=40, sumCCU=48568, >=1k: 3)
+    37692    86%    162154v  DONT SPLASH
+     7272    97%    513874v  [❄️] Bubble Gum Simulator INFINITY
+     1186    89%   1192647v  [❄️] Bubble Gum Simulator
+      678    91%      1398v  [UPD] +1 Bubble Bounce
+      549    95%    234298v  💣 Bomb Chip
+      531    86%       188v  jst a shooter
+
+## air hockey  (results=40, sumCCU=26152, >=1k: 5)
+     9104    85%    607964v  Realistic Street Soccer
+     8606    92%    156398v  Turbo Soccer [BETA]
+     2561    74%     19040v  8 Ball Duels
+     1875    80%     41334v  Soccer Stars 26
+     1123    74%     39797v  [⚽] Beatball
+      541    95%    234298v  💣 Bomb Chip
+
+## ant colony  (results=40, sumCCU=17186, >=1k: 3)
+    12121    83%     80956v  Bug Evolution [☀️]
+     1415    80%      1003v  Ant Wars
+     1311    96%     63088v  Build An Ant Empire
+      937    76%       553v  [🐜] Ant Evolution
+      426    68%      2429v  Ants Pixel March
+      191    89%     78729v  Ant War 🐜
+
+## aquarium  (results=40, sumCCU=32035, >=1k: 4)
+    18882    93%      9685v  [🐟] Net a Fish!
+     3796    97%     60221v  [☯️] Deep Fishing🎣
+     3383    70%      2059v  Draw an aquarium
+     2187    90%    110084v  Ice Fishing Simulator 🐟
+      891    94%     62106v  [🎃] Fish Eat Fish
+      765    87%      4500v  [🦁 CUBS!] Zoo Builder Tycoon 
+
+## fossil dig  (results=40, sumCCU=7271, >=1k: 2)
+     2094    81%       929v  DigCrew
+     1512    72%       802v  Dig & Collect
+      744    90%     15944v  [🎃] Find Animal Bones
+      582    83%     48235v  Primeval Earth | Dinosaur Survival
+      453    96%    261825v  Dig & Clean 🧼
+      345    86%     97786v  Primal Pursuit 🦖 Humans vs Dinosaurs
+
+## space mining  (results=40, sumCCU=3159, >=1k: 0)
+      460    92%    126303v  Ultimate Mining Tycoon
+      413    97%    440407v  [⛰️] Mine a Mountain
+      366    98%     80196v  Mine Antarctica
+      358    85%     21956v  [FUSIONS] REx: Reincarnated
+      259    96%    352094v  🚀[Titan] The Space Simulator
+      204    78%       930v  ⛏️ Difficulty Mining Game 2
+
+## mail delivery  (results=40, sumCCU=3375, >=1k: 0)
+      864    96%     22739v  Ship The Cargo 🚢
+      613    77%      8093v  Deliver My Baby!👶
+      427    86%      7996v  Deliver Packages! 📦 
+      346    82%       292v  Food Delivery Simulator 🍔
+      178    80%       946v  [🎃] MailCats
+      169    86%      3753v  Delivery Rush
+
+## pizza delivery  (results=40, sumCCU=26573, >=1k: 4)
+    10544    93%    342515v  Mukbang Game [Testing]🫓🍲!
+     5958    96%     47537v  🧸 My Small Business
+     2741    70%      1154v  Cook Pizzas [Anomaly]
+     2372    93%   3742594v  🍕Work at a Pizza Place
+      855    46%    232110v  Escape Papa Pizza's Pizzeria! (SCARY OBBY)
+      693    80%     39342v  Cook Pizzas
+
+## taxi  (results=40, sumCCU=240351, >=1k: 8)
+   202395    86%  10179165v  Brookhaven 🏡RP
+    16078    93%   2755909v  Driving Empire [🏁NASCAR Championship Weekend🏁]
+     4160    94%    725951v  Taxi Boss 🚖
+     3539    87%     25715v  [UPD] Tesla Roadster Chase
+     3222    95%    430972v  Rensselaer County
+     2480    78%     36666v  Bus Driver Vietnam 2
+
+## garbage truck  (results=40, sumCCU=36110, >=1k: 8)
+     9103    92%    263871v  [🚧UPD🚧] Southern Mudding 🚜 OffRoading
+     5210    90%      3579v  [MINI UPDATE & MODIFFICATION] Onthel Purwodadi
+     4829    89%    437919v  [📡ANTENNAS📡] American Plains Mudding
+     3982    92%     41029v  Firefighting Sim 🚒
+     3539    87%     25715v  [UPD] Tesla Roadster Chase
+     3345    95%     39192v  WRECKED [Realistic Crashes]
+
+## snow plow  (results=40, sumCCU=28468, >=1k: 5)
+     9103    92%    263871v  [🚧UPD🚧] Southern Mudding 🚜 OffRoading
+     7618    94%     16117v  Low Range: Offroad 4x4 [EARLY ACCESS]
+     4829    89%    437919v  [📡ANTENNAS📡] American Plains Mudding
+     3616    87%     25715v  [UPD] Tesla Roadster Chase
+     1416    79%      6110v  Pave the Road
+      644    97%     77247v  [🎃]Melt All The Ice!🧊
+
+## potion brewing  (results=40, sumCCU=783410, >=1k: 5)
+   528677    91%   4538339v  Steal An Egg
+   229149    92%  13925855v  [🎃] Blox Fruits
+    18074    86%     11918v  Unstable SMP FFA [JAVA PVP!]
+     3458    60%       184v  Build Sandbox [🛠️]
+     1528    66%     40687v  CRAZY CHEFS! 👨‍🍳
+      527    56%       557v  [🧨Small Creative UPD🧱] OG Craft
+
+## blacksmith  (results=40, sumCCU=45773, >=1k: 10)
+    13254    94%   1670720v  The Forge [🪽x👹]
+     9073    95%     29250v  [🌊W3] +1 Gun Forge
+     5255    82%     61375v  [🎃] Bloodlines
+     3897    86%    480336v  Deepwoken
+     2677    91%     18813v  Steel Fighters
+     2347    97%    183836v  [🎃]+1 Loot To Forge
+
+## photo safari  (results=40, sumCCU=45636, >=1k: 11)
+     8990    80%     11308v  [VULTURE🐦] FERAL 🐺 Animal Survival
+     8136    93%   1454842v  Animal Hospital (Anomaly) 🧪
+     7276    94%    572700v  🎥My Movie
+     3594    93%    547930v  Warrior Cats: Ultimate Edition
+     2852    90%     70793v  MEDVED 🐻‍❄️ (Hunt & Become Bears)
+     2271    76%     22922v  A Long Flight [BIOMES]
+
+## bug catching  (results=40, sumCCU=29572, >=1k: 4)
+    12121    83%     80956v  Bug Evolution [☀️]
+     6653    95%     54273v  صيد الضبّان
+     4923    82%     23685v  [V6] Feed A Mosquito
+     3255    85%      1196v  Clean The Bugs 🐜
+      560    96%      7135v  Risky Catch 🎣
+      543    98%   1259403v  [🏝️] Catch And Tame!
+
+## ghost hunting  (results=40, sumCCU=30690, >=1k: 8)
+    11835    93%    118832v  [🎃] Lethal Ape Experience
+     2852    90%     70794v  MEDVED 🐻‍❄️ (Hunt & Become Bears)
+     2735    96%    379380v  Demonology🕯️
+     2026    83%     92321v  Backrooms
+     1610    97%    413864v  he ate them. [HORROR]
+     1271    86%    332444v  Insane Elevator!
+
+## tornado  (results=40, sumCCU=15639, >=1k: 4)
+     7471    91%   4883479v  Natural Disaster Survival
+     2493    77%       390v  [🌪️DOMINATOR] Tornado Ragdoll Sandbox
+     1571    61%     16341v  Crazy Diver
+     1006    90%    247342v  Twisted [BETA]
+      587    89%     29913v  🎃 Just Tornadoes
+      423    85%     12597v  TwisterX [0.15.1]
+
+## storm chasing  (results=40, sumCCU=21475, >=1k: 4)
+     9103    92%    263871v  [🚧UPD🚧] Southern Mudding 🚜 OffRoading
+     4684    89%    437917v  [📡ANTENNAS📡] American Plains Mudding
+     3539    87%     25715v  [UPD] Tesla Roadster Chase
+     1006    90%    247342v  Twisted [BETA]
+      587    89%     29913v  🎃 Just Tornadoes
+      423    85%     12597v  TwisterX [0.15.1]
+
+## snowball fight  (results=40, sumCCU=78621, >=1k: 9)
+    34364    84%   6410337v  [HALLOWEEN] The Strongest Battlegrounds
+    17993    87%    283429v  [🏆] Huss Valley
+     5320    94%     21107v  Ragdoll Wars!
+     4382    73%     71075v  Cat Battles 🐾
+     3279    89%     56745v  Murder Mystery DUELS
+     2950    79%    401182v  fight in a school
+
+## water balloon  (results=40, sumCCU=79848, >=1k: 5)
+    37692    86%    162154v  DONT SPLASH
+    20333    90%     37734v  Ragdoll Physics 🩸
+    10903    83%     14257v  [🎩] Ragdoll Research
+     6101    83%     43784v  Ragdoll Reality 🩸
+     2441    71%     18330v  [🎯MISSIONS] Ragdoll Physics 2 🩸
+      798    76%      4763v  ⚡Ultimate Dodgeball
+
+## food fight  (results=40, sumCCU=766689, >=1k: 15)
+   528677    91%   4538339v  Steal An Egg
+   167516    94%     95658v  Throw Food For Animals
+    17993    87%    283420v  [🏆] Huss Valley
+    10544    93%    342519v  Mukbang Game [Testing]🫓🍲!
+     9388    88%    275725v  [FPS] One Tap
+     8480    89%    415821v  Ball VS Ball [RANKED]
+
+## whack a mole  (results=40, sumCCU=627494, >=1k: 14)
+   528677    91%   4538339v  Steal An Egg
+    20333    90%     37734v  Ragdoll Physics 🩸
+    18074    86%     11928v  Unstable SMP FFA [JAVA PVP!]
+    12121    83%     80956v  Bug Evolution [☀️]
+    10903    83%     14245v  [🎩] Ragdoll Research
+     8071    95%     76374v  [👥UPD] Ragdoll Playground
+
+## carnival games  (results=40, sumCCU=12194, >=1k: 2)
+     7334    61%    676202v  🚨BARRY'S PRISON RUN! (OBBY)
+     1252    56%    215906v  Escape The Carnival of Terror Obby! 
+      795    78%     50165v  🎠 Mingle Carousel [SQUID GAME 2]
+      698    80%       968v  [🌊] WaterWorld WaterPark
+      640    76%     10164v  Bouncy Castle
+      416    66%      5356v  CHOPPER'S CARNIVAL BREAKOUT (SCARY OBBY)
+
+## chameleon hide  (results=40, sumCCU=19204, >=1k: 6)
+     6522    72%      5735v  Paint and Hide! 🎨
+     1483    91%     50807v  [🏜] Fly Hide & Seek
+     1344    76%     92678v  Shrink Hide & Seek
+     1249    84%     60120v  [🎃] Cluck or Hide!🐔
+     1148    91%   1087513v  Hide and Seek Extreme
+     1148    62%     13053v  [🎨] Hide In Pixels
+
+## prop hunt  (results=40, sumCCU=223504, >=1k: 9)
+   201253    86%  10179165v  Brookhaven 🏡RP
+     6522    72%      5735v  Paint and Hide! 🎨
+     2388    97%   1082134v  ✨Collect The Body
+     1659    81%    149920v  🔊Quiet or Die!
+     1419    91%     50807v  [🏜] Fly Hide & Seek
+     1344    76%     92678v  Shrink Hide & Seek
+
+## kart racing  (results=40, sumCCU=35696, >=1k: 6)
+    16078    93%   2755909v  Driving Empire [🏁NASCAR Championship Weekend🏁]
+     5576    91%     63940v  Backseat Rally
+     3055    88%      7847v  [UPD] Kart Arena
+     1681    94%    659728v  [BIKES] Drive World
+     1430    76%     13645v  [UPD] Kart Of Hell
+     1427    69%      5405v  PF27  [⚽️]
+
+## bumper cars  (results=40, sumCCU=27215, >=1k: 10)
+     5576    91%     63940v  Backseat Rally
+     3363    95%     39192v  WRECKED [Realistic Crashes]
+     3055    88%      7847v  [UPD] Kart Arena
+     2939    79%      9247v  Realistic Car Destruction
+     2493    87%    144308v  [☀️] Car Suspension Test
+     1430    76%     13645v  [UPD] Kart Of Hell
+
+## demolition derby  (results=40, sumCCU=33694, >=1k: 8)
+     9103    92%    263871v  [🚧UPD🚧] Southern Mudding 🚜 OffRoading
+     5645    91%     63943v  Backseat Rally
+     4684    89%    437917v  [📡ANTENNAS📡] American Plains Mudding
+     3363    95%     39192v  WRECKED [Realistic Crashes]
+     2874    79%      9247v  Realistic Car Destruction
+     2648    88%     69089v  Junk Mechanics
+
+## sumo  (results=40, sumCCU=13380, >=1k: 4)
+     3945    92%    280087v  Gym Star Simulator 💪
+     2766    81%    453804v  [🎃] Boxing Beta! 🥊
+     2579    85%       617v  [⚔️W2] +1 Sukuna Evolution
+     1709    95%   1311732v  Arm Wrestle Simulator
+      531    98%    119058v  [💪🏻]+1 Muscle to Arm Wrestle
+      461    99%     54188v  [⛩️] +1 Karate Evolution 
+
+## catapult  (results=40, sumCCU=795331, >=1k: 14)
+   528677    91%   4538339v  Steal An Egg
+   167516    94%     95613v  Throw Food For Animals
+    20333    90%     37734v  Ragdoll Physics 🩸
+    16462    80%   1206789v  Fling Things and People
+    13665    97%     56850v  [UPD5 ✨] Depth Incremental
+    12121    83%     80956v  Bug Evolution [☀️]
+
+## castle siege  (results=40, sumCCU=109028, >=1k: 7)
+    67424    94%  11728963v  RIVALS
+    17993    87%    283420v  [🏆] Huss Valley
+     9559    88%    275725v  [FPS] One Tap
+     4788    95%    197110v  [⚓ NAVAL] Command An Army
+     3600    98%    188112v  [ 2x ] Military Army Tycoon
+     1302    85%     19727v  [SHIPS] Build and Conquer 
+
+## cannon  (results=40, sumCCU=20205, >=1k: 4)
+    10422    87%    121990v  [DUELS⚔️] Deagle Arena
+     3982    92%     41026v  Firefighting Sim 🚒
+     2631    89%    767095v  💥 Tank Game! [2.5]
+     1206    91%    342393v  [⚔️] Build a Medieval Army
+      891    87%    430361v  Underground War 2.0 ⚔️ [NUKE]
+      230    99%    904744v  Missiles vs Cities
+
+## snowball rolling  (results=40, sumCCU=5770, >=1k: 1)
+     2691    97%    103805v  [🎵] +1 Stone Skipping
+      776    72%      4492v  Smash Ball [NEW]
+      644    97%     77247v  [🎃]Melt All The Ice!🧊
+      463    95%       103v  [W6] +1 Volleyball Serve
+      166    92%       565v  [W5]❄️+1 skiing Speed training
+      163    95%      4474v  +1 Snow Shoveling Adventure
+
+## dung beetle  (results=40, sumCCU=27481, >=1k: 4)
+    11505    83%     80956v  Bug Evolution [☀️]
+     6653    95%     54273v  صيد الضبّان
+     4949    82%     23685v  [V6] Feed A Mosquito
+     1311    96%     63088v  Build An Ant Empire
+      898    78%      1036v  [🎃] DONT GO DARK
+      884    76%      1600v  Don't get your phone taken 📱
+
+## magnet  (results=40, sumCCU=29384, >=1k: 4)
+    18882    93%      9693v  [🐟] Net a Fish!
+     3829    79%      2349v  Bad Physics💥
+     3032    75%     27167v  [UPD] Paint to Get Rich 🎨
+     2422    84%       596v  [🚨UPD] Cast a Magnet
+      480    89%       223v  BRO FISHING
+      222    85%    318395v  🕳️ Be a Hole
+
+## vacuum  (results=40, sumCCU=8461, >=1k: 2)
+     4319    94%     33302v  [MARS] Clean the Moon!
+     2240    86%    161807v  🍂[NEW MAPS] Clean all the Leaves
+      811    81%      1978v  🍿 Clean all the Popcorn! 
+      504    82%      2166v  [🧽] Clean the House!
+      178    74%       137v  Vacuum Everything!
+      108    76%       507v  Garbage Collection Simulator
+
+## pinata  (results=40, sumCCU=272615, >=1k: 7)
+   202395    86%  10179165v  Brookhaven 🏡RP
+    51198    85%  18224916v  [💀] Steal a Brainrot
+     7334    61%    676202v  🚨BARRY'S PRISON RUN! (OBBY)
+     3032    75%     27167v  [UPD] Paint to Get Rich 🎨
+     1826    89%   2344693v  Theme Park Tycoon 2
+     1148    62%     13053v  [🎨] Hide In Pixels
+
+## kite  (results=40, sumCCU=586735, >=1k: 13)
+   528677    91%   4538339v  Steal An Egg
+    13667    94%     32179v  Bike For Egg!
+    10015    89%     97070v  🚨[QUADS] Bike Universe
+     7334    61%    676202v  🚨BARRY'S PRISON RUN! (OBBY)
+     4279    91%     23001v  Bey Rivals
+     3234    86%      8370v  Free Fire Zone (Max)
+
+## hot air balloon  (results=40, sumCCU=9335, >=1k: 2)
+     3732    71%       631v  Pumpkin Playground
+     3086    73%     33597v  Hot Potato 🥔💥
+      622    80%     80685v  Hell Or Heaven
+      473    82%     15901v  Balloon Game 🎈[UPDATE🔥]
+      323    97%     21774v  [💸2X] 🧨Firework Testground! [BETA]
+      239    87%     22000v  Balloons And Ropes
+
+## grappling hook  (results=40, sumCCU=6016, >=1k: 1)
+     1926    85%    108193v  A Grabpack Test [MAP 5]
+      673    92%    340268v  [1 & 2 PLAYER] Grapple Cart Obby
+      561    97%     44188v  [🎃]+1 Web Escape 🕸️
+      532    74%     76762v  Swing Tower
+      502    84%    203132v  Hooked! [TRAIT]
+      469    81%      6841v  Get A Grip [UPD] [BETA]
+
+## spider swing  (results=40, sumCCU=34046, >=1k: 6)
+    15379    97%    217243v  [⚔️UPD] +1 Venom Evolution
+     8066    97%    337577v  +1 Spider Arm🕷️
+     2666    93%     12972v  [FIXED!] Project Web 
+     1454    87%    128495v  Webbed! ❄️ [2 Player Obby]
+     1429    48%      1529v  Spider Sniper!
+     1193    88%       624v  +1 Monkey Swing Escape
+
+## backpack battles  (results=40, sumCCU=150717, >=1k: 13)
+    67424    94%  11728963v  RIVALS
+    34217    84%   6410337v  [HALLOWEEN] The Strongest Battlegrounds
+    17993    87%    283429v  [🏆] Huss Valley
+     4623    88%    130503v  Anime Ability Arena
+     4382    73%     71075v  Cat Battles 🐾
+     3130    93%      6559v  [💬] Word Battle!
+
+## auto battler  (results=40, sumCCU=282114, >=1k: 16)
+    76066    92%    831855v  [☀️UPD 21🏖️] Anime Adventures
+    54326    86%   3172365v  [🎃] Jujutsu Shenanigans
+    34364    84%   6410337v  [HALLOWEEN] The Strongest Battlegrounds
+    24716    97%   2687992v  Vanguards: Trail of the Saint
+    24545    98%    289782v  [🌟FIX] Cameraman Tower Defense
+    24094    99%    785802v  [🍂] Anime Dice
+
+## golf  (results=40, sumCCU=35252, >=1k: 8)
+     8606    92%    156414v  Turbo Soccer [BETA]
+     7456    96%     31877v  ⚽ Be a Soccer Legend
+     5234    98%     77126v  [JUJUTSU] CRAZY 8 Ball
+     3357    81%    578726v  FIFA Super Soccer
+     2561    74%     19040v  8 Ball Duels
+     2487    97%   1344466v  Climb and Jump Tower [🎃EVENT]
+
+## curling  (results=40, sumCCU=47229, >=1k: 4)
+    29093    95%   2777781v  [UPD] Volleyball Legends
+     6622    84%     42642v  [CLUBS] Street Soccer Pro
+     3665    92%     28200v  Skate Tree
+     2254    76%       423v  Gym Universe
+      701    83%      5710v  SLED SURFERS [WORLD 5🌙]
+      690    61%      1710v  ⚽ Cage Soccer [beta]
+
+## dodgeball  (results=40, sumCCU=91432, >=1k: 11)
+    29093    95%   2777770v  [UPD] Volleyball Legends
+    17717    87%    283429v  [🏆] Huss Valley
+    10367    93%   9100707v  Blade Ball
+     8498    89%    415825v  Ball VS Ball [RANKED]
+     7334    61%    676202v  🚨BARRY'S PRISON RUN! (OBBY)
+     4745    95%   1306829v  [🏆LEAGUES] Racket Rivals 
+
+## king of the hill  (results=40, sumCCU=664042, >=1k: 14)
+   528677    91%   4538339v  Steal An Egg
+    41181    88%     55915v  Survive Your Ideas
+    34364    84%   6410337v  [HALLOWEEN] The Strongest Battlegrounds
+    17993    87%    283429v  [🏆] Huss Valley
+     8402    83%     36642v  RoWorld [World PvP]
+     7334    61%    676202v  🚨BARRY'S PRISON RUN! (OBBY)
+
+## tug of war  (results=40, sumCCU=38767, >=1k: 7)
+     8721    97%  10456407v  +1 Speed Keyboard Escape | Candy & Chocolate
+     8359    94%   1699400v  [🦑] Squid Game X
+     6294    79%      3008v  Voxel Wars
+     2766    81%    453804v  [🎃] Boxing Beta! 🥊
+     1702    95%   1311732v  Arm Wrestle Simulator
+     1478    90%     67508v  Keyboard Bridge Wars! 🧱
+
+## rocket building  (results=40, sumCCU=36801, >=1k: 11)
+     6904    93%   3934235v  Build A Boat For Treasure
+     5897    96%     51774v  Build a Bridge
+     4927    67%       682v  Build Your World! 🔨
+     3766    67%      3005v  [🏗️] Build Everything!
+     3458    60%       184v  Build Sandbox [🛠️]
+     2421    88%     51736v  📱 Build a Phone Empire
+
+## submarine  (results=40, sumCCU=42557, >=1k: 2)
+    37305    86%    162154v  DONT SPLASH
+     2007    86%     70062v  [WORKSHOP] Water Physics
+      708    97%    219575v  [LNG] Sail and Sink Simulator!
+      433    89%    423450v  Naval Warfare
+      411    83%       855v  [V2] Underwater Mansion Tycoon
+      341    90%      1222v  Submerged [BETA]
+
+## train conductor  (results=40, sumCCU=8873, >=1k: 2)
+     2539    78%     36666v  Bus Driver Vietnam 2
+     1364    91%     18710v  [UPDATE] Incorails | Alpha
+      774    82%      4716v  Toy Trains 🚂
+      752    92%      6148v  Stop The Train
+      383    54%     39359v  Drive the train to the end.
+      334    75%      7710v  🚅 Train Crash Simulator
+

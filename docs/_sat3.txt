@@ -1,0 +1,200 @@
+## paper.io  (results=40, sumCCU=13558, >=1k: 2)
+     6629    72%      5735v  Paint and Hide! 🎨
+     1088    53%     20640v  Color My Flag
+      965    72%    383642v  BEAT BOUNCE 🎶 (GEOMETRY DASH)
+      883    84%     30732v  Logo Color Bridge
+      541    95%    234298v  💣 Bomb Chip
+      501    83%     11696v  🦃 Paint Wars 🎨
+
+## paperio  (results=40, sumCCU=40015, >=1k: 8)
+     7334    61%    676202v  🚨BARRY'S PRISON RUN! (OBBY)
+     6522    72%      5735v  Paint and Hide! 🎨
+     6302    88%     21126v  Trending Emote Dance
+     6164    83%     43784v  Ragdoll Reality 🩸
+     5269    69%     24742v  Make The Logo!
+     1441    94%     80983v  Find and Mark!
+
+## claim land  (results=40, sumCCU=540447, >=1k: 5)
+   528677    91%   4538339v  Steal An Egg
+     4437    98%    232375v  Scare Your Neighbor
+     1376    88%     75501v  Countryball World 🌎
+     1109    54%      4659v  [UPD] Find The Country 🌍
+     1088    53%     20639v  Color My Flag
+      578    90%     13779v  [💥] Nuke A Country
+
+## territory io  (results=40, sumCCU=20548, >=1k: 3)
+     8402    83%     36642v  RoWorld [World PvP]
+     5327    96%    853733v  [💥] Mini War
+     2543    81%    160742v  Conquer The World WW2 [🎨]
+      551    94%    363880v  Control Europe
+      501    83%     11696v  🦃 Paint Wars 🎨
+      441    72%      5150v  WorldFront ⚔️
+
+## color the map  (results=40, sumCCU=26113, >=1k: 8)
+     6522    72%      5734v  Paint and Hide! 🎨
+     3032    75%     27165v  [UPD] Paint to Get Rich 🎨
+     2754    63%      2069v  Paint the Face
+     1642    90%   1828107v  Color or Die 🎨
+     1480    66%       424v  Paint the Flag
+     1312    89%     12647v  [🌈] Color Stack
+
+## capture tiles  (results=40, sumCCU=554851, >=1k: 8)
+   532328    91%   4538339v  Steal An Egg
+     6522    72%      5735v  Paint and Hide! 🎨
+     2240    98%    550823v  [NOW] Catch a Monster
+     1892    63%     57162v  Easy Glass Bridge (Possible Squid Game)
+     1643    73%    140493v  Escape Waves For Lucky Blocks
+     1600    85%    123680v  MONOCHROME👁️
+
+## claim territory  (results=40, sumCCU=15336, >=1k: 4)
+     5346    96%    853733v  [💥] Mini War
+     2543    81%    160742v  Conquer The World WW2 [🎨]
+     1109    54%      4659v  [UPD] Find The Country 🌍
+     1035    81%      6497v  Countryball Conquest WW2 [WW1 UPDATE]
+      971    81%    106339v  [🎃] Keyboard Wars
+      755    87%    308503v  Rise of Nations
+
+## conquer tiles  (results=40, sumCCU=651670, >=1k: 15)
+   528677    91%   4538339v  Steal An Egg
+    34217    84%   6410337v  [HALLOWEEN] The Strongest Battlegrounds
+    17993    87%    283429v  [🏆] Huss Valley
+    15341    98%     97121v  Sweep The Moon 🌕
+    10422    87%    121990v  [DUELS⚔️] Deagle Arena
+     9388    88%    275725v  [FPS] One Tap
+
+## land grab  (results=40, sumCCU=545010, >=1k: 5)
+   532328    91%   4538339v  Steal An Egg
+     3938    90%      7939v  Steal a Wild Horse
+     2293    89%      5896v  Grab and Decorate
+     1494    72%       800v  Dig & Collect
+     1065    94%      2614v  Dig and Steal an Egg
+      609    85%      5645v  Dead Shore
+
+## trail  (results=40, sumCCU=63289, >=1k: 12)
+    10105    89%     97070v  🚨[QUADS] Bike Universe
+     9283    92%    109470v  [UPD] Ride Storm
+     9109    92%    263871v  [🚧UPD🚧] Southern Mudding 🚜 OffRoading
+     7586    94%     16117v  Low Range: Offroad 4x4 [EARLY ACCESS]
+     5576    91%     63940v  Backseat Rally
+     4684    89%    437919v  [📡ANTENNAS📡] American Plains Mudding
+
+## sticky ball  (results=40, sumCCU=17254, >=1k: 2)
+    10331    89%     19848v  [🎃] 🧈 Stack A Butter Squishy [ASMR]
+     1050    93%    213256v  [UPD] Phantom Ball
+      960    93%      1948v  +1 Bouncy Ball
+      796    98%     32906v  +1 Jump Squishy ASMR Escape!
+      777    81%      5735v  [UPD] Ball Pit Simulator
+      658    73%      3130v  Become the Potato!
+
+## roll and grow  (results=40, sumCCU=542819, >=1k: 4)
+   528677    91%   4538274v  Steal An Egg
+     6802    97%     28550v  +1 Power Fruit Evolution
+     1601    93%      3284v  Grow And Build Giants
+     1376    95%   1174477v  [🎃] Eat the World
+      983    86%     12451v  roll the world 🌎
+      869    96%       380v  [UPD🎉] Steal and Grow
+
+## giant ball  (results=40, sumCCU=23066, >=1k: 5)
+     8498    89%    415821v  Ball VS Ball [RANKED]
+     5234    98%     77126v  [JUJUTSU] CRAZY 8 Ball
+     2875    96%   3114559v  Death Ball
+     1631    93%      3284v  Grow And Build Giants
+     1035    93%    213256v  [UPD] Phantom Ball
+      773    81%      5735v  [UPD] Ball Pit Simulator
+
+## hole  (results=40, sumCCU=539559, >=1k: 3)
+   532328    91%   4538339v  Steal An Egg
+     2324    98%   1177014v  ⛏️Dig to Escape
+     1194    81%        31v  👑 Get GOD Eggs!
+      603    90%      1298v  Get Your Scuba License!
+      599    98%     69682v  [🌸SAKURA] Hole Fishing
+      594    95%    136701v  BlackHole Rush! [🎃]
+
+## black hole  (results=40, sumCCU=2271, >=1k: 0)
+      594    95%    136701v  BlackHole Rush! [🎃]
+      295    92%     19165v  [Black Hole! 🕳️] Build to the moon!
+      259    96%    352095v  🚀[Titan] The Space Simulator
+      240    95%     11107v  +1 Black Hole Mass
+      222    85%    318395v  🕳️ Be a Hole
+      210    90%     11278v  Cosmic Playground | Space Sandbox
+
+## swallow  (results=40, sumCCU=28898, >=1k: 3)
+    15406    97%    217243v  [⚔️UPD] +1 Venom Evolution
+     6711    95%     54273v  صيد الضبّان
+     1595    87%      2644v  DEEPER
+      876    88%      3423v  🐛 +1 Shrink Worm Escape
+      796    98%     32906v  +1 Jump Squishy ASMR Escape!
+      744    90%     15944v  [🎃] Find Animal Bones
+
+## snake  (results=40, sumCCU=18046, >=1k: 4)
+    11505    83%     80933v  Bug Evolution [☀️]
+     1516    89%     79758v  Climb Scary Worm Tower 3
+     1178    46%      8933v  🪱 worm odyssey [slither update !]
+     1115    75%    865967v  Spider
+      547    78%     13958v  Become Hungry Worm
+      372    74%     76859v  Centipede
+
+## slither  (results=40, sumCCU=25074, >=1k: 4)
+    11505    83%     80956v  Bug Evolution [☀️]
+     8066    97%    337527v  +1 Spider Arm🕷️
+     1497    89%     79758v  Climb Scary Worm Tower 3
+     1153    46%      8933v  🪱 worm odyssey [slither update !]
+      868    88%      3423v  🐛 +1 Shrink Worm Escape
+      554    78%     13958v  Become Hungry Worm
+
+## worm  (results=40, sumCCU=18806, >=1k: 3)
+    11505    83%     80933v  Bug Evolution [☀️]
+     1516    89%     79758v  Climb Scary Worm Tower 3
+     1153    46%      8933v  🪱 worm odyssey [slither update !]
+      868    88%      3423v  🐛 +1 Shrink Worm Escape
+      554    78%     13958v  Become Hungry Worm
+      541    84%     28569v  Climb Scary Lemon Tower
+
+## snake clash  (results=40, sumCCU=539447, >=1k: 4)
+   528677    91%   4538339v  Steal An Egg
+     5312    94%     21107v  Ragdoll Wars!
+     1516    89%     79758v  Climb Scary Worm Tower 3
+     1153    46%      8935v  🪱 worm odyssey [slither update !]
+      554    78%     13958v  Become Hungry Worm
+      522    94%      3357v  +1 Hamster Smash
+
+## megabonk  (results=40, sumCCU=718374, >=1k: 16)
+   528677    91%   4538339v  Steal An Egg
+    73991    91%   6141105v  99 Nights in the Forest 🔦
+    15406    97%    217277v  [⚔️UPD] +1 Venom Evolution
+    12977    88%     18158v  [🧪NEW LAB] Fatal Baboons
+    12249    99%    276885v  [TRIALS] GloryBound 
+    11835    93%    118832v  [🎃] Lethal Ape Experience
+
+## survivors roguelike  (results=40, sumCCU=330461, >=1k: 26)
+    73991    91%   6141105v  99 Nights in the Forest 🔦
+    41181    88%     55915v  Survive Your Ideas
+    30590    93%    890416v  [WEEK 3 🎃 x BUTCHER] Violence District
+    19646    92%   3074080v  🎃Flee the Facility🍁
+    17993    87%    283429v  [🏆] Huss Valley
+    12507    80%     15853v  13 Days to Escape [ALPHA]
+
+## bomb arena  (results=40, sumCCU=28715, >=1k: 7)
+     8924    92%    372573v  [🔥UPD] Sniper Arena
+     4426    65%    374895v  🎃 Timebomb Duels [Alpha]
+     3455    60%       184v  Build Sandbox [🛠️]
+     2640    89%     62840v  Superhero Arena
+     1973    84%     15548v  Murder Arena [FPS]
+     1367    95%    833899v  [UPD 🌊] Merge a Nuke!
+
+## merge drop  (results=40, sumCCU=5452, >=1k: 2)
+     1390    96%    154427v  [🍂] Merge Shop
+     1367    95%    833899v  [UPD 🌊] Merge a Nuke!
+      800    74%       520v  Merge a tank
+      436    98%     12829v  Merge To Fight
+      368    94%      1608v  Merge an Animal
+      185    96%     31983v  Merge & Dig Simulator!
+
+## io game  (results=40, sumCCU=41437, >=1k: 5)
+    18074    86%     11928v  Unstable SMP FFA [JAVA PVP!]
+     7364    61%    676202v  🚨BARRY'S PRISON RUN! (OBBY)
+     6045    76%      1297v  Untitled Ragdoll Game
+     2493    92%      8117v  Untitled Symbiote Suit Game [VENOM]
+     1776    93%    173578v  Clone Engine
+      804    74%     10608v  KJ Test
+
