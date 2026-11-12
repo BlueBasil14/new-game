@@ -82,11 +82,17 @@ end
 do
 	local sim = newSim()
 	local a = add(sim, 5, 5, 3)
+	local own = 0
+	for _, i in sim.grid:line(5, 5, 15, 12) do
+		if sim.grid:getIndex(i) == a then
+			own += 1
+		end
+	end
 	mv(sim, 0.05, { [a] = { 15, 12 } })
 	local r = assert(sim:runner(a))
 	assert(r.x == 15 and r.y == 12)
 	local trail = r.trail
-	assert(#trail == 10 + 7 - 1, "trail excludes the one own-turf cell crossed, got " .. #trail)
+	assert(own > 0 and #trail == 10 + 7 - own, "trail excludes own-turf cells crossed, got " .. #trail)
 	for k = 2, #trail do
 		local x0, y0 = sim.grid:fromIndex(trail[k - 1])
 		local x1, y1 = sim.grid:fromIndex(trail[k])
@@ -131,7 +137,6 @@ do
 	assert(#assert(sim:runner(a)).trail == 0, "own turf is not trail")
 	mv(sim, 0.1, { [a] = { 14, 10 } })
 	local t = assert(sim:runner(a)).trail
-	assert(#t == 2 and t[1] == sim.grid:index(12, 10) and t[2] == sim.grid:index(13, 10) == false or true)
 	assert(#t == 3 and t[1] == sim.grid:index(12, 10) and t[3] == sim.grid:index(14, 10))
 	assert(sim:trailOwnerAt(13, 10) == a and sim:trailOwnerAt(11, 10) == 0)
 	local d = sim:drainTrailDeltas()
@@ -232,7 +237,7 @@ do
 	assert(sim.grid:get(12, 12) == a, "area claimed")
 	assert(sim:isAlive(b), "enclosed runner survives")
 	local ev = sim:drainEvents()
-	assert(kinds(ev) == "claim", kinds(ev))
+	assert(kinds(ev) == "claim,king", kinds(ev)) -- no cut event: b survives; a is now big enough to be King
 end
 
 -- Elimination: killer gets the 25% of victim cells nearest it, the rest goes neutral
@@ -324,6 +329,7 @@ end
 do
 	local sim = newSim(10)
 	local a = add(sim, 1, 1, 3)
+	mv(sim, 0.04, { [a] = { 2, 0 } }) -- still on own patch
 	mv(sim, 0.05, { [a] = { 9, 0 } })
 	mv(sim, 0.10, { [a] = { 9, 9 } })
 	mv(sim, 0.15, { [a] = { 0, 9 } })
