@@ -401,16 +401,22 @@ local function readPlayer(st: PState, r: Runner, now: number, positions: { [numb
 	end
 	local pos = hrp.Position
 	if now < st.exemptUntil then
+		-- Once the client has been seen at the target the teleport has landed; the player may
+		-- then walk away from it during the window without being pulled back.
+		local t = st.settleTarget
+		if t ~= nil then
+			local tdx, tdz = pos.X - t.X, pos.Z - t.Z
+			if tdx * tdx + tdz * tdz <= SETTLE_RADIUS * SETTLE_RADIUS then
+				st.settleTarget = nil
+			end
+		end
 		st.lastPos, st.lastTime = pos, now
 		return
 	end
 	local target = st.settleTarget
 	if target ~= nil then
 		local dx, dz = pos.X - target.X, pos.Z - target.Z
-		-- The player may legitimately walk away from the target during the exempt window.
-		local walked = Config.Security.SpeedTolerance * speedAllowance(st, now) * (now - st.exemptUntil + TELEPORT_EXEMPT)
-		local radius = SETTLE_RADIUS + walked
-		if dx * dx + dz * dz > radius * radius and st.settleTries < SETTLE_RETRIES then
+		if dx * dx + dz * dz > SETTLE_RADIUS * SETTLE_RADIUS and st.settleTries < SETTLE_RETRIES then
 			st.settleTries += 1
 			teleport(st, CFrame.new(target), now)
 			return
