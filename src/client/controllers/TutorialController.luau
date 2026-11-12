@@ -7,6 +7,10 @@ local Config = require(Shared.Config)
 local ClientState = require(script.Parent.Parent.ClientState)
 local UiKit = require(script.Parent.Parent.ui.UiKit)
 local ArenaClient = require(script.Parent.ArenaClient)
+local HudController = require(script.Parent.HudController)
+local PanelController = require(script.Parent.PanelController)
+
+local TweenService = game:GetService("TweenService")
 
 local TutorialController = {}
 
@@ -19,6 +23,8 @@ local CUT_TIMEOUT = 60
 local CUT_POLL = 0.25
 local UPGRADE_TIMEOUT = 45
 local POLL = 0.2
+local HAND_GAP = 6 -- px between the rail button and the hand
+local RING_THICKNESS = 6
 -- Three legs in cells: +X 5, +Z 4, -X 5; four dots per leg.
 local LEGS = { Vector2.new(5, 0), Vector2.new(0, 4), Vector2.new(-5, 0) }
 
@@ -196,21 +202,55 @@ local function runUpgradeHint()
 	end
 
 	local gui = UiKit.screenGui("Tutorial", 50)
-	local arrow = UiKit.label({
-		Text = "👆",
-		Size = UDim2.fromScale(0.06, 0.1),
-		Position = UDim2.fromScale(0.09, 0.3),
-		BackgroundTransparency = 1,
-		TextScaled = true,
-		Parent = gui,
-	})
+	-- The hand is a button: tapping it opens the Upgrades panel.
+	local arrow = Instance.new("TextButton")
+	arrow.Name = "Hand"
+	arrow.Text = "👆"
+	arrow.Font = Enum.Font.GothamBold
+	arrow.TextScaled = true
+	arrow.BackgroundTransparency = 1
+	arrow.AutoButtonColor = false
+	arrow.Size = UDim2.fromScale(0.06, 0.1)
+	arrow.Position = UDim2.fromScale(0.09, 0.3) -- fallback until the rail button exists
+	arrow.Parent = gui
 	UiKit.pulse(arrow)
+	arrow.Activated:Connect(function()
+		PanelController.open("Upgrades")
+	end)
+
+	-- Pulse the real rail button with a breathing outline (the button already owns a UIScale for hover).
+	local ring: UIStroke? = nil
+	local ringTween: Tween? = nil
 
 	local deadline = os.clock() + UPGRADE_TIMEOUT
 	while coinBoostLevel() <= 0 and os.clock() < deadline do
+		local button = HudController.getRailButton("Upgrades")
+		if button then
+			if ring == nil then
+				local stroke = UiKit.stroke(button, Color3.new(1, 1, 1), 2)
+				stroke.Name = "TutorialRing"
+				ring = stroke
+				local tween = TweenService:Create(
+					stroke,
+					TweenInfo.new(0.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true),
+					{ Thickness = RING_THICKNESS }
+				)
+				tween:Play()
+				ringTween = tween
+			end
+			local pos, size = button.AbsolutePosition, button.AbsoluteSize
+			arrow.Position = UDim2.fromOffset(pos.X + size.X + HAND_GAP, pos.Y + size.Y * 0.2)
+			arrow.Size = UDim2.fromOffset(size.Y, size.Y)
+		end
 		task.wait(POLL)
 	end
 
+	if ringTween then
+		ringTween:Cancel()
+	end
+	if ring then
+		ring:Destroy()
+	end
 	UiKit.stopPulse(arrow)
 	gui:Destroy()
 end

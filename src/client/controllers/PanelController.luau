@@ -159,6 +159,15 @@ local S = {
 	starterCoins = "%s Coins",
 	starterSkin = "Starter Spark skin",
 	starterNo = "No thanks",
+
+	neonBanner = "Neon Pack: 5 neon skins + trail  R$ %d",
+	boostQuest = "%dx Coins %d min",
+	awayTitle = "Welcome back",
+	awayStreak = "Daily streak: %d",
+	awayDailyReady = "Daily reward is ready",
+	awayDailyDone = "Daily reward claimed",
+	awayQuests = "Quests ready: %d",
+	awayView = "View",
 }
 
 -- Server error key -> friendly text. Unknown keys fall back to S.genericError.
@@ -212,6 +221,11 @@ local REBIRTH_CONFIRM_SECONDS = 3
 local DEATH_GUARD_SECONDS = 0.5
 local STARTER_DELAY = 0.6
 local COUNTDOWN_STEP = 0.1
+local COIN_COUNT = 6
+local COIN_PX = 16
+local COIN_TIME = 0.45
+local COIN_STAGGER = 0.05
+local AWAY_DELAY = 1.2
 
 local theme = UiKit.theme
 local PANEL_BG = Color3.fromHex(Config.Colors.UiDark)
@@ -284,6 +298,51 @@ local function pulseFor(inst: GuiObject, seconds: number)
 	task.delay(seconds, function()
 		UiKit.stopPulse(inst)
 	end)
+end
+
+-- Coin shower: a few pooled Frames fly from the HUD wallet to the pressed button.
+local coinFrames: { Frame } = {}
+
+local function coinShower(target: GuiObject, currency: string?)
+	local playerGui = Players.LocalPlayer:FindFirstChild("PlayerGui")
+	local hud = playerGui and playerGui:FindFirstChild("Hud")
+	local wallet = hud and hud:FindFirstChild("Wallet")
+	if wallet == nil or not wallet:IsA("GuiObject") then
+		return
+	end
+	local walletGui = wallet :: GuiObject
+	if #coinFrames == 0 then
+		local gui = UiKit.screenGui("CoinShower", 90)
+		for i = 1, COIN_COUNT do
+			local f = UiKit.frame({
+				Name = "Coin" .. i,
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				Size = UDim2.fromOffset(COIN_PX, COIN_PX),
+				Visible = false,
+				parent = gui,
+			})
+			UiKit.corner(f, 100)
+			UiKit.stroke(f, theme.UiDark, 2)
+			coinFrames[i] = f
+		end
+	end
+	local from = walletGui.AbsolutePosition + walletGui.AbsoluteSize * Vector2.new(0.1, 0.17)
+	local to = target.AbsolutePosition + target.AbsoluteSize * 0.5
+	local color = if currency == "gems" then theme.Gem else theme.Yellow
+	for i, f in coinFrames do
+		local delay = (i - 1) * COIN_STAGGER
+		task.delay(delay, function()
+			f.BackgroundColor3 = color
+			f.Position = UDim2.fromOffset(from.X, from.Y)
+			f.Visible = true
+			TweenService:Create(f, TweenInfo.new(COIN_TIME, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut), {
+				Position = UDim2.fromOffset(to.X, to.Y),
+			}):Play()
+		end)
+		task.delay(delay + COIN_TIME, function()
+			f.Visible = false
+		end)
+	end
 end
 
 local function button(props: {
@@ -468,6 +527,7 @@ local function buildUpgrades(): PanelEntry
 				busy = false
 				if ok then
 					squash(cost)
+					coinShower(cost, "coins")
 					sound("buy")
 					toastGood(string.format(S.upgraded, S.upgradeNames[id]))
 				else
@@ -524,6 +584,7 @@ type CardSpec = {
 	action: string,
 	actionColor: Color3,
 	dim: boolean,
+	pulse: boolean?,
 	onAction: (btn: TextButton) -> (),
 }
 
@@ -577,6 +638,9 @@ local function makeCard(parent: Instance, spec: CardSpec, order: number)
 		})
 	end
 	plainLabel(card, spec.name, UDim2.fromScale(0.06, 0.48), UDim2.fromScale(0.88, 0.14), Enum.TextXAlignment.Center)
+	if spec.pulse then
+		pulseFor(card, PULSE_SECONDS)
+	end
 	local sub = plainLabel(card, spec.sub, UDim2.fromScale(0.06, 0.62), UDim2.fromScale(0.88, 0.11), Enum.TextXAlignment.Center)
 	sub.TextColor3 = spec.subColor
 	local btn: TextButton = nil :: any
@@ -629,6 +693,7 @@ local function buildShop(): PanelEntry
 	local ownedOnly = false
 	local lastSig = ""
 	local busy = false
+	local passPulse = false
 	local tabButtons: { [string]: TextButton } = {}
 	local toggleButton: TextButton
 	local refresh: () -> ()
@@ -673,6 +738,19 @@ local function buildShop(): PanelEntry
 		busy = true
 		fn()
 		busy = false
+	end
+
+	-- Insufficient coins: bring the 2x Coins pass forward (Passes tab, pulsing card) unless owned.
+	local function offerCoinsPass()
+		if ClientState.session.passes.doubleCoins == true then
+			return
+		end
+		passPulse = true
+		setTab("passes")
+	end
+
+	local function neonOffered(): boolean
+		return Config.Ids.Passes.neonPack ~= 0 and ClientState.session.passes.neonPack ~= true
 	end
 
 	local function itemSpec(item: Catalog.Item, p: Types.Profile, featuredSet: { [string]: boolean }): CardSpec
@@ -774,6 +852,8 @@ local function buildShop(): PanelEntry
 						toastBad(if price.currency == "gems" then S.notEnoughGems else S.notEnoughCoins)
 						if price.currency == "gems" then
 							setTab("gems")
+						else
+							offerCoinsPass()
 						end
 						return
 					end
@@ -781,11 +861,15 @@ local function buildShop(): PanelEntry
 						local ok, result = ClientState.request(Remotes.Requests.BuyItem, item.id)
 						if ok then
 							squash(btn)
+							coinShower(btn, price.currency)
 							sound("buy")
 							toastGood(string.format(S.boughtToast, item.name))
 						else
 							sound("error")
 							toastBad(errorText(result))
+							if result == "insufficient_funds" and price.currency == "coins" then
+								offerCoinsPass()
+							end
 						end
 					end)
 				end
@@ -822,6 +906,32 @@ local function buildShop(): PanelEntry
 		}
 	end
 
+	local function passSpec(key: string): CardSpec
+		local owned = ClientState.session.passes[key] == true
+		local robux = (ROBUX.passes :: any)[key]
+		local colorA = if key == "vip" then theme.Yellow elseif key == "doubleCoins" then theme.Success else theme.Pink
+		return {
+			key = specKey({ key, if owned then "o" else "b" }),
+			name = S.passNames[key],
+			sub = S.passDescs[key],
+			subColor = theme.UiLight,
+			colorA = colorA,
+			colorB = theme.UiLight,
+			big = nil,
+			badge = nil,
+			borderColor = colorA,
+			action = if owned then S.owned else string.format(S.priceRobux, robux),
+			actionColor = theme.Yellow,
+			dim = owned,
+			pulse = key == "doubleCoins" and passPulse and not owned,
+			onAction = function()
+				if not owned then
+					promptPass(key)
+				end
+			end,
+		}
+	end
+
 	local function buildSpecs(p: Types.Profile): { CardSpec }
 		local specs: { CardSpec } = {}
 		if tab == "gems" then
@@ -844,28 +954,7 @@ local function buildShop(): PanelEntry
 			end
 		elseif tab == "passes" then
 			for _, key in PASS_ORDER do
-				local owned = ClientState.session.passes[key] == true
-				local robux = (ROBUX.passes :: any)[key]
-				local colorA = if key == "vip" then theme.Yellow elseif key == "doubleCoins" then theme.Success else theme.Pink
-				table.insert(specs, {
-					key = specKey({ key, if owned then "o" else "b" }),
-					name = S.passNames[key],
-					sub = S.passDescs[key],
-					subColor = theme.UiLight,
-					colorA = colorA,
-					colorB = theme.UiLight,
-					big = nil,
-					badge = nil,
-					borderColor = colorA,
-					action = if owned then S.owned else string.format(S.priceRobux, robux),
-					actionColor = theme.Yellow,
-					dim = owned,
-					onAction = function()
-						if not owned then
-							promptPass(key)
-						end
-					end,
-				})
+				table.insert(specs, passSpec(key))
 			end
 		else
 			local featuredSet: { [string]: boolean } = {}
@@ -882,6 +971,10 @@ local function buildShop(): PanelEntry
 				end
 			else
 				items = Catalog.ofType(TAB_TYPES[tab])
+			end
+			-- VIP is the top slot of Featured until owned.
+			if tab == "featured" and not ownedOnly and ClientState.session.passes.vip ~= true then
+				table.insert(specs, passSpec("vip"))
 			end
 			for _, item in items do
 				if not ownedOnly or ClientState.owns(item.id) then
@@ -905,7 +998,12 @@ local function buildShop(): PanelEntry
 		toggleButton.TextColor3 = if ownedOnly then theme.UiDark else theme.UiLight
 
 		local specs = buildSpecs(p)
+		passPulse = false
 		local keys = { tab, if ownedOnly then "own" else "all" }
+		local showNeon = tab == "skins" and neonOffered()
+		if showNeon then
+			table.insert(keys, "neon")
+		end
 		for _, spec in specs do
 			table.insert(keys, spec.key)
 		end
@@ -919,6 +1017,20 @@ local function buildShop(): PanelEntry
 			if child:IsA("GuiObject") then
 				child:Destroy()
 			end
+		end
+		if showNeon then
+			local banner = button({
+				text = string.format(S.neonBanner, ROBUX.passes.neonPack),
+				color = theme.Pink,
+				size = UDim2.new(0.98, 0, 0, 44),
+				parent = scroller,
+				onClick = function()
+					promptPass("neonPack")
+				end,
+			})
+			banner.Name = "NeonBanner"
+			banner.TextColor3 = theme.UiLight
+			banner.LayoutOrder = 0
 		end
 		if #specs == 0 then
 			local empty = UiKit.label({
@@ -1080,13 +1192,27 @@ end
 local function buildQuests(): PanelEntry
 	local panel = UiKit.panel({ title = S.questsTitle, size = UDim2.fromScale(0.66, 0.7) })
 	local body = panel.body
+	local hasBoost = Config.Ids.Products.boost15 ~= 0
 	local list = UiKit.frame({
 		BackgroundTransparency = 1,
 		Position = UDim2.fromScale(0.03, 0.04),
-		Size = UDim2.fromScale(0.94, 0.92),
+		Size = UDim2.fromScale(0.94, if hasBoost then 0.82 else 0.92),
 		parent = body,
 	})
 	UiKit.list(list, { Padding = UDim.new(0.03, 0) })
+	if hasBoost then
+		local boost = button({
+			text = string.format(S.boostQuest, Config.Income.BoostMultiplier, round(Config.Products.boost15.Seconds / 60)),
+			color = theme.Pink,
+			size = UDim2.fromScale(0.4, 0.09),
+			position = UDim2.fromScale(0.57, 0.89),
+			parent = body,
+			onClick = function()
+				promptProduct("boost15")
+			end,
+		})
+		boost.TextColor3 = theme.UiLight
+	end
 
 	type Row = { root: Frame, desc: TextLabel, fill: Frame, progress: TextLabel, reward: TextLabel, claim: TextButton }
 	local rows: { Row } = {}
@@ -1251,6 +1377,7 @@ local function buildRebirth(): PanelEntry
 			if ok then
 				squash(confirm)
 				sound("reward")
+				sound("rebirthSwell")
 				local crowns = if type(result) == "table" and type(result.crowns) == "number" then result.crowns else ClientState.profile and ClientState.profile.crowns or 0
 				toastGood(string.format(S.rebirthDone, crowns))
 			else
@@ -1592,7 +1719,8 @@ local function tryStarter()
 		return
 	end
 	death.justClosed = false
-	if starterShown or not ClientState.session.starterOffer then
+	local profile = ClientState.profile
+	if starterShown or not ClientState.session.starterOffer or profile == nil or profile.starterOfferSeenAt ~= 0 then
 		return
 	end
 	starterShown = true
@@ -1620,6 +1748,93 @@ local function closeDeath()
 	tryStarter()
 end
 
+-- "While you were away" return panel ---------------------------------------------------------
+
+local function claimableQuests(): number
+	local p = ClientState.profile
+	local n = 0
+	if p then
+		for _, entry in p.quests.list do
+			local def = ClientState.quest(entry.id)
+			if def and not entry.claimed and entry.progress >= def.target then
+				n += 1
+			end
+		end
+	end
+	return n
+end
+
+local function buildAway(): PanelEntry
+	local panel = UiKit.panel({ title = S.awayTitle, size = UDim2.fromScale(0.5, 0.5) })
+	local body = panel.body
+	local streak = plainLabel(body, "", UDim2.fromScale(0.08, 0.06), UDim2.fromScale(0.84, 0.16), Enum.TextXAlignment.Center)
+	streak.TextColor3 = theme.Yellow
+
+	local function row(y: number): (TextLabel, TextButton, Frame)
+		local box = UiKit.frame({
+			Position = UDim2.fromScale(0.08, y),
+			Size = UDim2.fromScale(0.84, 0.24),
+			BackgroundColor3 = CARD_BG,
+			parent = body,
+		})
+		UiKit.corner(box, 12)
+		local label = plainLabel(box, "", UDim2.fromScale(0.04, 0.15), UDim2.fromScale(0.56, 0.7))
+		local btn = button({
+			text = "",
+			size = UDim2.fromScale(0.32, 0.6),
+			position = UDim2.fromScale(0.64, 0.2),
+			parent = box,
+		})
+		return label, btn, box
+	end
+
+	local dailyLabel, dailyBtn = row(0.28)
+	local questLabel, questBtn = row(0.6)
+
+	local busy = false
+	dailyBtn.Activated:Connect(function()
+		local state = ClientState.dailyState()
+		if busy or not state.canClaim then
+			return
+		end
+		busy = true
+		local ok, result = ClientState.request(Remotes.Requests.ClaimDaily)
+		busy = false
+		if ok then
+			squash(dailyBtn)
+			coinShower(dailyBtn, "coins")
+			sound("reward")
+			local day = if type(result) == "table" and type(result.streak) == "number" then result.streak else state.nextStreak
+			toastGood(string.format(S.dailyClaimed, day, PanelController.rewardText(result, "")))
+		else
+			sound("error")
+			toastBad(errorText(result))
+		end
+	end)
+	questBtn.Activated:Connect(function()
+		panel.hide()
+		PanelController.open("Quests")
+	end)
+
+	local function refresh()
+		local p = ClientState.profile
+		if p == nil then
+			return
+		end
+		streak.Text = string.format(S.awayStreak, p.daily.streak)
+		local state = ClientState.dailyState()
+		dailyLabel.Text = if state.canClaim then S.awayDailyReady else S.awayDailyDone
+		dailyBtn.Visible = state.canClaim
+		styleButton(dailyBtn, string.format(S.dailyClaim, state.nextStreak), theme.Yellow, false)
+		local n = claimableQuests()
+		questLabel.Text = string.format(S.awayQuests, n)
+		questBtn.Visible = n > 0
+		styleButton(questBtn, S.awayView, theme.Success, false)
+	end
+	return { panel = panel, refresh = refresh }
+end
+
+builders.Away = buildAway
 builders.Upgrades = buildUpgrades
 builders.Shop = buildShop
 builders.Daily = buildDaily
@@ -1666,6 +1881,23 @@ function PanelController.start()
 				entry.refresh()
 			end
 		end
+	end)
+	-- First profile of the session: welcome returning players who have something to claim.
+	local awayChecked = false
+	ClientState.profileChanged:Connect(function(profile: Types.Profile?)
+		if awayChecked or profile == nil then
+			return
+		end
+		awayChecked = true
+		if profile.firstJoin == profile.lastJoin or not profile.tutorialDone then
+			return
+		end
+		if not (ClientState.dailyState().canClaim or ClientState.questClaimable()) then
+			return
+		end
+		task.delay(AWAY_DELAY, function()
+			PanelController.open("Away")
+		end)
 	end)
 	ClientState.death:Connect(showDeath)
 	ClientState.arenaChanged:Connect(function()

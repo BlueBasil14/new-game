@@ -526,7 +526,7 @@ local function onClaim(ev: { id: number, cells: number, neutral: number, stolen:
 end
 
 -- Capture effect of another runner's claim: reduced, skipped in low detail and when far from the camera focus.
-local function onOtherClaim(ev: { id: number, cx: number, cy: number })
+local function onOtherClaim(ev: { id: number, cells: number, neutral: number, stolen: number, cx: number, cy: number })
 	if lowDetail() then
 		return
 	end
