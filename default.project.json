@@ -1,0 +1,35 @@
+{
+  "name": "TurfLoop",
+  "tree": {
+    "$className": "DataModel",
+    "Workspace": {
+      "$className": "Workspace",
+      "$properties": { "FilteringEnabled": true, "StreamingEnabled": false }
+    },
+    "Lighting": { "$className": "Lighting" },
+    "ReplicatedStorage": {
+      "$className": "ReplicatedStorage",
+      "Shared": { "$path": "src/shared" }
+    },
+    "ServerScriptService": {
+      "$className": "ServerScriptService",
+      "Server": { "$path": "src/server" }
+    },
+    "ServerStorage": { "$className": "ServerStorage" },
+    "StarterGui": { "$className": "StarterGui" },
+    "StarterPack": { "$className": "StarterPack" },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "StarterPlayerScripts": {
+        "$className": "StarterPlayerScripts",
+        "Client": { "$path": "src/client" }
+      },
+      "StarterCharacterScripts": { "$className": "StarterCharacterScripts" }
+    },
+    "SoundService": { "$className": "SoundService" },
+    "Players": {
+      "$className": "Players",
+      "$properties": { "CharacterAutoLoads": true }
+    }
+  }
+}
