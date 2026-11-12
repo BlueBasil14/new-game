@@ -59,7 +59,7 @@ _Atomic tasks from `GDD.md`. Tiers: **F** Fable, **O** Opus, **S** Sonnet, **H**
 ## F. Integration and launch
 | ID | Tier | Deps | Output | Acceptance | Status |
 |---|---|---|---|---|---|
-| T-INT-01 | F | B, C, D | Code review of every system against GDD | Findings fixed or queued | WIP |
+| T-INT-01 | F | B, C, D | Code review of every system against GDD | Findings fixed or queued | DONE (13 defects fixed; see REVIEW_server.md, REVIEW_client.md) |
 | T-INT-02 | F | T-FND-04 | 🖥 Open `build/TurfLoop.rbxlx` (or Rojo sync), play solo, fix console errors | Zero errors in output for a 5-minute session | BLOCKED (needs Studio) |
 | T-INT-03 | F | T-INT-02 | 🖥 2-client test server: sync, cuts, purchases in test mode | G2 rules observed by both clients | BLOCKED (needs Studio) |
 | T-LCH-01 | owner | T-INT-03 | Create gamepasses, products, badges, group on Roblox; paste ids into `Config.Ids` | Ids non-zero | TODO (costs nothing but needs the owner's account) |

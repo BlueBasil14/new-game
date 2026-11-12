@@ -13,7 +13,8 @@ Phase 4 — Build (code only; Studio/Blender steps blocked, see Blockers)
 - Last completed task ID: T-CLI-07
 
 ## In progress
-- T-INT-01: two Opus read-through reviews acting as the first playtest → `docs/REVIEW_server.md`, `docs/REVIEW_client.md`
+- Nothing. All work that can be done without Studio/Blender is complete.
+- T-INT-01 done: 7 client + 6 server defects fixed (`docs/REVIEW_client.md`, `docs/REVIEW_server.md`). Last completed task ID: **T-INT-01**.
 
 ## Not started (cannot be done in a cloud session)
 - **Nothing has been run in Roblox Studio.** T-INT-02 / T-INT-03 are the next real milestone.
@@ -26,11 +27,11 @@ Phase 4 — Build (code only; Studio/Blender steps blocked, see Blockers)
 - Repo had no default branch, so no pull request can be opened until one exists.
 
 ## Next 5 tasks
-1. Finish T-INT-01; commit reviewer fixes
-2. 🖥 T-INT-02: open `build/TurfLoop.rbxlx` in Studio (or `rojo serve`), press Play, paste the Output window errors back to Claude; work through "Could not verify without Studio" lists in the two REVIEW docs
-3. 🖥 T-INT-03: 2-player local server test
-4. Owner: CHATGPT_TASKS entries (icons, thumbnails, copy, sound briefs); T-LCH-01 ids
-5. 🖥 T-AST / T-AUD: models and sounds once Blender/Studio connections exist
+1. 🖥 T-INT-02: owner follows `docs/PLAYTEST.md` (open `build/TurfLoop.rbxlx`, press Play, paste Output errors back)
+2. 🖥 T-INT-03: 2-player local server test
+3. Owner: CHATGPT_TASKS entries (icons, thumbnails, copy, sound briefs); T-LCH-01 ids into `Config.Ids`
+4. 🖥 T-AST / T-AUD: models and sounds once Blender/Studio connections exist
+5. T-LCH-02 publish
 
 ## Decisions log (Fable)
 - 2026-11-12: Allowlist extended with apis.roblox.com, games.roblox.com, www.roblox.com, rolimons.com for live CCU checks.
@@ -49,3 +50,4 @@ Phase 4 — Build (code only; Studio/Blender steps blocked, see Blockers)
 - 2026-11-12: Spawn events sent to clients carry shieldUntil on workspace:GetServerTimeNow() time; the sim keeps os.clock.
 - 2026-11-12: Bot rigs live in workspace.Bots named tostring(runnerId).
 - 2026-11-12: Added `tools/xref.py` as a required check alongside `tools/luau/check.mjs`.
+- 2026-11-12: `build/TurfLoop.rbxlx` is committed (not ignored) so the owner can download it without running the builder.

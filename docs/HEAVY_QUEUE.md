@@ -10,6 +10,6 @@ Tasks that need Opus/Fable judgment. Do not hand these to Haiku.
 | T-SRV-02 ArenaService | Replication protocol + anti-exploit | DONE (untested in Studio) |
 | T-SRV-08 Main / request router | Security boundary for every client request | DONE (untested in Studio) |
 | T-CLI-01 TurfRenderer | Performance-critical on mobile | DONE (untested in Studio) |
-| T-INT-01 Cross-system review | Touches everything | WIP |
+| T-INT-01 Cross-system review | Touches everything | DONE |
 | Post-launch: EditableImage turf renderer | New architecture; verify current API docs first | TODO |
 | Post-launch: team mode | Changes G2 rules | TODO |
