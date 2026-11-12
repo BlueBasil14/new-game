@@ -66,7 +66,7 @@ local function runGuide()
 		dot.Parent = folder
 		table.insert(dots, dot)
 	end
-	folder.Parent = workspace
+	-- Parented on first placement so the dots do not sit stacked at the origin before a character exists.
 
 	local claimed = false
 	local claimConn = ClientState.arenaEvent:Connect(function(event: any)
@@ -87,6 +87,9 @@ local function runGuide()
 			local points = guidePath(root.Position)
 			for i, dot in dots do
 				dot.Position = points[i]
+			end
+			if folder.Parent == nil then
+				folder.Parent = workspace
 			end
 		end
 

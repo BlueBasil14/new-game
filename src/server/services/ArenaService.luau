@@ -69,6 +69,7 @@ local SETTLE_RADIUS = 2 * CELL
 local SETTLE_RETRIES = 5
 local SPEED_SLACK = 1 -- studs per check, absorbs replication jitter
 local SPEED_DROP_GRACE = 1 -- seconds the old speed stays allowed after WalkSpeed drops (client lag)
+local MAX_SPEED_WINDOW = 1 -- caps the allowance after a long stand-still
 local BELOW_FLOOR = 6
 local ABOVE_FLOOR = 20
 -- Cut players wait anchored under the floor; the chase camera then still sits above the arena.
@@ -135,7 +136,7 @@ end
 local function broadcast(name: string, ...: any)
 	local r = remote(name)
 	for player, st in states do
-		if st.ready then
+		if st.ready and player.Parent ~= nil then
 			r:FireClient(player, ...)
 		end
 	end
@@ -246,6 +247,10 @@ local function placeAtCell(st: PState, cx: number, cy: number, now: number)
 	humanoid.WalkSpeed = st.walkSpeed
 	st.settleTries = 0
 	teleport(st, cellCFrame(st, cx, cy), now)
+	-- Anchoring (hideCharacter) drops network ownership; hand control back to the player.
+	pcall(function()
+		hrp:SetNetworkOwner(st.player)
+	end)
 end
 
 local function hideCharacter(st: PState)
@@ -402,7 +407,10 @@ local function readPlayer(st: PState, r: Runner, now: number, positions: { [numb
 	local target = st.settleTarget
 	if target ~= nil then
 		local dx, dz = pos.X - target.X, pos.Z - target.Z
-		if dx * dx + dz * dz > SETTLE_RADIUS * SETTLE_RADIUS and st.settleTries < SETTLE_RETRIES then
+		-- The player may legitimately walk away from the target during the exempt window.
+		local walked = Config.Security.SpeedTolerance * speedAllowance(st, now) * (now - st.exemptUntil + TELEPORT_EXEMPT)
+		local radius = SETTLE_RADIUS + walked
+		if dx * dx + dz * dz > radius * radius and st.settleTries < SETTLE_RETRIES then
 			st.settleTries += 1
 			teleport(st, CFrame.new(target), now)
 			return
@@ -426,8 +434,18 @@ local function readPlayer(st: PState, r: Runner, now: number, positions: { [numb
 	end
 	-- Compared against the last ACCEPTED position, so held ticks widen the allowance (lag-safe).
 	local dx, dz = pos.X - last.X, pos.Z - last.Z
-	local allowed = Config.Security.SpeedTolerance * speedAllowance(st, now) * (now - st.lastTime) + SPEED_SLACK
-	if dx * dx + dz * dz > allowed * allowed then
+	local distSq = dx * dx + dz * dz
+	if distSq < 1e-4 then
+		-- No new replicated position (or standing still): keep lastTime so a replication stall
+		-- followed by a catch-up burst is measured over the real elapsed time.
+		st.overTicks = 0
+		local cx, cy = sim.grid:worldToCell(pos.X, pos.Z)
+		positions[r.id] = { x = cx, y = cy }
+		return
+	end
+	local elapsed = math.min(now - st.lastTime, MAX_SPEED_WINDOW)
+	local allowed = Config.Security.SpeedTolerance * speedAllowance(st, now) * elapsed + SPEED_SLACK
+	if distSq > allowed * allowed then
 		st.overTicks += 1
 		if st.overTicks >= Config.Security.SpeedStrikeTicks then
 			snapBack(st, r, now)

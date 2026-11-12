@@ -1,5 +1,9 @@
 --!strict
 -- Client boot. Order matters: state first, then world rendering, then UI on top.
+-- Modules index ReplicatedStorage.Shared children directly; make sure initial replication is done.
+if not game:IsLoaded() then
+	game.Loaded:Wait()
+end
 local client = script.Parent
 local controllers = client:WaitForChild("controllers")
 
@@ -32,6 +36,9 @@ UiKit.onClickSound = function()
 	FeedbackController.play("uiClick")
 end
 PanelController.onSound = function(name: string)
+	if name == "click" then
+		return -- every UiKit.button already plays uiClick via UiKit.onClickSound
+	end
 	FeedbackController.play(PANEL_SOUNDS[name] or name)
 end
 FeedbackController.onToast = function(text: string, kind: string)

@@ -513,10 +513,7 @@ local function onEvent(ev: Types.ArenaEvent)
 			end
 		end
 	elseif ev.kind == "fullMap" then
-		local toast = FeedbackController.onToast
-		if toast then
-			toast(runnerName(ev.id) .. " captured the whole map!", "good")
-		end
+		-- Announced by the server's Toast remote (ArenaService.onFullMap); a second toast here duplicated it.
 	elseif ev.kind == "spawn" then
 		onSpawn(ev.runner)
 	elseif ev.kind == "despawn" then

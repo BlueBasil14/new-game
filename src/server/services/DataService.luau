@@ -182,6 +182,10 @@ local function write(session: Session, releaseLock: boolean): boolean
 	local ok = withRetry(function()
 		return getStore().update(session.key, function(old: any): any
 			lockLost = false
+			if not releaseLock and session.released then
+				-- An autosave still in flight when the session was released must not re-take the lock.
+				return nil
+			end
 			if type(old) ~= "table" or type(old._lock) ~= "table" or old._lock.jobId ~= game.JobId then
 				lockLost = true
 				return nil

@@ -171,6 +171,10 @@ local function applySnapshot(rle: buffer, runners: { Types.RunnerInfo }, yourRun
 	local g = Grid.decodeRLE(rle)
 	grid = g
 	local arena = ClientState.arena
+	-- Snapshots list pending (cut, awaiting Second Chance) runners too; a re-sent snapshot (first
+	-- Request is often DeclineSecondChance/Respawn) must not mark our cut runner alive again.
+	local prevId = arena.myId
+	local wasCut = prevId ~= nil and alive[prevId] == false
 	table.clear(arena.runners)
 	table.clear(arena.cells)
 	table.clear(alive)
@@ -184,6 +188,10 @@ local function applySnapshot(rle: buffer, runners: { Types.RunnerInfo }, yourRun
 	end
 	arena.myId = yourRunnerId
 	arena.alive = yourRunnerId ~= nil and arena.runners[yourRunnerId :: number] ~= nil
+	if wasCut and yourRunnerId == prevId and arena.alive then
+		alive[prevId :: number] = false
+		arena.alive = false
+	end
 	arena.totalCells = g.total
 	TurfRenderer.applySnapshot(g)
 

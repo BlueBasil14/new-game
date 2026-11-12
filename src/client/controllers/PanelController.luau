@@ -621,7 +621,8 @@ local function buildShop(): PanelEntry
 	scroller.ScrollingDirection = Enum.ScrollingDirection.Y
 	scroller.ScrollBarThickness = 6
 	scroller.Parent = body
-	local rowsLayout = UiKit.list(scroller, { Padding = UDim.new(0.012, 0) })
+	-- Offset padding: a scale padding inside an AutomaticCanvasSize canvas feeds back into the canvas height.
+	local rowsLayout = UiKit.list(scroller, { Padding = UDim.new(0, 8) })
 	rowsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
 
 	local tab = "featured"
@@ -939,7 +940,10 @@ local function buildShop(): PanelEntry
 				LayoutOrder = r,
 				parent = scroller,
 			})
-			UiKit.aspect(row, 1 / (CARD_WIDTH * CARD_HEIGHT_PER_WIDTH))
+			-- Default FitWithinMaxSize would clamp the zero-height row to 0x0; size from the canvas width instead.
+			local rowAspect = UiKit.aspect(row, 1 / (CARD_WIDTH * CARD_HEIGHT_PER_WIDTH))
+			rowAspect.AspectType = Enum.AspectType.ScaleWithParentSize
+			rowAspect.DominantAxis = Enum.DominantAxis.Width
 			UiKit.list(row, { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new((1 - CARD_WIDTH * CARDS_PER_ROW) / (CARDS_PER_ROW - 1), 0) })
 			for c = 1, CARDS_PER_ROW do
 				local spec = specs[(r - 1) * CARDS_PER_ROW + c]
