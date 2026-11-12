@@ -35,11 +35,11 @@ PanelController.onSound = function(name: string)
 	FeedbackController.play(PANEL_SOUNDS[name] or name)
 end
 FeedbackController.onToast = function(text: string, kind: string)
-	local color = if kind == "good"
+	local color: Color3? = if kind == "good"
 		then UiKit.theme.Success
 		elseif kind == "bad" then UiKit.theme.Danger
 		else nil
-	UiKit.toast(text, if color then UiKit.color(color) else nil)
+	UiKit.toast(text, color)
 end
 
 local lastLowDetail: boolean? = nil

@@ -21,32 +21,32 @@ _Atomic tasks from `GDD.md`. Tiers: **F** Fable, **O** Opus, **S** Sonnet, **H**
 | T-LOG-02 | O | T-LOG-01 | G2 | `src/shared/FloodFill.luau` — claim(trail, owner) returns changed cells, counts neutral vs stolen | `tests/floodfill.spec.luau`: square loop, loop against wall, loop enclosing enemy turf, concave turf, trail with no enclosure, 160×160 worst case under 30 ms | DONE (compile + specs; 🖥 part untested) |
 | T-LOG-03 | S | T-FND-03 | G3 | `src/shared/Formulas.luau` — upgrade cost, coin multiplier stack, capture bonus, rebirth requirement, kill reward | `tests/formulas.spec.luau`: spot values from GDD G3.2–G3.4 | DONE (compile + specs; 🖥 part untested) |
 | T-LOG-04 | S | T-FND-03 | G3.6, G5 | `src/shared/Catalog.luau` — skins/trails/effects (MVP counts), quests pool, daily table, playtime table, codes, badges | Counts match G3.6; every id unique; spec asserts counts | DONE (compile + specs; 🖥 part untested) |
-| T-LOG-05 | O | T-LOG-01, T-LOG-02 | G2 | `src/shared/ArenaSim.luau` — engine-free arena state machine: runners, trails, claims, cuts, head-on, elimination split (25% nearest to killer), king, spawn placement. Takes positions in, emits events out. | `tests/arenasim.spec.luau`: every row of the G2 rules table has a test | WIP |
-| T-LOG-06 | S | T-LOG-05 | G10 | `src/shared/BotBrain.luau` — pure decision function (state, grid view) → desired direction | Spec: bot completes a loop; returns home when threatened; never leaves the grid | TODO |
+| T-LOG-05 | O | T-LOG-01, T-LOG-02 | G2 | `src/shared/ArenaSim.luau` — engine-free arena state machine: runners, trails, claims, cuts, head-on, elimination split (25% nearest to killer), king, spawn placement. Takes positions in, emits events out. | `tests/arenasim.spec.luau`: every row of the G2 rules table has a test | DONE (compile + specs; 🖥 part untested) |
+| T-LOG-06 | S | T-LOG-05 | G10 | `src/shared/BotBrain.luau` — pure decision function (state, grid view) → desired direction | Spec: bot completes a loop; returns home when threatened; never leaves the grid | DONE (compile + specs; 🖥 part untested) |
 | T-LOG-07 | S | T-LOG-01 | G11.3 | `src/shared/GreedyMesh.luau` — owner grid region → minimal rectangles | Spec: rectangles cover exactly the owned cells, no overlap; full-map single owner → 1 rectangle | DONE (compile + specs; 🖥 part untested) |
 
 ## C. Server
 | ID | Tier | Deps | GDD | Output | Acceptance | Status |
 |---|---|---|---|---|---|---|
 | T-SRV-01 | O | T-FND-03 | G11.5, G11.6 | `services/DataService.luau` — profile load/save, defaults + migration, session lock, autosave, BindToClose, Studio fallback when DataStores are off | Compiles; 🖥 two joins in Studio keep data | DONE (compile + specs; 🖥 part untested) |
-| T-SRV-02 | O | T-LOG-05, T-SRV-01 | G2, G11.4, G11.6 | `services/ArenaService.luau` — 20 Hz tick over `ArenaSim`, reads character positions, speed/bounds checks, snapshot + delta replication, respawn | Compiles; 🖥 two clients see identical turf | TODO |
-| T-SRV-03 | S | T-LOG-06, T-SRV-02 | G10 | `services/BotService.luau` — bot rigs, fill to 10 runners, tutorial-gentle bots | Compiles; 🖥 solo server shows 9 bots looping | TODO |
+| T-SRV-02 | O | T-LOG-05, T-SRV-01 | G2, G11.4, G11.6 | `services/ArenaService.luau` — 20 Hz tick over `ArenaSim`, reads character positions, speed/bounds checks, snapshot + delta replication, respawn | Compiles; 🖥 two clients see identical turf | DONE (compile + specs; 🖥 part untested) |
+| T-SRV-03 | S | T-LOG-06, T-SRV-02 | G10 | `services/BotService.luau` — bot rigs, fill to 10 runners, tutorial-gentle bots | Compiles; 🖥 solo server shows 9 bots looping | DONE (compile + specs; 🖥 part untested) |
 | T-SRV-04 | S | T-LOG-03, T-SRV-01 | G3, G11.6 | `services/EconomyService.luau` + `UpgradeService.luau` — sole owner of currency changes, multipliers, passive income, rebirth | Compiles; spec-level tests for pure parts | DONE (compile + specs; 🖥 part untested) |
 | T-SRV-05 | S | T-LOG-04, T-SRV-04 | G3.6, G4 | `services/ShopService.luau` + `MonetizationService.luau` — catalogue buy/equip, featured rotation, pass checks, idempotent `ProcessReceipt`, Second Chance, Starter Pack | Compiles; receipts de-duplicated by purchaseId | DONE (compile + specs; 🖥 part untested) |
 | T-SRV-06 | S | T-SRV-04 | G5 | `services/RewardService.luau` — daily streak, playtime, quests, codes, group reward | Compiles; day-rollover logic unit-tested as a pure function | DONE (compile + specs; 🖥 part untested) |
 | T-SRV-07 | H | T-SRV-01 | G5, G12 | `services/LeaderboardService.luau`, `BadgeService.luau`, `AnalyticsService.luau` | Compiles; all calls wrapped in pcall with budget checks | DONE (compile + specs; 🖥 part untested) |
-| T-SRV-08 | O | all C | G11.2, G11.4 | `server/Main.server.luau` — boot order, request router with validation + rate limit | Compiles; unknown/oversized requests dropped | TODO |
+| T-SRV-08 | O | all C | G11.2, G11.4 | `server/Main.server.luau` — boot order, request router with validation + rate limit | Compiles; unknown/oversized requests dropped | DONE (compile + specs; 🖥 part untested) |
 
 ## D. Client
 | ID | Tier | Deps | GDD | Output | Acceptance | Status |
 |---|---|---|---|---|---|---|
-| T-CLI-01 | O | T-LOG-07, T-SRV-02 | G8, G11.3 | `controllers/TurfRenderer.luau` — pooled Parts from greedy mesh, trail strips, claim wave | Compiles; 🖥 60 fps with full map on a mid phone profile | TODO |
+| T-CLI-01 | O | T-LOG-07, T-SRV-02 | G8, G11.3 | `controllers/TurfRenderer.luau` — pooled Parts from greedy mesh, trail strips, claim wave | Compiles; 🖥 60 fps with full map on a mid phone profile | DONE (compile + specs; 🖥 part untested) |
 | T-CLI-02 | S | T-FND-03 | G2 | `controllers/CameraController.luau`, `InputController.luau` | Compiles; 🖥 camera matches G2 | DONE (compile + specs; 🖥 part untested) |
-| T-CLI-03 | S | T-FND-03 | G8, G9.3 | `ui/UiKit.luau` (buttons, panels, tweens) + `controllers/HudController.luau` | Compiles; 🖥 HUD readable on 720p phone | WIP |
-| T-CLI-04 | S | T-CLI-03 | G9.3 | `controllers/PanelController.luau` — upgrade, shop, inventory, death, daily, quests, playtime, rebirth, codes, settings, starter offer | Compiles; every Request name used exists in `Remotes` | WIP |
-| T-CLI-05 | S | T-CLI-01 | G6 | `controllers/FeedbackController.luau` — every row of the G6 table | Compiles; 🖥 checklist walk-through | TODO |
-| T-CLI-06 | H | T-CLI-03 | G7 | `controllers/TutorialController.luau` | Compiles; 🖥 new profile reaches first capture unaided | TODO |
-| T-CLI-07 | S | all D | G11.3 | `client/Main.client.luau` | Compiles | TODO |
+| T-CLI-03 | S | T-FND-03 | G8, G9.3 | `ui/UiKit.luau` (buttons, panels, tweens) + `controllers/HudController.luau` | Compiles; 🖥 HUD readable on 720p phone | DONE (compile + specs; 🖥 part untested) |
+| T-CLI-04 | S | T-CLI-03 | G9.3 | `controllers/PanelController.luau` — upgrade, shop, inventory, death, daily, quests, playtime, rebirth, codes, settings, starter offer | Compiles; every Request name used exists in `Remotes` | DONE (compile + specs; 🖥 part untested) |
+| T-CLI-05 | S | T-CLI-01 | G6 | `controllers/FeedbackController.luau` — every row of the G6 table | Compiles; 🖥 checklist walk-through | DONE (compile + specs; 🖥 part untested) |
+| T-CLI-06 | H | T-CLI-03 | G7 | `controllers/TutorialController.luau` | Compiles; 🖥 new profile reaches first capture unaided | DONE (compile + specs; 🖥 part untested) |
+| T-CLI-07 | S | all D | G11.3 | `client/Main.client.luau` | Compiles | DONE (compile + specs; 🖥 part untested) |
 
 ## E. World, assets, audio
 | ID | Tier | Deps | GDD | Output | Acceptance | Status |
@@ -59,7 +59,7 @@ _Atomic tasks from `GDD.md`. Tiers: **F** Fable, **O** Opus, **S** Sonnet, **H**
 ## F. Integration and launch
 | ID | Tier | Deps | Output | Acceptance | Status |
 |---|---|---|---|---|---|
-| T-INT-01 | F | B, C, D | Code review of every system against GDD | Findings fixed or queued | TODO |
+| T-INT-01 | F | B, C, D | Code review of every system against GDD | Findings fixed or queued | WIP |
 | T-INT-02 | F | T-FND-04 | 🖥 Open `build/TurfLoop.rbxlx` (or Rojo sync), play solo, fix console errors | Zero errors in output for a 5-minute session | BLOCKED (needs Studio) |
 | T-INT-03 | F | T-INT-02 | 🖥 2-client test server: sync, cuts, purchases in test mode | G2 rules observed by both clients | BLOCKED (needs Studio) |
 | T-LCH-01 | owner | T-INT-03 | Create gamepasses, products, badges, group on Roblox; paste ids into `Config.Ids` | Ids non-zero | TODO (costs nothing but needs the owner's account) |
