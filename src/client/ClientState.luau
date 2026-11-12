@@ -208,6 +208,19 @@ function ClientState.dailyState(): { canClaim: boolean, nextStreak: number }
 	return Formulas.dailyClaimState(p.daily.lastClaimDay, p.daily.streak, Formulas.dayNumber(ClientState.serverNow()))
 end
 
+-- True while the Starter Pack is unbought and its offer window is open (session flag or the 48 h window).
+function ClientState.starterOfferOpen(): boolean
+	local p = ClientState.profile
+	if p == nil or p.starterPackBought then
+		return false
+	end
+	if ClientState.session.starterOffer then
+		return true
+	end
+	local seen = p.starterOfferSeenAt
+	return seen > 0 and ClientState.serverNow() - seen < Config.Products.starterPack.OfferWindowHours * 3600
+end
+
 function ClientState.questClaimable(): boolean
 	local p = ClientState.profile
 	if p == nil then

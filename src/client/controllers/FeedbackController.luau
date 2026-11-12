@@ -47,6 +47,22 @@ local BEAM_WIDTH = 1.5
 local BEAM_RESOLVE = 0.5
 local SHIELD_SIZE = 7
 local SOUND_POOL = 4
+local MUSIC_VOLUME = 0.15
+local FIRST_POPUP_SCALE = 2.5
+local OTHER_BURST_SCALE = 0.4
+local OTHER_BURST_RANGE = 150 -- studs from the camera focus
+local OTHER_BURST_SLOTS = 8
+local CUBE_COUNT = 24
+local CUBE_SIZE = 0.8
+local CUBE_FLIGHT = 0.4
+local CUBE_SEARCH = 12 -- cells around the victim
+local CUBE_TRIES = 96
+local CROWN_DROP = 8 -- studs the crown falls
+local CROWN_DROP_TIME = 0.35
+local CROWN_SPIKES = 5
+local CROWN_RADIUS = 0.55
+local CROWN_RETRY = 0.5
+local BAND_ROT = CFrame.Angles(0, 0, math.rad(90)) -- cylinder axis is X; stand it upright
 
 local CONFETTI_MIN_CELLS = Config.Income.CaptureBonus[1].MinCells
 local SHAKE_FULL_CELLS = Config.Income.CaptureBonus[#Config.Income.CaptureBonus].MinCells
@@ -146,6 +162,19 @@ local effectsFolder: Folder? = nil
 local vignetteEdges: { Frame } = {}
 local colorCorrection: ColorCorrectionEffect? = nil
 local beam: BasePart? = nil
+local rng = Random.new()
+local musicSound: Sound? = nil
+local firstClaimShown = false
+local questReady: { [string]: boolean } = {}
+local questSeeded = false
+local otherBursts: { { anchor: BasePart, pe: ParticleEmitter } } = {}
+local otherBurstNext = 0
+type Cube = { part: BasePart, from: Vector3, t0: number }
+local cubePool: { BasePart } = {}
+local flyingCubes: { Cube } = {}
+type Crown = { model: Model, base: BasePart, head: BasePart, kingId: number, t0: number, landed: boolean }
+local crown: Crown? = nil
+local crownTryAt = 0
 
 local soundPools: { [string]: { Sound } } = {}
 local soundNext: { [string]: number } = {}
@@ -245,10 +274,11 @@ local function tempAnchor(pos: Vector3, lifetime: number): BasePart
 	return p
 end
 
-local function popup(pos: Vector3, text: string, color: Color3)
+local function popup(pos: Vector3, text: string, color: Color3, scale: number?)
 	local anchor = tempAnchor(pos, POPUP_TIME + 0.1)
 	local bb = Instance.new("BillboardGui")
-	bb.Size = UDim2.fromOffset(160, 56)
+	local k = scale or 1
+	bb.Size = UDim2.fromOffset(160 * k, 56 * k)
 	bb.AlwaysOnTop = true
 	bb.LightInfluence = 0
 	bb.Adornee = anchor
@@ -295,7 +325,7 @@ local function lowDetail(): boolean
 	return s ~= nil and s.lowDetail
 end
 
-local function burst(pos: Vector3, effectId: string)
+local function burst(pos: Vector3, effectId: string, scale: number?)
 	local preset = PRESETS[effectId] or PRESETS.sparkle
 	local item = Catalog.byId(effectId)
 	local a = if item then Color3.fromHex(item.colorA) else COIN_COLOR
@@ -305,7 +335,41 @@ local function burst(pos: Vector3, effectId: string)
 	configureEmitter(pe, preset, ColorSequence.new(a, b))
 	pe.Parent = anchor
 	local n = if lowDetail() then preset.count // 2 else preset.count
-	pe:Emit(n)
+	pe:Emit(math.max(1, math.floor(n * (scale or 1))))
+end
+
+-- Other runners' capture effect: a fixed ring of reusable emitters, reduced count, no Instance churn.
+local function burstOther(pos: Vector3, effectId: string)
+	local folder = effectsFolder
+	if not folder then
+		return
+	end
+	local preset = PRESETS[effectId] or PRESETS.sparkle
+	local item = Catalog.byId(effectId)
+	local a = if item then Color3.fromHex(item.colorA) else COIN_COLOR
+	local b = if item and item.colorB then Color3.fromHex(item.colorB) else a
+	otherBurstNext = otherBurstNext % OTHER_BURST_SLOTS + 1
+	local slot = otherBursts[otherBurstNext]
+	if not slot then
+		local anchor = Instance.new("Part")
+		anchor.Name = "OtherBurst"
+		anchor.Anchored = true
+		anchor.CanCollide = false
+		anchor.CanTouch = false
+		anchor.CanQuery = false
+		anchor.CastShadow = false
+		anchor.Transparency = 1
+		anchor.Size = Vector3.new(1, 1, 1)
+		local pe = Instance.new("ParticleEmitter")
+		pe.Parent = anchor
+		anchor.Parent = folder
+		slot = { anchor = anchor, pe = pe }
+		otherBursts[otherBurstNext] = slot
+	end
+	local s = slot :: { anchor: BasePart, pe: ParticleEmitter }
+	s.anchor.CFrame = CFrame.new(pos)
+	configureEmitter(s.pe, preset, ColorSequence.new(a, b))
+	s.pe:Emit(math.max(1, math.floor(preset.count * OTHER_BURST_SCALE)))
 end
 
 local confettiPreset: Preset = {
@@ -446,12 +510,97 @@ local function onClaim(ev: { id: number, cells: number, neutral: number, stolen:
 	if not pos then
 		return
 	end
-	if cells >= CONFETTI_MIN_CELLS then
+	-- G7.3: the very first capture of a new player always gets confetti and an oversized popup.
+	local profile = ClientState.profile
+	local first = not firstClaimShown and profile ~= nil and not profile.tutorialDone
+	if first then
+		firstClaimShown = true
+		popup(pos + Vector3.new(0, POPUP_HEIGHT, 0), "+" .. cells, COIN_COLOR, FIRST_POPUP_SCALE)
+	end
+	if cells >= CONFETTI_MIN_CELLS or first then
 		FeedbackController.play("bigClaim")
 		confetti(pos)
 	end
 	local info = ClientState.arena.runners[ev.id]
 	burst(pos, if info then info.effect else "sparkle")
+end
+
+-- Capture effect of another runner's claim: reduced, skipped in low detail and when far from the camera focus.
+local function onOtherClaim(ev: { id: number, cx: number, cy: number })
+	if lowDetail() then
+		return
+	end
+	local pos = cellWorld(ev.cx, ev.cy, 1)
+	local focus = CameraController.getFocus()
+	if not pos or not focus then
+		return
+	end
+	local d = pos - focus
+	if Vector3.new(d.X, 0, d.Z).Magnitude > OTHER_BURST_RANGE then
+		return
+	end
+	local info = ClientState.arena.runners[ev.id]
+	burstOther(pos, if info then info.effect else "sparkle")
+end
+
+-- Turf shatter: small cubes in the victim's colour fly from their former turf to the killer.
+local function cubeFor(index: number): BasePart?
+	local p = cubePool[index]
+	if p then
+		return p
+	end
+	local folder = effectsFolder
+	if not folder then
+		return nil
+	end
+	local created = Instance.new("Part")
+	created.Name = "ShatterCube"
+	created.Anchored = true
+	created.CanCollide = false
+	created.CanTouch = false
+	created.CanQuery = false
+	created.CastShadow = false
+	created.Size = Vector3.new(CUBE_SIZE, CUBE_SIZE, CUBE_SIZE)
+	created.Material = Enum.Material.SmoothPlastic
+	cubePool[index] = created
+	return created
+end
+
+local function shatterTurf(victim: number)
+	if lowDetail() or #flyingCubes > 0 then
+		return
+	end
+	local g = ArenaClient.getGrid()
+	local folder = effectsFolder
+	local root = myRootPosition()
+	if not (g and folder and root) then
+		return
+	end
+	local inst = runnerInstance(victim)
+	local origin = if inst then inst:GetPivot().Position else root
+	local ox, oy = g:worldToCell(origin.X, origin.Z)
+	local color = TurfRenderer.colorOf(victim)
+	local now = os.clock()
+	local made = 0
+	for _ = 1, CUBE_TRIES do
+		if made >= CUBE_COUNT then
+			break
+		end
+		local x = ox + rng:NextInteger(-CUBE_SEARCH, CUBE_SEARCH)
+		local y = oy + rng:NextInteger(-CUBE_SEARCH, CUBE_SEARCH)
+		if g:inBounds(x, y) and g:get(x, y) == victim then
+			local part = cubeFor(made + 1)
+			if part then
+				made += 1
+				local wx, wz = g:cellToWorld(x, y)
+				local from = Vector3.new(wx, FLOOR + 1, wz)
+				part.Color = color
+				part.CFrame = CFrame.new(from)
+				part.Parent = folder
+				table.insert(flyingCubes, { part = part, from = from, t0 = now })
+			end
+		end
+	end
 end
 
 local function runnerName(id: number): string
@@ -485,18 +634,29 @@ local function onSpawn(info: Types.RunnerInfo)
 	shields[id] = { part = p, ends = ArenaClient.shieldEnds[id] or os.clock() }
 end
 
+local function removeCrown()
+	local c = crown
+	crown = nil
+	if c then
+		c.model:Destroy()
+	end
+end
+
 local function onEvent(ev: Types.ArenaEvent)
 	local arena = ClientState.arena
 	local myId = arena.myId
 	if ev.kind == "claim" then
 		if ev.id == myId then
 			onClaim(ev)
+		else
+			onOtherClaim(ev)
 		end
 	elseif ev.kind == "cut" then
 		if ev.killer == myId then
 			lastCutAt = os.clock()
 			CameraController.punch(PUNCH_FOV)
 			FeedbackController.play("snip")
+			shatterTurf(ev.victim)
 		end
 		if ev.victim == myId then
 			FeedbackController.play("deathPop")
@@ -505,6 +665,7 @@ local function onEvent(ev: Types.ArenaEvent)
 	elseif ev.kind == "king" then
 		kingTarget = nil
 		kingResolveAt = 0
+		removeCrown()
 		if ev.id ~= 0 then
 			FeedbackController.play("crownFanfare")
 			local toast = FeedbackController.onToast
@@ -548,6 +709,171 @@ local function onReward(payload: { coins: number?, gems: number?, reason: string
 	end
 end
 
+-- Head part of a runner: the character's Head for players, the Head of the rig under workspace.Bots for bots.
+local function headOf(id: number): BasePart?
+	local info = ClientState.arena.runners[id]
+	if not info then
+		return nil
+	end
+	local owner: Instance? = nil
+	if info.isBot then
+		local bots = workspace:FindFirstChild("Bots")
+		owner = bots and bots:FindFirstChild(tostring(id))
+	else
+		local player = Players:GetPlayerByUserId(info.userId)
+		owner = player and player.Character
+	end
+	local head = owner and owner:FindFirstChild("Head")
+	if head and head:IsA("BasePart") then
+		return head
+	end
+	return nil
+end
+
+local function crownPart(model: Model, size: Vector3, shape: Enum.PartType): Part
+	local p = Instance.new("Part")
+	p.Shape = shape
+	p.Size = size
+	p.Anchored = true -- until the drop-in lands
+	p.CanCollide = false
+	p.CanTouch = false
+	p.CanQuery = false
+	p.CastShadow = false
+	p.Massless = true
+	p.Material = Enum.Material.Metal
+	p.Color = COIN_COLOR
+	p.Parent = model
+	return p
+end
+
+local function weld(a: BasePart, b: BasePart)
+	local w = Instance.new("WeldConstraint")
+	w.Part0 = a
+	w.Part1 = b
+	w.Parent = a
+end
+
+-- Crown for the King: gold band plus CROWN_SPIKES ball spikes (6 Parts), dropped onto the head.
+local function attachCrown(kingId: number, head: BasePart)
+	local model = Instance.new("Model")
+	model.Name = "KingCrown"
+	model:SetAttribute("Placeholder", "M3")
+	local band = crownPart(model, Vector3.new(0.4, CROWN_RADIUS * 2.2, CROWN_RADIUS * 2.2), Enum.PartType.Cylinder)
+	model.PrimaryPart = band
+	band.CFrame = BAND_ROT
+	for i = 1, CROWN_SPIKES do
+		local a = (i - 1) / CROWN_SPIKES * math.pi * 2
+		local spike = crownPart(model, Vector3.new(0.35, 0.35, 0.35), Enum.PartType.Ball)
+		spike.CFrame = CFrame.new(math.cos(a) * CROWN_RADIUS, 0.3, math.sin(a) * CROWN_RADIUS)
+		weld(band, spike)
+	end
+	local rest = head.CFrame * CFrame.new(0, head.Size.Y * 0.5 + 0.3, 0)
+	model:PivotTo(rest * CFrame.new(0, CROWN_DROP, 0) * BAND_ROT)
+	model.Parent = head
+	crown = { model = model, base = band, head = head, kingId = kingId, t0 = os.clock(), landed = false }
+end
+
+local function stepCrown(now: number, kingId: number)
+	local c = crown
+	if c and (c.kingId ~= kingId or not c.model:IsDescendantOf(workspace)) then
+		removeCrown()
+		c = nil
+	end
+	if not c then
+		if kingId ~= 0 and now >= crownTryAt then
+			crownTryAt = now + CROWN_RETRY
+			local head = headOf(kingId)
+			if head then
+				attachCrown(kingId, head)
+			end
+		end
+		return
+	end
+	local rest = c.head.CFrame * CFrame.new(0, c.head.Size.Y * 0.5 + 0.3, 0)
+	if c.landed then
+		return
+	end
+	local a = math.clamp((now - c.t0) / CROWN_DROP_TIME, 0, 1)
+	local eased = a * a -- accelerate like a fall
+	c.model:PivotTo(rest * CFrame.new(0, CROWN_DROP * (1 - eased), 0) * BAND_ROT)
+	if a >= 1 then
+		-- Landed: release the anchors and weld the band to the head.
+		c.landed = true
+		for _, d in c.model:GetDescendants() do
+			if d:IsA("BasePart") then
+				d.Anchored = false
+			end
+		end
+		weld(c.head, c.base)
+	end
+end
+
+local function stepCubes(now: number)
+	local n = #flyingCubes
+	if n == 0 then
+		return
+	end
+	local root = myRootPosition()
+	for i = n, 1, -1 do
+		local cube = flyingCubes[i]
+		local a = (now - cube.t0) / CUBE_FLIGHT
+		if a >= 1 or not root then
+			cube.part.Parent = nil
+			table.remove(flyingCubes, i)
+		else
+			cube.part.CFrame = CFrame.new(cube.from:Lerp(root, a * a))
+		end
+	end
+end
+
+local function startMusic()
+	local id = SoundIds.arenaMusic
+	if not id or id == 0 then
+		return
+	end
+	local s = settings()
+	local want = s ~= nil and s.music
+	local snd = musicSound
+	if want then
+		if not snd then
+			local created = Instance.new("Sound")
+			created.Name = "ArenaMusic"
+			created.SoundId = "rbxassetid://" .. id
+			created.Looped = true
+			created.Volume = MUSIC_VOLUME
+			created.Parent = SoundService
+			musicSound = created
+			snd = created
+		end
+		if not (snd :: Sound).Playing then
+			(snd :: Sound):Play()
+		end
+	elseif snd and snd.Playing then
+		snd:Stop()
+	end
+end
+
+-- Plays questComplete when a quest newly becomes claimable (the first profile only seeds the state).
+local function checkQuests()
+	local profile = ClientState.profile
+	if not profile then
+		return
+	end
+	local newly = false
+	for _, entry in profile.quests.list do
+		local def = ClientState.quest(entry.id)
+		local ready = def ~= nil and not entry.claimed and entry.progress >= def.target
+		if ready and not questReady[entry.id] and questSeeded then
+			newly = true
+		end
+		questReady[entry.id] = ready
+	end
+	questSeeded = true
+	if newly then
+		FeedbackController.play("questComplete")
+	end
+end
+
 local function step(dt: number)
 	local now = os.clock()
 	dangerAcc += dt
@@ -567,6 +893,10 @@ local function step(dt: number)
 			FeedbackController.play("heartbeat")
 		end
 	end
+
+	stepCubes(now)
+
+	stepCrown(now, ClientState.arena.kingId)
 
 	local b = beam
 	if b then
@@ -669,6 +999,8 @@ function FeedbackController.start()
 		if s then
 			CameraController.shakeEnabled = s.shake
 		end
+		startMusic()
+		checkQuests()
 	end
 	ClientState.profileChanged:Connect(readSettings)
 	readSettings()

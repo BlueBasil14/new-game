@@ -161,7 +161,7 @@ local function handleEvent(ev: Types.ArenaEvent)
 	elseif ev.kind == "king" then
 		arena.kingId = ev.id
 	elseif ev.kind == "claim" then
-		TurfRenderer.claimFlash(ev.id)
+		TurfRenderer.claimFlash(ev.id, ev.stolen > 0)
 	end
 	markChanged()
 	ClientState.arenaEvent:Fire(ev)
@@ -242,6 +242,11 @@ function ArenaClient.start()
 		if remote and remote:IsA("RemoteEvent") then
 			remote.OnClientEvent:Connect(applyRunnerInfo)
 		end
+	end)
+
+	-- Startup ping (GAP-27): lets the server re-send the snapshot once our listeners exist.
+	task.spawn(function()
+		ClientState.request("Ready")
 	end)
 end
 

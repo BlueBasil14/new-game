@@ -25,6 +25,11 @@ function CameraController.setTurfShare(s: number)
 	share = math.clamp(s, 0, 1)
 end
 
+-- Smoothed world point the camera looks at (nil before the character exists).
+function CameraController.getFocus(): Vector3?
+	return focus
+end
+
 function CameraController.punch(amount: number)
 	fovPunch = math.max(fovPunch, amount)
 end

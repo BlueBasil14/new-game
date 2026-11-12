@@ -35,6 +35,9 @@ end
 UiKit.onClickSound = function()
 	FeedbackController.play("uiClick")
 end
+UiKit.onHoverSound = function()
+	FeedbackController.play("uiHover")
+end
 PanelController.onSound = function(name: string)
 	if name == "click" then
 		return -- every UiKit.button already plays uiClick via UiKit.onClickSound

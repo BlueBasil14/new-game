@@ -9,6 +9,7 @@ local Config = require(Shared.Config)
 local UiKit = {}
 
 UiKit.onClickSound = nil :: (() -> ())?
+UiKit.onHoverSound = nil :: (() -> ())?
 
 function UiKit.color(hex: string): Color3
 	return Color3.fromHex(hex)
@@ -166,6 +167,10 @@ function UiKit.button(props: {
 	end
 	b.MouseEnter:Connect(function()
 		hover = true
+		local hoverSnd = UiKit.onHoverSound
+		if hoverSnd then
+			hoverSnd()
+		end
 		refresh()
 	end)
 	b.MouseLeave:Connect(function()

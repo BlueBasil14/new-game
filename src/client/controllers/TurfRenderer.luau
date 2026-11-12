@@ -30,6 +30,7 @@ local TRAIL_BRIGHTEN = 0.35
 local FLASH_TIME = 0.25
 local FLASH_LIGHTEN = 0.6
 local FLASH_MAX = 40
+local STOLEN_TINT = 0.7 -- stolen-claim flash starts this far from the owner colour toward Danger
 local FLASH_WINDOW = 0.6 -- seconds a claim event and its cell delta may arrive apart
 local BLINK_HZ = 4
 local TEXTURE_TILE_CELLS = 2
@@ -38,6 +39,7 @@ local CS = Config.Arena.CellSize
 local FLOOR = Config.Arena.FloorY
 local WHITE = Color3.new(1, 1, 1)
 local FALLBACK = Color3.fromHex(Config.Colors.GridLine)
+local STOLEN_COLOR = Color3.fromHex(Config.Colors.Danger)
 
 type Style = {
 	a: Color3,
@@ -75,6 +77,7 @@ local blinkOn = false
 
 local claimAt: { [number]: number } = {}
 local flashLeft: { [number]: number } = {}
+local claimStolen: { [number]: boolean } = {} -- owner -> latest claim took cells from others
 local flashStart: { [BasePart]: number } = {}
 local flashFrom: { [BasePart]: Color3 } = {}
 local flashTo: { [BasePart]: Color3 } = {}
@@ -224,7 +227,7 @@ local function startFlash(p: BasePart, owner: number, color: Color3, now: number
 		return
 	end
 	flashLeft[owner] = left - 1
-	local from = color:Lerp(WHITE, FLASH_LIGHTEN)
+	local from = if claimStolen[owner] then color:Lerp(STOLEN_COLOR, STOLEN_TINT) else color:Lerp(WHITE, FLASH_LIGHTEN)
 	p.Color = from
 	flashStart[p] = now
 	flashFrom[p] = from
@@ -363,6 +366,7 @@ local function resetAll()
 	table.clear(styles)
 	table.clear(claimAt)
 	table.clear(flashLeft)
+	table.clear(claimStolen)
 	dirtyHead = 1
 	half = size * CS / 2
 	cps = TrailRuns.chunksPerSide(size, CHUNK)
@@ -478,10 +482,11 @@ end
 
 -- Claim wave trigger (GDD G6). Chunks whose delta already arrived and were rebuilt flash now;
 -- the rest flash when rebuilt within FLASH_WINDOW.
-function TurfRenderer.claimFlash(owner: number)
+function TurfRenderer.claimFlash(owner: number, stolen: boolean?)
 	if lowDetail or owner == 0 then
 		return
 	end
+	claimStolen[owner] = stolen == true
 	local now = os.clock()
 	local estimate = 0
 	for c = 1, cps * cps do
@@ -558,6 +563,14 @@ function TurfRenderer.removeRunner(id: number)
 	trailParts[id] = nil
 	trailRuns[id] = nil
 	danger[id] = nil
+end
+
+-- Base turf colour of a runner (same lookup the renderer uses); neutral grey for unknown ids.
+function TurfRenderer.colorOf(runnerId: number): Color3
+	if runnerId == 0 then
+		return FALLBACK
+	end
+	return styleOf(runnerId).a
 end
 
 function TurfRenderer.runnerChanged(id: number)

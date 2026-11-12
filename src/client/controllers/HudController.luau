@@ -1,5 +1,6 @@
 --!strict
 -- Always-on HUD: wallet, map %, boost/weekend chips, leaderboard, kill feed, button rail, playtime bar.
+local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -11,6 +12,9 @@ local Remotes = require(Shared.Remotes)
 local UiKit = require(script.Parent.Parent.ui.UiKit)
 local ClientState = require(script.Parent.Parent.ClientState)
 local PanelController = require(script.Parent.PanelController)
+local ArenaClient = require(script.Parent.ArenaClient)
+local TurfRenderer = require(script.Parent.TurfRenderer)
+local FeedbackController = require(script.Parent.FeedbackController)
 
 local S = {
 	coinsIcon = "C",
@@ -21,6 +25,7 @@ local S = {
 	boost = "%dx %s",
 	weekend = "%dx WEEKEND",
 	kingMark = "K",
+	starterBadge = "!",
 	cutFeed = "%s cut %s",
 	unknownRunner = "Someone",
 	timeFormat = "%d:%02d",
@@ -43,11 +48,19 @@ local FEED_SECONDS = 5
 local FEED_FADE = 0.5
 local ROLL_SECONDS = 0.5
 local TICK_SECONDS = 0.5
+local COIN_TICK_INTERVAL = 0.1 -- coinTick plays at most 10 times per second while the wallet rolls
+local MINI_BLOCK = 8 -- cells per minimap block side
+local MINI_HEIGHT = 0.16 -- fraction of screen height
+local MINI_BLOCKS_PER_TICK = 100
+local MINI_DOT = 7
+local MINI_DOT_PERIOD = 0.1
+local MINI_BLOCK_EVERY = 5 -- dot periods per block refresh (2 Hz)
 
 local theme = UiKit.theme
 local PANEL_BG = Color3.fromHex(Config.Colors.UiDark)
 
 local started = false
+local railButtons: { [string]: TextButton } = {}
 
 local function formatTime(seconds: number): string
 	seconds = math.max(0, math.floor(seconds))
@@ -60,6 +73,13 @@ end
 
 local function playerColorHex(colorIndex: number): string
 	return Config.Colors.Players[colorIndex] or Config.Colors.UiLight
+end
+
+local VIP_GOLD_HEX = Config.Colors.Yellow
+
+-- RunnerInfo.vip is added by the server later; nil counts as false.
+local function isVip(runner: Types.RunnerInfo): boolean
+	return (runner :: any).vip == true
 end
 
 local function currencyColor(currency: string): Color3
@@ -123,6 +143,15 @@ local function buildWallet(gui: ScreenGui)
 		crowns = walletRow(wallet, 3, S.crownsIcon, theme.Pink),
 	}
 	local shown: { [string]: number } = {}
+	local lastTick = -math.huge
+	local function tickFormat(n: number): string
+		local now = os.clock()
+		if now - lastTick >= COIN_TICK_INTERVAL then
+			lastTick = now
+			FeedbackController.play("coinTick")
+		end
+		return UiKit.formatNumber(n)
+	end
 
 	local function update()
 		local p = ClientState.profile
@@ -136,7 +165,7 @@ local function buildWallet(gui: ScreenGui)
 			if old == nil then
 				UiKit.rollNumber(label, new, new, 0)
 			elseif old ~= new then
-				UiKit.rollNumber(label, old, new, ROLL_SECONDS)
+				UiKit.rollNumber(label, old, new, ROLL_SECONDS, if key == "coins" then tickFormat else nil)
 			end
 			shown[key] = new
 		end
@@ -327,6 +356,7 @@ local function buildLeaderboard(gui: ScreenGui)
 				row.root.Visible = true
 				row.swatch.BackgroundColor3 = Color3.fromHex(playerColorHex(entry.runner.colorIndex))
 				row.name.Text = entry.runner.name
+				row.name.TextColor3 = if isVip(entry.runner) then theme.Yellow else theme.UiLight
 				row.percent.Text = string.format(S.percent, entry.cells / arena.totalCells * 100)
 				row.crown.Visible = entry.id == arena.kingId
 				local mine = entry.id == arena.myId
@@ -359,7 +389,8 @@ local function buildKillFeed(gui: ScreenGui)
 		if runner == nil then
 			return S.unknownRunner
 		end
-		return string.format('<font color="%s">%s</font>', playerColorHex(runner.colorIndex), escapeRich(runner.name))
+		local hex = if isVip(runner) then VIP_GOLD_HEX else playerColorHex(runner.colorIndex)
+		return string.format('<font color="%s">%s</font>', hex, escapeRich(runner.name))
 	end
 
 	local function remove(entry: Frame)
@@ -436,6 +467,28 @@ local function buildRail(gui: ScreenGui): (() -> ())
 		})
 		b.Name = def.panel
 		b.LayoutOrder = i
+		railButtons[def.panel] = b
+		if def.panel == "Shop" then
+			local badge = UiKit.frame({
+				Name = "StarterBadge",
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				Position = UDim2.fromScale(0.94, 0.08),
+				Size = UDim2.fromScale(0.24, 0.24),
+				BackgroundColor3 = theme.Pink,
+				Visible = false,
+				parent = b,
+			})
+			UiKit.corner(badge, 100)
+			UiKit.aspect(badge, 1)
+			UiKit.stroke(badge, theme.UiLight, 2)
+			UiKit.label({
+				Text = S.starterBadge,
+				Size = UDim2.fromScale(0.7, 0.7),
+				Position = UDim2.fromScale(0.15, 0.15),
+				parent = badge,
+			})
+			dots.Shop = badge
+		end
 		if def.panel == "Daily" or def.panel == "Quests" then
 			local dot = UiKit.frame({
 				Name = "Dot",
@@ -462,7 +515,157 @@ local function buildRail(gui: ScreenGui): (() -> ())
 		if quests then
 			quests.Visible = ClientState.questClaimable()
 		end
+		local shop = dots.Shop
+		if shop then
+			shop.Visible = ClientState.starterOfferOpen()
+		end
 	end
+end
+
+-- Minimap -----------------------------------------------------------------------------------
+
+local function runnerPosition(id: number): Vector3?
+	local info = ClientState.arena.runners[id]
+	if not info then
+		return nil
+	end
+	local inst: Instance? = nil
+	if info.isBot then
+		local bots = workspace:FindFirstChild("Bots")
+		inst = bots and bots:FindFirstChild(tostring(id))
+	else
+		local player = Players:GetPlayerByUserId(info.userId)
+		local char = player and player.Character
+		inst = char and char:FindFirstChild("HumanoidRootPart")
+	end
+	if inst and inst:IsA("PVInstance") then
+		return inst:GetPivot().Position
+	end
+	return nil
+end
+
+-- Square overview of the arena: one Frame per MINI_BLOCK x MINI_BLOCK cells (built once), coloured by
+-- the majority owner of the block's 4 centre cells. Blocks refresh round-robin at 2 Hz.
+local function buildMinimap(gui: ScreenGui)
+	local blocks = Config.Arena.GridSize // MINI_BLOCK
+	local neutral = PANEL_BG:Lerp(theme.UiLight, 0.12)
+	local root = UiKit.frame({
+		Name = "Minimap",
+		AnchorPoint = Vector2.new(1, 1),
+		Position = UDim2.fromScale(0.988, 0.78),
+		Size = UDim2.fromScale(MINI_HEIGHT, MINI_HEIGHT),
+		BackgroundColor3 = PANEL_BG,
+		BackgroundTransparency = 0.2,
+		ClipsDescendants = true,
+		parent = gui,
+	})
+	UiKit.corner(root, 8)
+	UiKit.aspect(root, 1)
+
+	local frames: { Frame } = {}
+	local shown: { Color3 } = {}
+	local step = 1 / blocks
+	for by = 0, blocks - 1 do
+		for bx = 0, blocks - 1 do
+			local i = by * blocks + bx + 1
+			frames[i] = UiKit.frame({
+				Name = "B" .. i,
+				Position = UDim2.fromScale(bx * step, by * step),
+				Size = UDim2.fromScale(step, step),
+				BackgroundColor3 = neutral,
+				parent = root,
+			})
+			shown[i] = neutral
+		end
+	end
+
+	local function makeDot(name: string, color: Color3, z: number): Frame
+		local d = UiKit.frame({
+			Name = name,
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Size = UDim2.fromOffset(MINI_DOT, MINI_DOT),
+			BackgroundColor3 = color,
+			ZIndex = z,
+			Visible = false,
+			parent = root,
+		})
+		UiKit.corner(d, 100)
+		return d
+	end
+	local kingDot = makeDot("King", theme.Yellow, 2)
+	local meDot = makeDot("Me", theme.UiLight, 3)
+
+	local samples: { number } = { 0, 0, 0, 0 }
+	local half = MINI_BLOCK // 2
+	local cursor = 0
+	local lastGrid: any = nil
+
+	local function refreshBlock(g: any, i: number)
+		local bx, by = (i - 1) % blocks, (i - 1) // blocks
+		local x0, y0 = bx * MINI_BLOCK + half - 1, by * MINI_BLOCK + half - 1
+		samples[1], samples[2] = g:get(x0, y0), g:get(x0 + 1, y0)
+		samples[3], samples[4] = g:get(x0, y0 + 1), g:get(x0 + 1, y0 + 1)
+		local best, bestN = 0, 0
+		for k = 1, 4 do
+			local o = samples[k]
+			if o ~= 0 then
+				local n = 0
+				for j = 1, 4 do
+					if samples[j] == o then
+						n += 1
+					end
+				end
+				if n > bestN then
+					best, bestN = o, n
+				end
+			end
+		end
+		local color = if best == 0 then neutral else TurfRenderer.colorOf(best)
+		if shown[i] ~= color then
+			shown[i] = color
+			frames[i].BackgroundColor3 = color
+		end
+	end
+
+	local function placeDot(dot: Frame, g: any, pos: Vector3?)
+		if pos == nil then
+			dot.Visible = false
+			return
+		end
+		local cx, cy = g:worldToCell(pos.X, pos.Z)
+		dot.Position = UDim2.fromScale((cx + 0.5) / g.size, (cy + 0.5) / g.size)
+		dot.Visible = true
+	end
+
+	task.spawn(function()
+		local periods = 0
+		while true do
+			task.wait(MINI_DOT_PERIOD)
+			local profile = ClientState.profile
+			local low = profile ~= nil and profile.settings.lowDetail
+			root.Visible = not low
+			local g: any = ArenaClient.getGrid()
+			if low or g == nil then
+				continue
+			end
+			periods += 1
+			if g ~= lastGrid then
+				lastGrid = g
+				for i = 1, #frames do
+					refreshBlock(g, i)
+				end
+			elseif periods % MINI_BLOCK_EVERY == 0 then
+				for _ = 1, MINI_BLOCKS_PER_TICK do
+					cursor = cursor % #frames + 1
+					refreshBlock(g, cursor)
+				end
+			end
+			local arena = ClientState.arena
+			local myId = arena.myId
+			placeDot(meDot, g, if myId and arena.alive then runnerPosition(myId) else nil)
+			placeDot(kingDot, g, if arena.kingId ~= 0 then runnerPosition(arena.kingId) else nil)
+		end
+	end)
 end
 
 -- Playtime reward bar -----------------------------------------------------------------------
@@ -602,6 +805,11 @@ end
 
 local HudController = {}
 
+-- Rail button by panel name ("Upgrades", "Shop", ...); nil until the HUD is built.
+function HudController.getRailButton(name: string): TextButton?
+	return railButtons[name]
+end
+
 function HudController.start()
 	if started then
 		return
@@ -614,6 +822,7 @@ function HudController.start()
 	local updateTimers, updateMap = buildTopCentre(gui)
 	buildLeaderboard(gui)
 	buildKillFeed(gui)
+	buildMinimap(gui)
 	local updateDots = buildRail(gui)
 	local updatePlaytime = buildPlaytime(gui)
 
