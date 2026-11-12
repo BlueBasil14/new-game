@@ -12,9 +12,11 @@ Phase 4 — Build (code only; Studio/Blender steps blocked, see Blockers)
 - API references: `docs/API_arena.md`, `docs/API_economy.md`
 - Last completed task ID: T-CLI-07
 
-## In progress
-- Nothing. All work that can be done without Studio/Blender is complete.
-- T-INT-01 done: 7 client + 6 server defects fixed (`docs/REVIEW_client.md`, `docs/REVIEW_server.md`). Last completed task ID: **T-INT-01**.
+## In progress (dispatched 2026-11-12, second work block)
+- Opus: headless playtest — mock Roblox API in Luau, boot the real server, scripted fake players (`tools/luau/mock/roblox.luau`, `tools/luau/headless.mjs`, `tests/headless/*.luau`, `docs/HEADLESS.md`). Fixes server defects it exposes.
+- Sonnet: read-only audit of code vs GDD MVP scope → `docs/GAPS.md`
+- Next after both: Fable triages GAPS.md, dispatches fixes for gaps that do not need Studio.
+- Last completed task ID: **T-INT-01**
 
 ## Not started (cannot be done in a cloud session)
 - **Nothing has been run in Roblox Studio.** T-INT-02 / T-INT-03 are the next real milestone.
