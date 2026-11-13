@@ -46,6 +46,11 @@ Phase 4 — Build (code only; Studio/Blender steps blocked, see Blockers)
 - Another runner's "is the King!" toast is skipped while a panel is open (`UiKit.isPanelOpen`). Not seen live; the event could not be triggered on demand.
 - Decision (Fable): toasts stay above panels so purchase errors remain visible; only the king toast for other runners is suppressed.
 
+## Sounds (T-AUD-01), 2026-11-12, partial
+- 12 of 20 ids filled in `src/shared/SoundIds.luau` from the Creator Store ("Daily Sounds" free set, Pro Sound Effects). Each loads in Studio with the expected length. **None has been heard by a person**, and playback in a live session was not confirmed.
+- Still 0: trailLoop, bigClaim, snip, crownFanfare, uiHover, questComplete, lobbyMusic, arenaMusic. Creator Store search gave no clearly licensed match; many hits were user uploads of copyrighted game audio and were rejected.
+- Decision (Fable): only use audio from Roblox-licensed libraries or clearly original sets.
+
 ## Not started (cannot be done in a cloud session)
 - **Nothing has been run in Roblox Studio.** T-INT-02 / T-INT-03 are the next real milestone.
 - T-AST-01…11 Blender models (Part placeholders are in place), T-AUD-01 sound ids (`src/shared/SoundIds.luau` is all zeros → game is silent)
