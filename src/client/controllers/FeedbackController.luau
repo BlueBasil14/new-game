@@ -13,6 +13,7 @@ local Catalog = require(Shared.Catalog)
 local SoundIds = require(Shared.SoundIds)
 local Types = require(Shared.Types)
 local ClientState = require(script.Parent.Parent.ClientState)
+local UiKit = require(script.Parent.Parent.ui.UiKit)
 local ArenaClient = require(script.Parent.ArenaClient)
 local CameraController = require(script.Parent.CameraController)
 local TurfRenderer = require(script.Parent.TurfRenderer)
@@ -669,7 +670,8 @@ local function onEvent(ev: Types.ArenaEvent)
 		if ev.id ~= 0 then
 			FeedbackController.play("crownFanfare")
 			local toast = FeedbackController.onToast
-			if toast then
+			-- Someone else's crown is not worth covering an open panel's title bar.
+			if toast and (ev.id == myId or not UiKit.isPanelOpen()) then
 				toast(if ev.id == myId then "You are the King!" else runnerName(ev.id) .. " is the King!", "good")
 			end
 		end

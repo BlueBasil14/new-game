@@ -309,6 +309,10 @@ function UiKit.panel(props: { title: string?, size: UDim2?, parent: Instance? })
 	return panel
 end
 
+function UiKit.isPanelOpen(): boolean
+	return currentPanel ~= nil
+end
+
 function UiKit.showPanel(panel: Panel)
 	panel.show()
 end

@@ -1,5 +1,6 @@
 --!strict
 -- Always-on HUD: wallet, map %, boost/weekend chips, leaderboard, kill feed, button rail, playtime bar.
+local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 local TweenService = game:GetService("TweenService")
 
@@ -124,15 +125,24 @@ local function walletRow(parent: Frame, order: number, icon: string, color: Colo
 	})
 end
 
+-- Roblox's own top-bar buttons sit top-left; the wallet and rail start below them.
+local function belowTopbar(frame: Frame, xScale: number, yScale: number)
+	local function place()
+		frame.Position = UDim2.new(xScale, 0, yScale, GuiService.TopbarInset.Height)
+	end
+	GuiService:GetPropertyChangedSignal("TopbarInset"):Connect(place)
+	place()
+end
+
 local function buildWallet(gui: ScreenGui)
 	local wallet = UiKit.frame({
 		Name = "Wallet",
-		Position = UDim2.fromScale(0.012, 0.02),
 		Size = UDim2.fromScale(0.17, 0.16),
 		BackgroundColor3 = PANEL_BG,
 		BackgroundTransparency = 0.25,
 		parent = gui,
 	})
+	belowTopbar(wallet, 0.012, 0.02)
 	UiKit.corner(wallet, 12)
 	UiKit.padding(wallet, 0.03)
 	UiKit.list(wallet, { Padding = UDim.new(0.03, 0) })
@@ -443,14 +453,17 @@ end
 
 -- Button rail -------------------------------------------------------------------------------
 
+local RAIL_BUTTON_HEIGHT = 0.13
+local RAIL_TEXT_WIDTH_DIVISOR = 5.2 -- widest label ("Upgrades") fits when TextSize <= width / this
+
 local function buildRail(gui: ScreenGui): (() -> ())
 	local rail = UiKit.frame({
 		Name = "Rail",
 		BackgroundTransparency = 1,
-		Position = UDim2.fromScale(0.012, 0.2),
-		Size = UDim2.fromScale(0.075, 0.42),
+		Size = UDim2.fromScale(0.075, 0.38),
 		parent = gui,
 	})
+	belowTopbar(rail, 0.012, 0.2)
 	UiKit.list(rail, { Padding = UDim.new(0.014, 0) })
 
 	local dots: { [string]: Frame } = {}
@@ -458,7 +471,7 @@ local function buildRail(gui: ScreenGui): (() -> ())
 		local b = UiKit.button({
 			text = def.text,
 			color = theme.Yellow,
-			size = UDim2.fromScale(1, 0.13),
+			size = UDim2.fromScale(1, RAIL_BUTTON_HEIGHT),
 			parent = rail,
 			onClick = function()
 				PanelController.sound("click")
@@ -468,6 +481,7 @@ local function buildRail(gui: ScreenGui): (() -> ())
 		b.Name = def.panel
 		b.LayoutOrder = i
 		railButtons[def.panel] = b
+		b.TextScaled = false -- TextScaled gave each label its own size; one size for the whole rail
 		if def.panel == "Shop" then
 			local badge = UiKit.frame({
 				Name = "StarterBadge",
@@ -505,6 +519,17 @@ local function buildRail(gui: ScreenGui): (() -> ())
 			dots[def.panel] = dot
 		end
 	end
+
+	local function fitRailText()
+		local width = rail.AbsoluteSize.X
+		local height = rail.AbsoluteSize.Y * RAIL_BUTTON_HEIGHT
+		local size = math.max(math.floor(math.min(height * 0.55, width / RAIL_TEXT_WIDTH_DIVISOR)), 8)
+		for _, b in railButtons do
+			b.TextSize = size
+		end
+	end
+	rail:GetPropertyChangedSignal("AbsoluteSize"):Connect(fitRailText)
+	fitRailText()
 
 	return function()
 		local daily = dots.Daily

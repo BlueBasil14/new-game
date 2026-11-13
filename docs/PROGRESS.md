@@ -40,6 +40,12 @@ Phase 4 — Build (code only; Studio/Blender steps blocked, see Blockers)
 - Seen, not fixed: on the iPhone emulator the Wallet sits under Roblox's top-bar buttons (MCP `screen_capture` hides CoreGui, so earlier captures missed this).
 - Not verified: purchases in test mode (ids are zero, T-LCH-01), real touch/keyboard input.
 
+## HUD layout fixes, 2026-11-12
+- Wallet and rail now start below Roblox's top bar (`GuiService.TopbarInset`); rail height 0.42 → 0.38 so it still clears the thumbstick. Verified on the iPhone emulator: wallet sits under the top-bar buttons, not behind them. The bottom rail button (Settings) is close to the thumbstick; not checked on other devices.
+- Rail buttons share one text size (TextScaled off, size from rail width/height). Verified: all seven at the same size and fitting.
+- Another runner's "is the King!" toast is skipped while a panel is open (`UiKit.isPanelOpen`). Not seen live; the event could not be triggered on demand.
+- Decision (Fable): toasts stay above panels so purchase errors remain visible; only the king toast for other runners is suppressed.
+
 ## Not started (cannot be done in a cloud session)
 - **Nothing has been run in Roblox Studio.** T-INT-02 / T-INT-03 are the next real milestone.
 - T-AST-01…11 Blender models (Part placeholders are in place), T-AUD-01 sound ids (`src/shared/SoundIds.luau` is all zeros → game is silent)
