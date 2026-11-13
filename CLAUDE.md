@@ -1,7 +1,7 @@
 # Turf Loop — Roblox game project
 
 ## Resume protocol
-1. Read `docs/PROGRESS.md` and `docs/TASKS.md` first. Verify the last completed task's output exists, then continue. Never restart from scratch.
+1. Read `docs/HANDOFF.md`, then `docs/PROGRESS.md` and `docs/TASKS.md`. Verify the last completed task's output exists, then continue. Never restart from scratch.
 2. Update `docs/PROGRESS.md` after every completed task. Log Fable's decisions there.
 3. Work continuously. Only stop to ask when something would cost real Robux/money or a tool/connection is broken. The owner has approved irreversible changes to the game.
 

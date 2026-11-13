@@ -19,6 +19,7 @@ Phase 4 — Build (code only; Studio/Blender steps blocked, see Blockers)
 - `docs/GAPS.md`: audit of code vs GDD MVP (27 gaps). Closed in code: GAP-03, 04, 05, 06, 07, 08, 10, 11, 12, 13, 15, 16, 18, 21, 22, 23, 24, 26, 27. Partial: GAP-01 (calls wired, ids missing), 09 (no hit-stop), 25 (hold is PromptSeconds + 12). Open, need Studio: GAP-02, 14, 17, 19, 20.
 - Headless playtest (`node tools/luau/headless.mjs`, notes in `docs/HEADLESS.md`): the real server boots and runs on a strict mock of the Roblox API; 10/10 scenarios pass (boot with bots, join and claim, cut and respawn, every request incl. hostile args, persistence across restart, DataStores down, purchases, 3-minute soak, leave mid-life, mock self-test). One real defect found and fixed: saves and lock release were lost on server shutdown (DataService onClose).
 - Local setup: `.mcp.json` (Roblox_Studio), `CLAUDE.md`, `docs/LOCAL_SETUP.md`
+- 2026-11-13: `docs/HANDOFF.md` written as the single entry point for the local Studio session; working branch is now `claude/hopeful-shannon-w2qsd8`.
 - Last completed task ID: **T-INT-01**; next: **T-INT-02** (needs Studio)
 
 ## Not started (cannot be done in a cloud session)

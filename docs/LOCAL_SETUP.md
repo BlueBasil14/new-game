@@ -8,7 +8,7 @@ The cloud session cannot reach Roblox Studio or Blender. A Claude Code session o
    ```
    git clone https://github.com/BlueBasil14/new-game
    cd new-game
-   git checkout claude/ecstatic-lovelace-7vuzx5
+   git checkout claude/hopeful-shannon-w2qsd8
    cd tools\luau
    npm install
    cd ..\..
@@ -27,4 +27,4 @@ The cloud session cannot reach Roblox Studio or Blender. A Claude Code session o
 Add your Blender MCP server the same way you normally do (`claude mcp add …`) from inside this folder before starting the session. Model tasks are T-AST-01…11 in `docs/TASKS.md`.
 
 ## Keeping cloud and local in sync
-Both push to the branch `claude/ecstatic-lovelace-7vuzx5`. Run `git pull` before starting a local session.
+Both push to the branch `claude/hopeful-shannon-w2qsd8`. Run `git pull` before starting a local session.
