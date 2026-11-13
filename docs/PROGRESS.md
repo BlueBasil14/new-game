@@ -22,6 +22,15 @@ Phase 4 — Build (code only; Studio/Blender steps blocked, see Blockers)
 - 2026-11-13: `docs/HANDOFF.md` written as the single entry point for the local Studio session; working branch is now `claude/hopeful-shannon-w2qsd8`.
 - Last completed task ID: **T-INT-01**; next: **T-INT-02** (needs Studio)
 
+## First Studio playtest (T-INT-02), 2026-11-12, local session
+- `build/TurfLoop.rbxlx` opened in Studio, solo Play driven through the Studio MCP. **No script errors** in a 5-minute session and a second ~5-minute session. Only Studio noise: DataStore fallback warnings and `rbxassetid://203785492 ... Asset type does not match requested type` (id is not in `src/` or the live DataModel; origin not found).
+- Verified live: HUD, leaderboard, minimap, turf and trail rendering; walking a loop claims turf and pays coins; a bot cut the player and the player respawned and could move and claim again; all panels open without errors (Upgrades, Shop, Quests, Daily, Rebirth, Codes, Settings, Starter, Inventory); Shop shows rows of three; ClaimDaily, ClaimPlaytime and BuyUpgrade coinBoost succeed and the panel and wallet update.
+- Not verified: the death panel itself (the cut happened unobserved), camera/thumbstick feel, rubber-banding by eye, real UI clicks (MCP clicks miss under the device emulator; requests were sent directly), sounds, T-INT-03.
+- Seen, not fixed (cosmetic): rail button text sizes differ ("Upgrades" small, "Shop" large); the king banner draws on top of an open panel's title bar.
+- Added a Studio-only `Debug` BindableEvent under `Main.client.luau` (`:Fire("open", "Shop")`, `:Fire("close")`) so automated playtests can open panels.
+- Model note: session started on Sonnet, switched to Fable part-way.
+- Next: T-INT-03 two-player test, then the two cosmetic items above.
+
 ## Not started (cannot be done in a cloud session)
 - **Nothing has been run in Roblox Studio.** T-INT-02 / T-INT-03 are the next real milestone.
 - T-AST-01…11 Blender models (Part placeholders are in place), T-AUD-01 sound ids (`src/shared/SoundIds.luau` is all zeros → game is silent)

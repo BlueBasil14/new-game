@@ -72,3 +72,18 @@ boot("Feedback", FeedbackController.start)
 boot("Hud", HudController.start)
 boot("Panels", PanelController.start)
 boot("Tutorial", TutorialController.start)
+
+-- Studio-only test hook: automated playtests cannot click UI reliably under the device emulator.
+-- script.Debug:Fire("open", "Shop") / ("close")
+if game:GetService("RunService"):IsStudio() then
+	local debugEvent = Instance.new("BindableEvent")
+	debugEvent.Name = "Debug"
+	debugEvent.Event:Connect(function(action: string, arg: string?)
+		if action == "open" and arg then
+			PanelController.open(arg)
+		elseif action == "close" then
+			PanelController.close()
+		end
+	end)
+	debugEvent.Parent = script
+end
