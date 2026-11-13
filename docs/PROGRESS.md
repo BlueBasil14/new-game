@@ -148,3 +148,10 @@ Phase 4 — Build (code only; Studio/Blender steps blocked, see Blockers)
 - GAP-08 fixed: the tutorial hand ignored the 58 px top-bar inset and sat over the wallet. `TutorialController.luau` now adds `GuiService:GetGuiInset()`. Measured live: Upgrades button at y 76, hand at y 79, just right of the button. The cut step before it was skipped with the Debug `cut` hook.
 - Not verified: the hand by eye on a screenshot; whether the white tutorial ring still shows now that rail buttons have their own dark outline (a button can show only one outline); music audibly playing.
 - `build/TurfLoop.rbxlx` is committed again and matches the tree. The cloud place "11132026_2" was not touched and still has older scripts.
+
+## Cloud place updated, 2026-11-13 10:00 (lead)
+- The cloud place "BlazeHawks's Place: 11132026_2" (placeId 122808046982168) now holds the current scripts: `Shared`, `Server` and `Client` were replaced with the folders from `build/TurfLoop.rbxlx` at commit 9c97768. Saved to Roblox as place version 5. Saved only, **not published**.
+- How: the three folders were exported to a temporary model in Studio's content folder and loaded with `game:GetObjects("rbxasset://...")`, because localhost HTTP sync is blocked. The temporary file was deleted afterwards. The RBLX Essentials folders already in the place were left as they were.
+- Checked in a solo play session there: both sound-system boots report no failures, 9 bots spawn, a walked loop claimed turf and paid coins (42), the HUD shows the icon wallet and rail. No errors from our scripts.
+- Not checked: the 3D view (the capture showed the UI on a black background, which happens when the Studio window is covered), any of the overnight effects in this place.
+- This place has "Studio Access to API Services" off, so DataStores print `StudioAccessToApisNotAllowed` and the game uses the in-memory store. That is a security setting for the owner to change (Game Settings > Security) if saving should work in Studio.
