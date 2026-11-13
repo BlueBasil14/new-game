@@ -1,5 +1,6 @@
 --!strict
 -- Wordless first-run tutorial: loop guide, cut hint, then the first upgrade pointer.
+local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -238,7 +239,9 @@ local function runUpgradeHint()
 				tween:Play()
 				ringTween = tween
 			end
-			local pos, size = button.AbsolutePosition, button.AbsoluteSize
+			-- AbsolutePosition excludes the top-bar inset; this gui ignores the inset, so add it back.
+			local pos = button.AbsolutePosition + GuiService:GetGuiInset()
+			local size = button.AbsoluteSize
 			arrow.Position = UDim2.fromOffset(pos.X + size.X + HAND_GAP, pos.Y + size.Y * 0.2)
 			arrow.Size = UDim2.fromOffset(size.Y, size.Y)
 		end

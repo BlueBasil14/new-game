@@ -4,7 +4,7 @@ _Several agents share this working folder. Two agents must never edit the same f
 
 | Area / files | Owner right now | Notes |
 |---|---|---|
-| `src/client/ui/UiKit.luau`, `src/client/controllers/HudController.luau`, `src/shared/ArcadeIcons.luau`, `assets/`, `default.project.json`, `tools/build_place.py` | The agent applying the Arcade Commons icons / UI kit and the RBLX Essentials sound system (ChatGPT session) | **Still uncommitted at 05:30 on 2026-11-13** (last edit 23:32). Lead has not edited or committed them. Owner: please have that session commit, or tell the lead to. |
+| `src/client/ui/UiKit.luau`, `src/client/controllers/HudController.luau`, `src/shared/ArcadeIcons.luau`, `assets/rblxessentials`, `assets/arcade-commons`, `default.project.json`, `tools/build_place.py` | Free (committed by the lead on 2026-11-13 morning after review) | Written by the ChatGPT session. `assets/itch/` (75 MB) is left untracked. |
 | `src/client/controllers/TurfRenderer.luau`, `FeedbackController.luau`, `CameraController.luau`, `PanelController.luau`, `src/client/Main.client.luau` | Free (lead took them over on 2026-11-13 02:00; all committed) | The terminal task in `docs/TASKS_FOR_TERMINAL.md` was never started, so the lead did GAP-20/GAP-09 itself. That task file is obsolete. |
 | Roblox Studio (Play, Output, screenshots) | Lead session only | Check `list_roblox_studios` first; if another agent has a play session running, wait. |
 | `docs/PROGRESS.md` | Everyone, append-only | Add a dated section at the end of the non-"Decisions" part; never rewrite other sections. |

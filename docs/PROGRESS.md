@@ -90,6 +90,22 @@ Phase 4 — Build (code only; Studio/Blender steps blocked, see Blockers)
 - 2026-11-12: Gaps deferred until Studio is available because they need eyes/ears: GAP-01 sound ids, GAP-02 Roblox ids, GAP-14 claim wave, GAP-17 pattern textures, GAP-19 ragdoll, GAP-20 speed lines.
 - 2026-11-12: Headless mock run is a test tool only. It does not model physics, replication lag, rendering or the client; it does not replace T-INT-02.
 
+## 2026-11-12 — RBLX Essentials Sound System installation
+- Installed the official free Sound System v3.2.2 into the open TurfLoop Studio place: supplied Kernel/server/client boot, music HUD, Settings controls, 15 tracks and 42 SFX. Demo pads omitted. Staging model removed.
+- Preserved five service models in assets/rblxessentials and mapped them in default.project.json; tools/build_place.py now includes them and verifies vendor script counts and unique referents. Existing FeedbackController sound mappings were left as authored.
+- Adjusted music HUD insets/position for the active iPhone landscape preview, below the leaderboard and clear of the camera cutout.
+- Executed solo Studio playtest: both SoundSystem boots report no failed/skipped packs. Native clicks expand the HUD, change track/title, and mute the music SoundGroup to zero. Audio assets report loaded, but playback TimePosition remains zero even for a standalone sound; audible output is unverified in this Studio session.
+- Existing DataStore/unpublished-place warnings and asset-type warning for 203785492 predate this change.
+- Checks passed: 38 source files compiled, all Luau specs, xref (0 unresolved), 10/10 headless scenarios, custom XML build/check, and Rojo build.
+
+## 2026-11-12 — Arcade Commons uploaded and integrated
+- Uploaded 48 original transparent Image assets to creator 309565647. All completed and moderation Approved; IDs in assets/arcade-commons/upload-manifest.json and src/shared/ArcadeIcons.luau.
+- Added UiKit.icon, wallet currency icons, all seven rail icons, panel heading icons and icon-based close controls. Existing click callbacks and notification badges preserved. Rail captions separated from decorative artwork to avoid UIPadding shifting icons into the text.
+- Executed Studio solo checks: phone landscape and default desktop visual review; Shop open/close and Settings open via native input; 48/48 native ImageLabels loaded in a temporary contact sheet; no rail icon/caption overlaps. A raw-URI PreloadAsync diagnostic reported Failure, so verification used the actual native ImageLabel rendering boundary, which passed for every asset. Removed the temporary grid and stopped Play. Studio reset to default viewport.
+- Saved cloud place 122808046982168 (universe 10776297447), version 4; updated local build. No publish action performed.
+- Checks passed: 39 modules compile, existing Luau specs, xref 0 unresolved, 10/10 headless mock scenarios, XML and Rojo build. No new UiKit/HudController/ArcadeIcons errors. Existing Studio DataStore access and unrelated image 203785492 warnings remain.
+- Larger Figma component kit remains a design draft; this task uploads the full icon pack and integrates HUD/menu artwork, not all 80 Figma UI states.
+
 ## Overnight run (lead, scheduled), 2026-11-13 02:00
 - State found: GAP-14 already committed. The terminal task (GAP-20/GAP-09) had never started. The Arcade Commons UI and sound-system files (UiKit, HudController, ArcadeIcons, assets, default.project.json, build_place.py) are still uncommitted by the other session; the lead did not edit or commit them.
 - GAP-20 speed lines: particle streaks in the runner's colour behind the local character while it has a trail; off on return, death and lowDetail (`FeedbackController.luau`).
@@ -125,3 +141,10 @@ Phase 4 — Build (code only; Studio/Blender steps blocked, see Blockers)
 - `build/TurfLoop.rbxlx` on disk was rebuilt from the working tree (includes the other session's uncommitted UI work) and is not committed. The cloud place "11132026_2" was not touched.
 - Wrote `docs/MORNING_SUMMARY.md` for the owner.
 - Next: owner decisions in `docs/MORNING_SUMMARY.md`; then GAP-08 and the phone layout pass, GAP-17 patterns, remaining 8 sound ids.
+
+## Lead session, 2026-11-13 morning
+- Decision (Fable): the Arcade Commons icon UI and RBLX Essentials sound-system work had sat uncommitted for over 10 hours. The owner said to continue at the lead's discretion, so the lead reviewed the diff, ran the checks (39 files compile, specs, xref 0, headless 10/10, place build) and committed it as its own commit. `assets/itch/` (75 MB of downloaded packs) was left untracked on purpose.
+- Seen live (solo play, iPhone emulator, second Studio window on the rebuilt place): coin, gem and crown icons in the wallet, icons on all seven rail buttons, music button on the right; both sound-system boots report no failures; Output otherwise the known Studio noise. The rail's last button (Settings) still sits close to the thumbstick.
+- GAP-08 fixed: the tutorial hand ignored the 58 px top-bar inset and sat over the wallet. `TutorialController.luau` now adds `GuiService:GetGuiInset()`. Measured live: Upgrades button at y 76, hand at y 79, just right of the button. The cut step before it was skipped with the Debug `cut` hook.
+- Not verified: the hand by eye on a screenshot; whether the white tutorial ring still shows now that rail buttons have their own dark outline (a button can show only one outline); music audibly playing.
+- `build/TurfLoop.rbxlx` is committed again and matches the tree. The cloud place "11132026_2" was not touched and still has older scripts.
