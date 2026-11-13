@@ -115,3 +115,13 @@ Phase 4 — Build (code only; Studio/Blender steps blocked, see Blockers)
 - The cloud place "11132026_2" in the other Studio window was not touched and still has older scripts.
 - `build/TurfLoop.rbxlx` on disk was rebuilt from the working tree (includes the other session's uncommitted UI work) and is not committed.
 - Next: owner to get the Arcade Commons / sound-system work committed (unblocks GAP-08 and the phone layout pass); watch a real bot cut to see whether the pop shows, and if the rig is gone too early send the death position with the cut event (server change, Opus); GAP-17 patterns; remaining 8 sound ids.
+
+## Overnight run (lead, scheduled), 2026-11-13 08:00 (last overnight run)
+- State found: nothing new from other agents. The Arcade Commons UI and sound-system files are still uncommitted by the other session; the lead did not edit or commit them. Priority 3 (phone layout pass) and GAP-08 stay blocked on that.
+- No code changed this run. The run was used to close the open question from 05:00: does the elimination pop (GAP-19) show on a real cut.
+- Checks: 39 files compile, specs pass, xref 0 unresolved, headless 10/10.
+- Verified live (solo play, second Studio window on a rebuilt `build/TurfLoop.rbxlx`, closed afterwards): Output clean apart from the known Studio noise. Five real cuts were logged by a probe on the `ArenaEvent` remote. Four bot-on-bot cuts: the victim's rig was still in `Workspace.Bots` when the event arrived every time, and a pop copy appeared in `Workspace.Feedback` every time (2 parts, from floor height to about 8.6 studs higher after 0.25 s). One cut of the player by a bot (the test character was walked toward the bots, no teleport): a copy of the R15 character appeared (20 parts, 19 visible), placed at floor height (y 3.5) while the real character was already at y -20, and rose 8.3 studs in 0.2 s. So the "rig gone too early" worry did not happen and the "character already sunk" branch works. No server change is needed.
+- Not verified: how the pop looks to a person (numbers only, 0.6 s is too short for a screenshot here); a character with many accessories; 2-player; phone frame rate; everything listed as unverified at 02:00 and 05:00.
+- `build/TurfLoop.rbxlx` on disk was rebuilt from the working tree (includes the other session's uncommitted UI work) and is not committed. The cloud place "11132026_2" was not touched.
+- Wrote `docs/MORNING_SUMMARY.md` for the owner.
+- Next: owner decisions in `docs/MORNING_SUMMARY.md`; then GAP-08 and the phone layout pass, GAP-17 patterns, remaining 8 sound ids.
