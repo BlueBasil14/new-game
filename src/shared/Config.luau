@@ -24,6 +24,8 @@ Config.Arena = {
 
 -- G6 claim feel (client): flash start is delayed by up to WaveTime, trail edge first, centroid last
 Config.ClaimFx = { WaveTime = 0.25 }
+-- G6 cutting: client-only pause when the local player cuts someone.
+Config.CutFx = { HitStop = 0.08 }
 
 Config.Camera = { Pitch = 55, MinDistance = 45, MaxDistance = 70, FieldOfView = 70 }
 

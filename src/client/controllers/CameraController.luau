@@ -20,6 +20,7 @@ local fovPunch = 0
 local shakeStrength = 0
 local shakeTime = 0
 local shakeTotal = 0
+local holdUntil = 0
 
 function CameraController.setTurfShare(s: number)
 	share = math.clamp(s, 0, 1)
@@ -32,6 +33,11 @@ end
 
 function CameraController.punch(amount: number)
 	fovPunch = math.max(fovPunch, amount)
+end
+
+-- Hit-stop: the camera holds its last frame for a moment. Client-only, no gameplay effect.
+function CameraController.hold(seconds: number)
+	holdUntil = math.max(holdUntil, os.clock() + seconds)
 end
 
 function CameraController.shake(strength: number, seconds: number)
@@ -54,6 +60,9 @@ local function step(dt: number)
 		return
 	end
 	cam.CameraType = Enum.CameraType.Scriptable
+	if os.clock() < holdUntil then
+		return
+	end
 
 	local root = getRoot()
 	if root then

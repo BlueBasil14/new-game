@@ -53,6 +53,10 @@ local FIRST_POPUP_SCALE = 2.5
 local OTHER_BURST_SCALE = 0.4
 local OTHER_BURST_RANGE = 150 -- studs from the camera focus
 local OTHER_BURST_SLOTS = 8
+local SPEED_LINE_RATE = 30
+local SPEED_LINE_LIFE = 0.25
+local SPEED_LINE_SPEED = 14
+local SPEED_LINE_STRETCH = 2.5 -- ParticleEmitter.Squash; positive = long and thin
 local CUBE_COUNT = 24
 local CUBE_SIZE = 0.8
 local CUBE_FLIGHT = 0.4
@@ -427,6 +431,67 @@ local function desaturate()
 	end)
 end
 
+-- G6 leaving turf: thin streaks thrown backwards off the local character while it has a trail.
+local speedLines: ParticleEmitter? = nil
+
+local function setSpeedLines(on: boolean)
+	local pe = speedLines
+	if not on then
+		if pe then
+			pe.Enabled = false
+		end
+		return
+	end
+	local char = Players.LocalPlayer.Character
+	local root = char and char:FindFirstChild("HumanoidRootPart")
+	if not root then
+		return
+	end
+	if not pe or pe.Parent ~= root then
+		if pe then
+			pe:Destroy()
+		end
+		local new = Instance.new("ParticleEmitter")
+		new.Name = "SpeedLines"
+		new.Rate = SPEED_LINE_RATE
+		new.Lifetime = NumberRange.new(SPEED_LINE_LIFE)
+		new.Speed = NumberRange.new(SPEED_LINE_SPEED)
+		new.EmissionDirection = Enum.NormalId.Back
+		new.Orientation = Enum.ParticleOrientation.VelocityParallel
+		new.Shape = Enum.ParticleEmitterShape.Box
+		new.Squash = NumberSequence.new(SPEED_LINE_STRETCH)
+		new.Size = NumberSequence.new(0.5)
+		new.Transparency = NumberSequence.new(0.5, 1)
+		new.Color = ColorSequence.new(Color3.new(1, 1, 1))
+		new.LightEmission = 0.5
+		new.Parent = root
+		speedLines = new
+		pe = new
+	end
+	pe.Enabled = true
+end
+
+-- G6 cutting: freeze the camera and the local character's animations for Config.CutFx.HitStop.
+local function hitStop()
+	local seconds = Config.CutFx.HitStop
+	CameraController.hold(seconds)
+	local char = Players.LocalPlayer.Character
+	local hum = char and char:FindFirstChildOfClass("Humanoid")
+	local animator = hum and hum:FindFirstChildOfClass("Animator")
+	if not animator then
+		return
+	end
+	for _, track in animator:GetPlayingAnimationTracks() do
+		local speed = track.Speed
+		if speed ~= 0 then
+			track:AdjustSpeed(0)
+			task.delay(seconds, function()
+				track:AdjustSpeed(speed)
+			end)
+		end
+	end
+end
+
 local function setDanger(on: boolean, id: number?)
 	if on == dangerOn and id == dangerId then
 		return
@@ -455,6 +520,7 @@ local function checkDanger()
 		FeedbackController.play("trailStart")
 	end
 	lastTrailLen = n
+	setSpeedLines(n > 0 and arena.alive and not lowDetail())
 	if not (g and myId and trail and arena.alive and n > 0) then
 		setDanger(false, nil)
 		return
@@ -656,6 +722,7 @@ local function onEvent(ev: Types.ArenaEvent)
 		if ev.killer == myId then
 			lastCutAt = os.clock()
 			CameraController.punch(PUNCH_FOV)
+			hitStop()
 			FeedbackController.play("snip")
 			shatterTurf(ev.victim)
 		end
