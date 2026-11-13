@@ -5,6 +5,7 @@ local RunService = game:GetService("RunService")
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Config = require(Shared.Config)
+local ArcadeIcons = require(Shared.ArcadeIcons)
 
 local UiKit = {}
 
@@ -24,6 +25,17 @@ end
 UiKit.theme = theme
 
 local FONT = Enum.Font.GothamBold
+local PANEL_ICONS: { [string]: string } = {
+	Upgrades = "core_upgrades",
+	Shop = "core_shop",
+	["Daily Reward"] = "core_daily",
+	["Daily Quests"] = "core_quests",
+	Rebirth = "core_rebirth",
+	Codes = "core_codes",
+	Settings = "core_settings",
+	Eliminated = "economy_heart",
+	["Starter Pack"] = "economy_reward_chest",
+}
 
 function UiKit.screenGui(name: string, displayOrder: number?): ScreenGui
 	local pg = Players.LocalPlayer:WaitForChild("PlayerGui")
@@ -52,6 +64,21 @@ local function applyProps(inst: Instance, props: { [string]: any }?)
 			inst.Parent = props.parent
 		end
 	end
+end
+
+-- One registry for the original icon pack; decorative images never intercept input.
+function UiKit.icon(key: string, props: { [string]: any }?): ImageLabel
+	local image = Instance.new("ImageLabel")
+	image.Name = key
+	image.BackgroundTransparency = 1
+	image.BorderSizePixel = 0
+	image.ScaleType = Enum.ScaleType.Fit
+	image.Image = assert(ArcadeIcons[key], "Unknown Arcade Commons icon: " .. key)
+	if props and props.parent and props.parent:IsA("GuiObject") then
+		image.ZIndex = props.parent.ZIndex + 1
+	end
+	applyProps(image, props)
+	return image
 end
 
 function UiKit.frame(props: { [string]: any }?): Frame
@@ -246,11 +273,18 @@ function UiKit.panel(props: { title: string?, size: UDim2?, parent: Instance? })
 		parent = root,
 	})
 	UiKit.corner(bar, 18)
+	UiKit.icon(PANEL_ICONS[props.title or ""] or "core_gift", {
+		Name = "PanelIcon",
+		AnchorPoint = Vector2.new(0, 0.5),
+		Position = UDim2.fromScale(0.025, 0.5),
+		Size = UDim2.fromScale(0.09, 0.85),
+		parent = bar,
+	})
 	UiKit.label({
 		Name = "Title",
 		Text = props.title or "",
-		Size = UDim2.fromScale(0.7, 0.7),
-		Position = UDim2.fromScale(0.05, 0.15),
+		Size = UDim2.fromScale(0.66, 0.7),
+		Position = UDim2.fromScale(0.15, 0.15),
 		TextXAlignment = Enum.TextXAlignment.Left,
 		parent = bar,
 	})
@@ -261,7 +295,9 @@ function UiKit.panel(props: { title: string?, size: UDim2?, parent: Instance? })
 		position = UDim2.fromScale(0.89, 0.15),
 		parent = bar,
 	})
-	closeBtn.TextColor3 = theme.UiLight
+	closeBtn.Text = ""
+	closeBtn.BackgroundTransparency = 1
+	UiKit.icon("core_close", { Name = "CloseIcon", Size = UDim2.fromScale(1, 1), parent = closeBtn })
 	UiKit.aspect(closeBtn, 1)
 
 	local body = UiKit.frame({

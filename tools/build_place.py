@@ -106,6 +106,27 @@ def build(out_path):
     with open(out_path, "w", encoding="utf-8", newline="\n") as f:
         f.write("\n".join(out) + "\n")
 
+    # Preserve the authored Sound System assets and boot scripts on every rebuild.
+    vendor_dir = os.path.join(ROOT, "assets", "rblxessentials")
+    vendor_scripts = 0
+    if os.path.isdir(vendor_dir):
+        document = ET.parse(out_path)
+        place_root = document.getroot()
+        def named_child(parent, name):
+            return next(item for item in parent.findall("Item")
+                        if item.findtext("Properties/string[@name='Name']") == name)
+        for filename in sorted(os.listdir(vendor_dir)):
+            if not filename.endswith(".rbxmx"):
+                continue
+            service = filename[:-6]
+            target = (named_child(named_child(place_root, "StarterPlayer"), "StarterPlayerScripts")
+                      if service == "StarterPlayerScripts" else named_child(place_root, service))
+            for item in ET.parse(os.path.join(vendor_dir, filename)).getroot().findall("Item"):
+                vendor_scripts += sum(child.get("class") in ("Script", "LocalScript", "ModuleScript")
+                                      for child in item.iter("Item"))
+                target.append(item)
+        document.write(out_path, encoding="utf-8", xml_declaration=True)
+
     # verify well-formed + unique referents
     tree = ET.parse(out_path)
     items = list(tree.getroot().iter("Item"))
@@ -120,8 +141,9 @@ def build(out_path):
                       if f.endswith(".luau") and not any(p.startswith(".") for p in os.path.relpath(d, SRC).split(os.sep)))
     bad = [p for p in expected if emitted.count(p) != 1]
     n_scripts = counts["Script"] + counts["LocalScript"] + counts["ModuleScript"]
-    if n_scripts != len(expected):
-        bad.append("script count %d != src files %d" % (n_scripts, len(expected)))
+    if n_scripts != len(expected) + vendor_scripts:
+        bad.append("script count %d != src files %d + vendor scripts %d"
+                   % (n_scripts, len(expected), vendor_scripts))
     size = os.path.getsize(out_path)
     print("%s: Script=%d LocalScript=%d ModuleScript=%d Folder=%d, src files=%d, %d bytes"
           % (os.path.relpath(out_path, ROOT), counts["Script"], counts["LocalScript"],

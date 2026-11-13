@@ -1,0 +1,122 @@
+<?xml version='1.0' encoding='utf-8'?>
+<roblox version="4"><Item class="Folder" referent="RBLXE_StarterPlayerScripts"><Properties><string name="Name">RBLXEssentials</string></Properties><Item class="LocalScript" referent="318">
+        <Properties>
+          <string name="Name">KernelClient</string>
+          <BinaryString name="AttributesSerialize" />
+          <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+          <bool name="Disabled">false</bool>
+          <ContentId name="LinkedSource">
+            <null>
+            </null>
+          </ContentId>
+          <token name="RunContext">0</token>
+          <bool name="DefinesCapabilities">false</bool>
+          <BinaryString name="SerializedOverrides">
+          </BinaryString>
+          <string name="Source">-- RBLX Essentials Kernel - client boot. The only LocalScript in the ecosystem.
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+
+-- 3.0: packs, Config modules and the server's piece decisions arrive with the
+-- first replication; read them only once it is complete.
+if not game:IsLoaded() then
+	game.Loaded:Wait()
+end
+
+local rsRoot = ReplicatedStorage:WaitForChild("RBLXEssentials")
+local kernelFolder = rsRoot:WaitForChild("Kernel")
+local Loader = require(kernelFolder:WaitForChild("Loader"))
+local Version = require(kernelFolder:WaitForChild("Version"))
+local Net = require(kernelFolder:WaitForChild("Net"))
+local SFX = require(kernelFolder:WaitForChild("SFX"))
+local Notify = require(kernelFolder:WaitForChild("Notify"))
+local Signal = require(kernelFolder:WaitForChild("Signal"))
+local Trove = require(kernelFolder:WaitForChild("Packages"):WaitForChild("Trove"))
+local Schema = require(kernelFolder:WaitForChild("Schema"))
+local Config = require(kernelFolder:WaitForChild("Config"))
+local uiFolder = kernelFolder:WaitForChild("UI")
+local MenuSystem = require(uiFolder:WaitForChild("MenuSystem"))
+local Pieces = require(uiFolder:WaitForChild("Pieces"))
+local FontWarmup = require(uiFolder:WaitForChild("FontWarmup"))
+
+local playerGui = Players.LocalPlayer:WaitForChild("PlayerGui")
+
+-- The server publishes its piece decisions before a player can join; this
+-- bounded wait only covers a server that is still starting.
+local encoded = rsRoot:GetAttribute(Pieces.WINNERS_ATTRIBUTE)
+local waited = 0
+while encoded == nil and waited &lt; 10 do
+	waited += task.wait(0.1)
+	encoded = rsRoot:GetAttribute(Pieces.WINNERS_ATTRIBUTE)
+end
+-- nil: every piece is adopted as in 2.x
+local decisions = Pieces.decodeDecisions(encoded, function(text)
+	return HttpService:JSONDecode(text)
+end)
+if decisions == nil then
+	warn("[RBLXE] UI: no piece decisions from the server; every piece is adopted as in 2.x")
+end
+
+-- RT-5: the server publishes which packs did not start there once its boot
+-- is done; wait for it (bounded) so this client does not boot them.
+local serverEncoded = rsRoot:GetAttribute(Loader.SERVER_REPORT_ATTRIBUTE)
+local waitedReport = 0
+while serverEncoded == nil and waitedReport &lt; 30 do
+	waitedReport += task.wait(0.1)
+	serverEncoded = rsRoot:GetAttribute(Loader.SERVER_REPORT_ATTRIBUTE)
+end
+local serverReport = Loader.decodeServerReport(serverEncoded, function(text)
+	return HttpService:JSONDecode(text)
+end)
+if serverReport == nil then
+	warn("[RBLXE] no boot report from the server within 30s; this client boots every pack")
+end
+
+local pieces = Pieces.runtime(decisions, { wait = task.wait, warn = warn, defer = task.defer, print = print })
+pieces:attach(playerGui)
+-- 3.2.0: every pack's menus keep all their letters on a first Play
+-- (UI/FontWarmup.lua): MenuSystem hands it each panel and HUD button it
+-- adopts; the rest of PlayerGui.RBLXEssentials (a layer, a button that is not
+-- a menu piece) is warmed up as it arrives. Never yields.
+local fonts = FontWarmup.new()
+local ui = MenuSystem.new(playerGui, { pieces = pieces, fonts = fonts })
+local function warmRoot(child)
+	if child.Name == Pieces.ROOT then
+		pcall(fonts.other, fonts, child)
+	end
+end
+for _, child in ipairs(playerGui:GetChildren()) do
+	warmRoot(child)
+end
+playerGui.ChildAdded:Connect(warmRoot)
+
+local report = Loader.boot({
+	side = "Client",
+	sharedPacks = rsRoot:WaitForChild("Packs"),
+	kernelApi = { Version = Version, Trove = Trove, Signal = Signal, Net = Net, SFX = SFX, Notify = Notify },
+	ui = ui,
+	configLib = Config,
+	schemaLib = Schema,
+	configRoots = { shared = rsRoot:FindFirstChild("Config") },
+	serverReport = serverReport,
+	extensions = rsRoot:FindFirstChild("Extensions"),
+})
+
+print(Loader.formatReport("Client", report))
+for id, reason in pairs(report.failed) do
+	warn(string.format("[RBLXE] %s failed: %s", id, reason))
+end
+for id, reason in pairs(report.skipped) do
+	warn(string.format("[RBLXE] %s skipped: %s", id, reason))
+end
+for _, notice in ipairs(report.notices or {}) do
+	warn("[RBLXE] " .. notice)
+end
+playerGui:SetAttribute("RBLXE_ClientBooted", true)
+</string>
+          <int64 name="SourceAssetId">-1</int64>
+          <BinaryString name="Tags" />
+        </Properties>
+      </Item>
+    </Item></roblox>

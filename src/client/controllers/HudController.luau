@@ -18,9 +18,9 @@ local TurfRenderer = require(script.Parent.TurfRenderer)
 local FeedbackController = require(script.Parent.FeedbackController)
 
 local S = {
-	coinsIcon = "C",
-	gemsIcon = "G",
-	crownsIcon = "K",
+	coinsIcon = "economy_coin",
+	gemsIcon = "economy_gem",
+	crownsIcon = "economy_crown",
 	mapLabel = "MAP",
 	percent = "%.1f%%",
 	boost = "%dx %s",
@@ -101,17 +101,15 @@ local function walletRow(parent: Frame, order: number, icon: string, color: Colo
 		Name = "Badge",
 		AnchorPoint = Vector2.new(0, 0.5),
 		Position = UDim2.fromScale(0, 0.5),
-		Size = UDim2.fromScale(0.16, 0.9),
+		Size = UDim2.fromScale(0.20, 0.95),
 		BackgroundColor3 = color,
+		BackgroundTransparency = 1,
 		parent = row,
 	})
 	UiKit.corner(badge, 100)
 	UiKit.aspect(badge, 1)
-	local mark = UiKit.label({
-		Text = icon,
-		TextColor3 = theme.UiDark,
-		Size = UDim2.fromScale(0.7, 0.7),
-		Position = UDim2.fromScale(0.15, 0.15),
+	local mark = UiKit.icon(icon, {
+		Size = UDim2.fromScale(1, 1),
 		parent = badge,
 	})
 	mark.Name = "Mark"
@@ -460,7 +458,7 @@ local function buildRail(gui: ScreenGui): (() -> ())
 	local rail = UiKit.frame({
 		Name = "Rail",
 		BackgroundTransparency = 1,
-		Size = UDim2.fromScale(0.075, 0.38),
+		Size = UDim2.fromScale(0.13, 0.38),
 		parent = gui,
 	})
 	belowTopbar(rail, 0.012, 0.2)
@@ -481,6 +479,26 @@ local function buildRail(gui: ScreenGui): (() -> ())
 		b.Name = def.panel
 		b.LayoutOrder = i
 		railButtons[def.panel] = b
+		UiKit.stroke(b, theme.UiDark, 2)
+		UiKit.icon("core_" .. string.lower(def.panel), {
+			Name = "MenuIcon",
+			AnchorPoint = Vector2.new(0, 0.5),
+			Position = UDim2.fromScale(0.04, 0.5),
+			Size = UDim2.fromScale(0.22, 0.8),
+			parent = b,
+		})
+		-- A separate caption keeps text padding from shifting the decorative icon.
+		b.TextTransparency = 1
+		UiKit.label({
+			Name = "Caption",
+			Text = def.text,
+			TextColor3 = theme.UiDark,
+			TextXAlignment = Enum.TextXAlignment.Left,
+			TextScaled = false,
+			Position = UDim2.fromScale(0.32, 0),
+			Size = UDim2.fromScale(0.64, 1),
+			parent = b,
+		})
 		b.TextScaled = false -- TextScaled gave each label its own size; one size for the whole rail
 		if def.panel == "Shop" then
 			local badge = UiKit.frame({
@@ -523,9 +541,13 @@ local function buildRail(gui: ScreenGui): (() -> ())
 	local function fitRailText()
 		local width = rail.AbsoluteSize.X
 		local height = rail.AbsoluteSize.Y * RAIL_BUTTON_HEIGHT
-		local size = math.max(math.floor(math.min(height * 0.55, width / RAIL_TEXT_WIDTH_DIVISOR)), 8)
+		local size = math.max(math.floor(math.min(height * 0.55, width * 0.64 / RAIL_TEXT_WIDTH_DIVISOR)), 8)
 		for _, b in railButtons do
 			b.TextSize = size
+			local caption = b:FindFirstChild("Caption")
+			if caption and caption:IsA("TextLabel") then
+				caption.TextSize = size
+			end
 		end
 	end
 	rail:GetPropertyChangedSignal("AbsoluteSize"):Connect(fitRailText)

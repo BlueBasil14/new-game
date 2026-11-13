@@ -1,0 +1,370 @@
+<?xml version='1.0' encoding='utf-8'?>
+<roblox version="4"><Item class="Folder" referent="RBLXE_ServerScriptService"><Properties><string name="Name">RBLXEssentials</string></Properties><Item class="Script" referent="314">
+        <Properties>
+          <string name="Name">Kernel</string>
+          <BinaryString name="AttributesSerialize" />
+          <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+          <bool name="Disabled">false</bool>
+          <ContentId name="LinkedSource">
+            <null>
+            </null>
+          </ContentId>
+          <token name="RunContext">0</token>
+          <bool name="DefinesCapabilities">false</bool>
+          <BinaryString name="SerializedOverrides">
+          </BinaryString>
+          <string name="Source">-- RBLX Essentials Kernel - server boot. The only Script in the ecosystem.
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local StarterGui = game:GetService("StarterGui")
+local HttpService = game:GetService("HttpService")
+
+local kernelFolder = ReplicatedStorage:WaitForChild("RBLXEssentials"):WaitForChild("Kernel")
+local RootPersistence = require(kernelFolder.UI.RootPersistence)
+
+-- Run first, in its own pcall, before any other require or work: make
+-- StarterGui.RBLXEssentials survive character respawns (see
+-- UI/RootPersistence.lua) before any character spawns. Guarded: a failure
+-- here must never stop the packs from booting, and the piece decision below
+-- then uses the Folder root as it is.
+local persistOk, persistResult, persistWarnings = pcall(RootPersistence.persist, StarterGui, Instance.new, Enum)
+local uiRoot
+if persistOk then
+	uiRoot = persistResult
+	for _, message in ipairs(persistWarnings) do
+		warn("[RBLXE] UI root: " .. message)
+	end
+else
+	warn("[RBLXE] could not make StarterGui.RBLXEssentials persistent; menus, HUD buttons and pack interfaces may stop working after a respawn: " .. tostring(persistResult))
+	uiRoot = StarterGui:FindFirstChild("RBLXEssentials")
+end
+
+local Pieces = require(kernelFolder.UI.Pieces)
+local Loader = require(kernelFolder.Loader)
+local Version = require(kernelFolder.Version)
+local Net = require(kernelFolder.Net)
+local SFX = require(kernelFolder.SFX)
+local Notify = require(kernelFolder.Notify)
+local Signal = require(kernelFolder.Signal)
+local Trove = require(kernelFolder.Packages.Trove)
+local Schema = require(kernelFolder.Schema)
+local Config = require(kernelFolder.Config)
+local Contracts = require(kernelFolder.Contracts)
+
+local ssRoot = script.Parent -- ServerScriptService/RBLXEssentials
+local rsRoot = ReplicatedStorage.RBLXEssentials
+local sharedPacks = rsRoot:WaitForChild("Packs")
+
+rsRoot:SetAttribute("RBLXE_KernelVersion", Version)
+
+-- 3.0 pieces: decide once, here, which copy of every declared interface piece
+-- the game uses (a valid StarterGui.RBLXEssentials.Interface override, else the
+-- pack's default) and publish it for every client, before any pack boots. The
+-- JSON encoding runs inside the same pcall: whatever fails here falls back to
+-- LEGACY and never stops the server script before Loader.boot.
+-- RT-6: packs whose Pieces declaration is invalid; the Loader fails them.
+local pieceFailures = {}
+local planOk, encodedOrError = pcall(function()
+	local declarations, declarationWarnings, declarationFailures = Pieces.collectDeclarations(sharedPacks, require, Contracts)
+	pieceFailures = declarationFailures
+	local plan = Pieces.plan({
+		declarations = declarations,
+		root = uiRoot,
+		contracts = Contracts,
+	})
+	for _, message in ipairs(declarationWarnings) do
+		warn("[RBLXE] UI: " .. message)
+	end
+	for _, message in ipairs(Pieces.strays(StarterGui, uiRoot)) do
+		warn("[RBLXE] UI: " .. message)
+	end
+	for _, line in ipairs(plan.lines) do
+		print("[RBLXE] UI: " .. line)
+	end
+	for _, message in ipairs(plan.warnings) do
+		warn("[RBLXE] UI: " .. message)
+	end
+	return Pieces.encodeDecisions(plan, function(value)
+		return HttpService:JSONEncode(value)
+	end)
+end)
+if planOk then
+	rsRoot:SetAttribute(Pieces.WINNERS_ATTRIBUTE, encodedOrError)
+else
+	warn("[RBLXE] UI: piece resolution failed, pieces keep 2.x adoption: " .. tostring(encodedOrError))
+	rsRoot:SetAttribute(Pieces.WINNERS_ATTRIBUTE, Pieces.LEGACY)
+end
+
+local report = Loader.boot({
+	side = "Server",
+	sharedPacks = sharedPacks,
+	serverPacks = ssRoot:WaitForChild("Packs"),
+	kernelApi = { Version = Version, Trove = Trove, Signal = Signal, Net = Net, SFX = SFX, Notify = Notify },
+	configLib = Config,
+	schemaLib = Schema,
+	configRoots = { shared = rsRoot:FindFirstChild("Config"), server = ssRoot:FindFirstChild("Config") },
+	pieceFailures = pieceFailures,
+	extensions = ssRoot:FindFirstChild("Extensions"),
+})
+
+-- RT-5: tell every client which packs did not start here. A reason that may
+-- quote server-only values (an invalid configuration, a server module's
+-- error) reaches clients as a fixed text (Loader.encodeServerReport); the
+-- warnings below print it whole in the server output. The encoding and
+-- the attribute write share one pcall: a report that cannot be published
+-- must never stop the rest of this boot (the warnings below and
+-- RBLXE_ServerBooted).
+local reportOk, reportError = pcall(function()
+	local encodedReport = Loader.encodeServerReport(report, function(value)
+		return HttpService:JSONEncode(value)
+	end)
+	rsRoot:SetAttribute(Loader.SERVER_REPORT_ATTRIBUTE, encodedReport)
+end)
+if not reportOk then
+	warn("[RBLXE] could not publish the boot report for clients; each client waits 30s for it, then boots every pack: " .. tostring(reportError))
+end
+
+print(Loader.formatReport("Server", report))
+for id, reason in pairs(report.failed) do
+	warn(string.format("[RBLXE] %s failed: %s", id, reason))
+end
+for id, reason in pairs(report.skipped) do
+	warn(string.format("[RBLXE] %s skipped: %s", id, reason))
+end
+for _, notice in ipairs(report.notices or {}) do
+	warn("[RBLXE] " .. notice)
+end
+ssRoot:SetAttribute("RBLXE_ServerBooted", true)
+</string>
+          <int64 name="SourceAssetId">-1</int64>
+          <BinaryString name="Tags" />
+        </Properties>
+      </Item>
+      <Item class="Folder" referent="315">
+        <Properties>
+          <string name="Name">Packs</string>
+          <BinaryString name="AttributesSerialize" />
+          <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+          <Color3 name="IconTint">
+            <R>0</R>
+            <G>0</G>
+            <B>0</B>
+          </Color3>
+          <bool name="DefinesCapabilities">false</bool>
+          <BinaryString name="SerializedOverrides">
+          </BinaryString>
+          <int64 name="SourceAssetId">-1</int64>
+          <BinaryString name="Tags" />
+        </Properties>
+        <Item class="ModuleScript" referent="316">
+          <Properties>
+            <string name="Name">SoundSystem</string>
+            <BinaryString name="AttributesSerialize">AQAAAAwAAABSQkxYRV9IYXNoZXMCTgQAACNyYmx4ZS1oYXNoZXMgdjEgZm52MWEzMiBsZgpSZXBsaWNhdGVkU3RvcmFnZS9QYWNrcy9Tb3VuZFN5c3RlbS9DbGllbnQJMTFhZGFlMjQKUmVwbGljYXRlZFN0b3JhZ2UvUGFja3MvU291bmRTeXN0ZW0vQ2xpZW50L0JhY2tlbmQJY2JlODdmMjAKUmVwbGljYXRlZFN0b3JhZ2UvUGFja3MvU291bmRTeXN0ZW0vQ2xpZW50L0ZpbmdlcnByaW50CWFkZjZmNDBhClJlcGxpY2F0ZWRTdG9yYWdlL1BhY2tzL1NvdW5kU3lzdGVtL0NsaWVudC9Mb29wcwkwOWMzYzFiNwpSZXBsaWNhdGVkU3RvcmFnZS9QYWNrcy9Tb3VuZFN5c3RlbS9DbGllbnQvTXVzaWNQbGF5ZXJIVUQJY2IxNWFmZTIKUmVwbGljYXRlZFN0b3JhZ2UvUGFja3MvU291bmRTeXN0ZW0vQ2xpZW50L011c2ljU3lzdGVtCTg0ZWNmMTcxClJlcGxpY2F0ZWRTdG9yYWdlL1BhY2tzL1NvdW5kU3lzdGVtL0NsaWVudC9PbmVTaG90cwljNzk5ZDE1ZQpSZXBsaWNhdGVkU3RvcmFnZS9QYWNrcy9Tb3VuZFN5c3RlbS9DbGllbnQvU3dpdGNoCTI1YzRhN2EwClJlcGxpY2F0ZWRTdG9yYWdlL1BhY2tzL1NvdW5kU3lzdGVtL0NsaWVudC9Wb2x1bWVIYW5kbGVycwk2YjIyODE1OApSZXBsaWNhdGVkU3RvcmFnZS9QYWNrcy9Tb3VuZFN5c3RlbS9NaWdyYXRpb25zL0NvbnRlbnQJZDBkNjNkNTMKUmVwbGljYXRlZFN0b3JhZ2UvUGFja3MvU291bmRTeXN0ZW0vTWlncmF0aW9ucy9Gcm9tVjIJMDU0NzQ5ZjkKUmVwbGljYXRlZFN0b3JhZ2UvUGFja3MvU291bmRTeXN0ZW0vTWlncmF0aW9ucy9JbnRlcmZhY2UJZWEwYmNiZWYKUmVwbGljYXRlZFN0b3JhZ2UvUGFja3MvU291bmRTeXN0ZW0vTWlncmF0aW9ucy9LZWVwCTYwNDI5NzcxClJlcGxpY2F0ZWRTdG9yYWdlL1BhY2tzL1NvdW5kU3lzdGVtL01pZ3JhdGlvbnMvU291cmNlcwk5NTA0OTlkYQpSZXBsaWNhdGVkU3RvcmFnZS9QYWNrcy9Tb3VuZFN5c3RlbS9QaWVjZXMJNzlkYTU1MzkKUmVwbGljYXRlZFN0b3JhZ2UvUGFja3MvU291bmRTeXN0ZW0vU2NoZW1hCTc3NTZmN2I3ClJlcGxpY2F0ZWRTdG9yYWdlL1BhY2tzL1NvdW5kU3lzdGVtL21hbmlmZXN0CTcwMzRjMzMxClNlcnZlclNjcmlwdFNlcnZpY2UvUGFja3MvU291bmRTeXN0ZW0JNzhiNTdjODU=</BinaryString>
+            <SecurityCapabilities name="Capabilities">0</SecurityCapabilities>
+            <ContentId name="LinkedSource">
+              <null>
+              </null>
+            </ContentId>
+            <bool name="DefinesCapabilities">false</bool>
+            <BinaryString name="SerializedOverrides">
+            </BinaryString>
+            <string name="Source">--[[
+	SoundSystem server module (kernel v2 port). SFX/Music ship as EDIT-TIME
+	SoundService content (2026-08-06 E2E revision - v1 parity, see
+	docs/superpowers/specs/2026-08-06-sound-v2-conversion-design.md's
+	server-module section): the SFX/Music SoundGroups are Rojo-synced
+	directly to SoundService.RBLXEssentials.SoundSystem.{SFX,Music} (see
+	default.project.json's SoundService node) so buyers can browse/replace
+	sounds and tracks in the editor, the same place v1 kept them. This
+	module no longer clones them out of Assets - it just resolves the
+	already-present groups, assigns each group's SoundGroup property to
+	every Sound present AND future (ChildAdded) - v1 Bootstrap.server.lua
+	L48-66 parity, read fully for this port - and exposes positional
+	playback over a kernel Net event, replacing v1 SFXSystem.lua's
+	server-side branch (L69-85).
+
+	Every connection lives on the pack's own Trove (belt-and-suspenders -
+	`init` runs exactly once per server boot in normal operation, but this
+	keeps the pack self-cleaning if that ever changes).
+
+	3.0 (plan B1) reads ctx.config (Config.SoundSystem), never 2.x's
+	Settings: Volumes sets each group's Volume at start when the game gave
+	one; SFXEnabled starts the SFXEnabled attribute of the pack's
+	ReplicatedStorage folder, the live switch every client reads (2.x's
+	BoolValue was read live too) and SetSFXEnabled changes. A game script
+	that set that attribute before this module ran keeps its value: Roblox
+	does not order the Kernel's server Script against the game's own.
+]]
+return function(ctx)
+	local SoundService = game:GetService("SoundService")
+
+	local trove = ctx.kernel.Trove.new()
+
+	-- FindFirstChild chain, not WaitForChild: `init` runs inside the
+	-- Loader's serial boot loop (docs/kernel-api.md §3), so an unbounded
+	-- wait here would hang every pack scheduled after this one with zero
+	-- diagnostics if a buyer ever deleted/renamed the SoundService content.
+	-- It ships as part of this pack's own Rojo-synced tree, so it's always
+	-- already present by the time `init` runs in a correctly-installed
+	-- pack - a miss degrades (warn + skip the SoundGroup-assignment wiring
+	-- for the missing group(s)) rather than erroring this pack's whole
+	-- boot or freezing the rest of the ecosystem.
+	local root = SoundService:FindFirstChild("RBLXEssentials")
+	local packRoot = root and root:FindFirstChild("SoundSystem")
+
+	local function resolveGroup(groupName: string): Instance?
+		local group = packRoot and packRoot:FindFirstChild(groupName)
+		if not group then
+			warn(("[RBLXE SoundSystem] SoundService.RBLXEssentials.SoundSystem.%s missing."
+				.. " reinstall the pack. SFX/Music playback degraded this session."):format(groupName))
+		end
+		return group
+	end
+
+	local sfxGroup = resolveGroup("SFX")
+	local musicGroup = resolveGroup("Music")
+
+	-- The start volumes the game set in Config.SoundSystem.Volumes; unset,
+	-- each group keeps the Volume it has in SoundService, as in 2.x.
+	for _, entry in ipairs({ { "SFX", sfxGroup }, { "Music", musicGroup } }) do
+		local volume = ctx.config.Volumes[entry[1]]
+		if volume ~= nil and entry[2] ~= nil then
+			(entry[2] :: any).Volume = volume
+		end
+	end
+
+	-- SFXEnabled, live (Sound ruling Q4): this attribute reaches every client,
+	-- which reads it on every sound (Client/Switch.lua). A value that is not
+	-- true or false counts as off; unset, the configured value. Set from the
+	-- configuration only while unset, so a game script that set it first
+	-- (2.x's BoolValue was the place's, and such a script always won) wins.
+	if ctx.folder:GetAttribute("SFXEnabled") == nil then
+		ctx.folder:SetAttribute("SFXEnabled", ctx.config.SFXEnabled)
+	end
+	local function sfxOn(): boolean
+		local value = ctx.folder:GetAttribute("SFXEnabled")
+		if value == nil then
+			return ctx.config.SFXEnabled
+		end
+		return value == true
+	end
+
+	-- v1 Bootstrap.server.lua L52-66 verbatim: every Sound (present and
+	-- future) gets its owning group's SoundGroup property assigned.
+	local function assignSoundGroup(sound: Instance, group: Instance)
+		if sound:IsA("Sound") then
+			(sound :: any).SoundGroup = group
+		end
+	end
+
+	for _, group in ipairs({ sfxGroup, musicGroup }) do
+		if group then
+			for _, sound in ipairs(group:GetChildren()) do
+				assignSoundGroup(sound, group)
+			end
+			trove:Connect(group.ChildAdded, function(child)
+				assignSoundGroup(child, group)
+			end)
+		end
+	end
+
+	-- Positional playback API - replaces v1 SFXSystem.lua's
+	-- `SFX:PlayAt`/`SFX:PlayAtForPlayer`, same FireAllClients/FireClient
+	-- argument shape (name, position, range?).
+	local remote = ctx.kernel.Net.server(ctx.packId):event("PlayPositional")
+
+	local api = {}
+
+	function api.PlayAt(name: string, position: Vector3, range: number?)
+		remote:FireAllClients(name, position, range)
+	end
+
+	function api.PlayAtForPlayer(player: Player, name: string, position: Vector3, range: number?)
+		remote:FireClient(player, name, position, range)
+	end
+
+	-- Sound effects on or off for every player while the game runs, what a
+	-- server script did in 2.x by setting the SFXEnabled BoolValue.
+	function api.SetSFXEnabled(enabled: boolean)
+		assert(type(enabled) == "boolean", "SoundSystem.SetSFXEnabled takes true or false")
+		ctx.folder:SetAttribute("SFXEnabled", enabled)
+	end
+
+	function api.IsSFXEnabled(): boolean
+		return sfxOn()
+	end
+
+	-- ── Demo part wiring ─────────────────────────────────────────────
+	-- The pack ships script-less demo parts edit-time under
+	-- Workspace.RBLXEssentials.SoundSystem.Demo (src/Workspace/SoundSystem/
+	-- Demo.rbxm), each tagged `SoundSystem_Demo` with SFX_Action
+	-- ("Play"/"PlayAt"/"PlayAtForPlayer"), SFX_Sound, and optional
+	-- SFX_Range attributes. This server module discovers and wires them -
+	-- same pattern as EasyPetSystem's AddCashPart (tag scan + late-added
+	-- signal, non-blocking) - so the parts carry no code and buyers just
+	-- delete the Demo folder when done testing. `SFX_Action = "Play"`
+	-- reproduces v1's server-side `SFX:Play` (direct `:Play()` on the
+	-- SoundService Sound, which replicates playback to all clients),
+	-- including its SFXEnabled guard; positional actions route through
+	-- the api above (the client handler owns the SFXEnabled check there,
+	-- v1 parity).
+	local CollectionService = game:GetService("CollectionService")
+
+	local function playDirect(name: string)
+		if not sfxOn() then
+			return
+		end
+		local sound = sfxGroup and sfxGroup:FindFirstChild(name)
+		if sound and sound:IsA("Sound") then
+			sound:Play()
+		else
+			warn("[RBLXE SoundSystem] Demo sound not found in SFX group:", name)
+		end
+	end
+
+	local wired = {} -- [part] = true, so the late-added signal can't double-wire
+
+	local function wireDemoPart(part: Instance)
+		if wired[part] then
+			return
+		end
+		local prompt = part:FindFirstChildWhichIsA("ProximityPrompt", true)
+		if not prompt then
+			warn(("[RBLXE SoundSystem] Demo part %s has no ProximityPrompt, so it was skipped"):format(part.Name))
+			return
+		end
+		wired[part] = true
+		trove:Connect(prompt.Triggered, function(player)
+			local action = part:GetAttribute("SFX_Action")
+			local name = part:GetAttribute("SFX_Sound")
+			local range = part:GetAttribute("SFX_Range")
+			if type(name) ~= "string" then
+				return
+			end
+			if action == "Play" then
+				playDirect(name)
+			elseif action == "PlayAt" and part:IsA("BasePart") then
+				api.PlayAt(name, part.Position, range)
+			elseif action == "PlayAtForPlayer" and part:IsA("BasePart") then
+				api.PlayAtForPlayer(player, name, part.Position, range)
+			else
+				warn(("[RBLXE SoundSystem] Demo part %s has unknown SFX_Action %q"):format(part.Name, tostring(action)))
+			end
+		end)
+	end
+
+	for _, part in ipairs(CollectionService:GetTagged("SoundSystem_Demo")) do
+		wireDemoPart(part)
+	end
+	trove:Connect(CollectionService:GetInstanceAddedSignal("SoundSystem_Demo"), function(part)
+		wireDemoPart(part)
+	end)
+
+	return api
+end
+</string>
+            <int64 name="SourceAssetId">-1</int64>
+            <BinaryString name="Tags" />
+          </Properties>
+        </Item>
+      </Item>
+    </Item></roblox>

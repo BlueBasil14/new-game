@@ -4,32 +4,70 @@
     "$className": "DataModel",
     "Workspace": {
       "$className": "Workspace",
-      "$properties": { "FilteringEnabled": true, "StreamingEnabled": false }
+      "$properties": {
+        "FilteringEnabled": true,
+        "StreamingEnabled": false
+      }
     },
-    "Lighting": { "$className": "Lighting" },
+    "Lighting": {
+      "$className": "Lighting"
+    },
     "ReplicatedStorage": {
       "$className": "ReplicatedStorage",
-      "Shared": { "$path": "src/shared" }
+      "Shared": {
+        "$path": "src/shared"
+      },
+      "RBLXEssentials": {
+        "$path": "assets/rblxessentials/ReplicatedStorage.rbxmx"
+      }
     },
     "ServerScriptService": {
       "$className": "ServerScriptService",
-      "Server": { "$path": "src/server" }
+      "Server": {
+        "$path": "src/server"
+      },
+      "RBLXEssentials": {
+        "$path": "assets/rblxessentials/ServerScriptService.rbxmx"
+      }
     },
-    "ServerStorage": { "$className": "ServerStorage" },
-    "StarterGui": { "$className": "StarterGui" },
-    "StarterPack": { "$className": "StarterPack" },
+    "ServerStorage": {
+      "$className": "ServerStorage"
+    },
+    "StarterGui": {
+      "$className": "StarterGui",
+      "RBLXEssentials": {
+        "$path": "assets/rblxessentials/StarterGui.rbxmx"
+      }
+    },
+    "StarterPack": {
+      "$className": "StarterPack"
+    },
     "StarterPlayer": {
       "$className": "StarterPlayer",
       "StarterPlayerScripts": {
         "$className": "StarterPlayerScripts",
-        "Client": { "$path": "src/client" }
+        "Client": {
+          "$path": "src/client"
+        },
+        "RBLXEssentials": {
+          "$path": "assets/rblxessentials/StarterPlayerScripts.rbxmx"
+        }
       },
-      "StarterCharacterScripts": { "$className": "StarterCharacterScripts" }
+      "StarterCharacterScripts": {
+        "$className": "StarterCharacterScripts"
+      }
     },
-    "SoundService": { "$className": "SoundService" },
+    "SoundService": {
+      "$className": "SoundService",
+      "RBLXEssentials": {
+        "$path": "assets/rblxessentials/SoundService.rbxmx"
+      }
+    },
     "Players": {
       "$className": "Players",
-      "$properties": { "CharacterAutoLoads": true }
+      "$properties": {
+        "CharacterAutoLoads": true
+      }
     }
   }
 }
