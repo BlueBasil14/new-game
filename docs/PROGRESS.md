@@ -36,7 +36,9 @@ Phase 4 — Build (code only; Studio/Blender steps blocked, see Blockers)
 - Both clients sampled at the same server timestamp showed identical turf: 265 visible turf parts and equal area for all 15 colours.
 - Cut across clients: Player1 walked out leaving a trail, Player2 walked across it; Player1 was eliminated (character hidden), then respawned on a new patch; Player2 received turf at the spot and coins. Characters were driven from the server with `Humanoid:MoveTo`, not real input.
 - Output clean on server and both clients (same Studio noise as solo).
-- Not verified: purchases in test mode (ids are zero, T-LCH-01), the death panel on screen, real touch/keyboard input.
+- The death panel with its Respawn button was seen on one client after a later bot cut (one screenshot; its contents were not read).
+- Seen, not fixed: on the iPhone emulator the Wallet sits under Roblox's top-bar buttons (MCP `screen_capture` hides CoreGui, so earlier captures missed this).
+- Not verified: purchases in test mode (ids are zero, T-LCH-01), real touch/keyboard input.
 
 ## Not started (cannot be done in a cloud session)
 - **Nothing has been run in Roblox Studio.** T-INT-02 / T-INT-03 are the next real milestone.
