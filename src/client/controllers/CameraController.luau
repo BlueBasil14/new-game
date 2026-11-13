@@ -54,6 +54,32 @@ local function getRoot(): BasePart?
 	return char and char:FindFirstChild("HumanoidRootPart") :: BasePart?
 end
 
+local southWall: BasePart? = nil
+
+-- GAP-28: near the south wall the camera sits outside the arena, so the wall is faded
+-- on this client only while it stands between the camera and the runner.
+local function fadeSouthWall(camPos: Vector3, f: Vector3, pitch: number)
+	local wall = southWall
+	if not wall or not wall:IsDescendantOf(workspace) then
+		local world = workspace:FindFirstChild("World")
+		local walls = world and world:FindFirstChild("Walls")
+		wall = walls and walls:FindFirstChild("SouthWall") :: BasePart?
+		southWall = wall
+	end
+	if not wall then
+		return
+	end
+	local nearZ = wall.Position.Z - wall.Size.Z / 2
+	local fade = 0
+	if camPos.Z > nearZ then
+		-- Height at which the camera-to-runner line passes the wall's inner face.
+		local crossY = f.Y + (nearZ - f.Z) * math.tan(pitch)
+		local top = wall.Position.Y + wall.Size.Y / 2
+		fade = math.clamp((top + Config.Camera.WallFadeMargin - crossY) / Config.Camera.WallFadeMargin, 0, 1)
+	end
+	wall.LocalTransparencyModifier = fade * Config.Camera.WallFade
+end
+
 local function step(dt: number)
 	local cam = workspace.CurrentCamera
 	if not cam then
@@ -82,6 +108,7 @@ local function step(dt: number)
 	-- Camera sits south (+Z) of the focus looking north (-Z), so +X is screen-right.
 	local pos = f + Vector3.new(0, math.sin(pitch), math.cos(pitch)) * distance
 	local cf = CFrame.lookAt(pos, f)
+	fadeSouthWall(pos, f, pitch)
 
 	if shakeTime > 0 then
 		shakeTime = math.max(0, shakeTime - dt)

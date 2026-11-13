@@ -25,9 +25,10 @@ Config.Arena = {
 -- G6 claim feel (client): flash start is delayed by up to WaveTime, trail edge first, centroid last
 Config.ClaimFx = { WaveTime = 0.25 }
 -- G6 cutting: client-only pause when the local player cuts someone.
-Config.CutFx = { HitStop = 0.08 }
+Config.CutFx = { HitStop = 0.08, PopTime = 0.6, PopSpeed = 60 } -- Pop*: eliminated runner flies apart (seconds, studs/s)
 
-Config.Camera = { Pitch = 55, MinDistance = 45, MaxDistance = 70, FieldOfView = 70 }
+-- WallFade: local transparency of the south wall when it hides the runner; WallFadeMargin: studs over which it fades in.
+Config.Camera = { Pitch = 55, MinDistance = 45, MaxDistance = 70, FieldOfView = 70, WallFade = 0.85, WallFadeMargin = 6 }
 
 -- G3.2 income
 Config.Income = {

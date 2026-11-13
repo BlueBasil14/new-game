@@ -712,6 +712,8 @@ local function removeCrown()
 	end
 end
 
+local ragdollPop: (id: number) -> () -- defined below, next to headOf
+
 local function onEvent(ev: Types.ArenaEvent)
 	local arena = ClientState.arena
 	local myId = arena.myId
@@ -722,6 +724,7 @@ local function onEvent(ev: Types.ArenaEvent)
 			onOtherClaim(ev)
 		end
 	elseif ev.kind == "cut" then
+		ragdollPop(ev.victim)
 		if ev.killer == myId then
 			lastCutAt = os.clock()
 			CameraController.punch(PUNCH_FOV)
@@ -800,6 +803,49 @@ local function headOf(id: number): BasePart?
 		return head
 	end
 	return nil
+end
+
+-- G6 eliminated (GAP-19): a local copy of the victim pops apart and fades. Cosmetic and client only;
+-- the pieces never collide, so they cannot push a live character.
+function ragdollPop(id: number)
+	if lowDetail() then
+		return
+	end
+	local head = headOf(id)
+	local owner = head and head.Parent
+	if not owner or not owner:IsA("Model") then
+		return
+	end
+	local was = owner.Archivable
+	owner.Archivable = true
+	local copy = owner:Clone()
+	owner.Archivable = was
+	if not copy then
+		return
+	end
+	-- The server may already have sunk the real character under the floor; it keeps X and Z.
+	local at = owner:GetPivot()
+	if at.Position.Y < Config.Arena.FloorY then
+		local y = Config.Arena.FloorY + copy:GetExtentsSize().Y / 2
+		copy:PivotTo(at.Rotation + Vector3.new(at.Position.X, y, at.Position.Z))
+	end
+	local seconds, speed = Config.CutFx.PopTime, Config.CutFx.PopSpeed
+	for _, d in copy:GetDescendants() do
+		if d:IsA("BasePart") then
+			d.Anchored = false
+			d.CanCollide = false
+			d.CanTouch = false
+			d.CanQuery = false
+			d.CastShadow = false
+			d.AssemblyLinearVelocity = Vector3.new(math.random() - 0.5, 1, math.random() - 0.5) * speed
+			d.AssemblyAngularVelocity = Vector3.new(math.random() - 0.5, math.random() - 0.5, math.random() - 0.5) * speed
+			TweenService:Create(d, TweenInfo.new(seconds, Enum.EasingStyle.Quad, Enum.EasingDirection.In), { Transparency = 1 }):Play()
+		elseif d:IsA("JointInstance") or d:IsA("Constraint") or d:IsA("Humanoid") or d:IsA("LuaSourceContainer") or d:IsA("BillboardGui") or d:IsA("ParticleEmitter") or d:IsA("Sound") then
+			d:Destroy()
+		end
+	end
+	copy.Parent = effectsFolder
+	Debris:AddItem(copy, seconds)
 end
 
 local function crownPart(model: Model, size: Vector3, shape: Enum.PartType): Part
