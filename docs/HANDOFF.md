@@ -51,7 +51,51 @@ Props are grey Part placeholders, the game is silent (`src/shared/SoundIds.luau`
 - Update `docs/PROGRESS.md` after each task and log decisions there. Commit and push to `claude/hopeful-shannon-w2qsd8`.
 - Stop and ask only for real Robux/money spend or a broken tool/connection.
 
-## 7. Open decisions waiting on the owner
+## 7. How to run the work: Fable as the brain, subagents as hands
+The project is built by a team of models, not one session doing everything.
+
+### Who does what
+| Role | Model | Does | Never does |
+|---|---|---|---|
+| **Lead ("the brain")** | Fable (`claude-fable-5-2`), the main session | Reads the docs, decides what to do next, splits work into tasks, writes the briefs, reviews every result, owns all Studio playtests, makes design calls and logs them in `PROGRESS.md` | Long mechanical edits that a worker can do from a clear brief |
+| **Sub-orchestrator** | Opus (`opus`), Sonnet (`sonnet`) | One whole system at a time (e.g. "fix every TurfRenderer error from this Output log"); may split its own work further | Change another system's files or the GDD; make design decisions |
+| **Worker** | Haiku (`haiku`) | One narrow, fully specified task: a single file, exact inputs, exact acceptance check | Anything that needs judgment; anything in `docs/HEAVY_QUEUE.md` |
+
+**Make Fable the main session's model** before starting: run `/model` and pick Fable (or start with `claude --model claude-fable-5-2`). Subagents are then started from that session with the Agent tool and a `model` of `opus`, `sonnet` or `haiku`.
+
+### Picking the tier
+- Opus: anything in `docs/HEAVY_QUEUE.md` (FloodFill, ArenaSim, DataService, ArenaService, request router, TurfRenderer), anything touching saves, money or the security boundary, and cross-system bugs.
+- Sonnet: one system's bugs or features with a clear GDD section (HUD, panels, feedback, camera, bots, rewards, shop).
+- Haiku: filling `SoundIds.luau` from a given list, a single-file rename, adding one Config value and its uses, writing one spec from a given table.
+- If a tier's quota runs out, move the task one tier up or down and say so in `PROGRESS.md`. Never silently drop a task. A worker that stopped part-way may have left real work on disk, so check the files before restarting it.
+
+### Writing a brief (every subagent gets one)
+A subagent starts with no memory of the conversation. Each brief must contain:
+1. **Goal**, one sentence, plus the task id from `TASKS.md` or gap id from `GAPS.md`.
+2. **Read only these**: the GDD section ids (e.g. G2, G6) and the exact files. Do not hand over the whole GDD.
+3. **Evidence**: the exact Output-window lines or failing check, pasted in.
+4. **Allowed files**: what it may edit; everything else is read-only.
+5. **Rules**: `--!strict`, tabs, numbers only in `Config.luau`, server-authoritative economy and territory, no rewrites of finished systems.
+6. **Done means**: `node tools/luau/check.mjs`, `python tools/xref.py` and `node tools/luau/headless.mjs` all pass, plus the task's own acceptance line.
+7. **Report back**: files changed, what was fixed, what it could not verify. Short.
+
+### Studio is the lead's job
+There is one Studio window. Only the lead session uses the `Roblox_Studio` tools: pressing Play, reading Output, inspecting instances, taking screenshots. The loop for T-INT-02 is:
+1. Lead presses Play and collects every error and warning from Output.
+2. Lead groups errors by system and sends each group to a Sonnet/Opus subagent, in parallel when they touch different files.
+3. Subagents fix the code in `src/` and run the checks. They do not touch Studio.
+4. Lead runs `python tools/build_place.py` and reopens the place, or relies on `rojo serve`, then presses Play again.
+5. Repeat until a 5-minute session has a clean Output, then walk `docs/PLAYTEST.md`.
+
+### Parallel work
+- Run subagents in parallel only when their file sets do not overlap. Two agents editing the same file is not allowed.
+- Use `isolation: "worktree"` for any subagent doing a large change, so a bad result can be dropped.
+- The lead reviews each diff before committing. A subagent's "done" is a claim, not proof: rerun the checks.
+
+### Logging
+After every completed task the lead updates `docs/PROGRESS.md` (last task id, next tasks) and adds any decision to the "Decisions log (Fable)" with the date. Commit and push after each system.
+
+## 8. Open decisions waiting on the owner
 - Starter Pack: a repeat purchase currently grants its 300 gems again (coins and skin are once-only). Block repeats or leave it?
 - Final game title (brainstorm in `CHATGPT_TASKS.md`).
 - Whether bots are visibly tagged (default: not tagged, never on global boards).

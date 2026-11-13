@@ -7,6 +7,7 @@
 
 ## Roles
 Fable = lead and final decisions. Opus/Sonnet = sub-orchestrators per system. Haiku = narrow, fully specified tasks. Heavy tasks are queued in `docs/HEAVY_QUEUE.md`.
+Run the main session on Fable (`/model`). Full delegation rules, brief template and the Studio loop are in `docs/HANDOFF.md` section 7. Only the lead session uses the Studio tools.
 
 ## Where things are
 - Design: `docs/GDD.md` (section ids G1–G14). Tasks: `docs/TASKS.md`. Known gaps: `docs/GAPS.md`.
