@@ -29,7 +29,14 @@ Phase 4 — Build (code only; Studio/Blender steps blocked, see Blockers)
 - Seen, not fixed (cosmetic): rail button text sizes differ ("Upgrades" small, "Shop" large); the king banner draws on top of an open panel's title bar.
 - Added a Studio-only `Debug` BindableEvent under `Main.client.luau` (`:Fire("open", "Shop")`, `:Fire("close")`) so automated playtests can open panels.
 - Model note: session started on Sonnet, switched to Fable part-way.
-- Next: T-INT-03 two-player test, then the two cosmetic items above.
+- Next: the two cosmetic items above.
+
+## Two-player test (T-INT-03), 2026-11-12
+- Server & Clients test with 2 players, started from Studio's test-mode dropdown (the Studio MCP can only start solo play; it can drive the server and each client once they run).
+- Both clients sampled at the same server timestamp showed identical turf: 265 visible turf parts and equal area for all 15 colours.
+- Cut across clients: Player1 walked out leaving a trail, Player2 walked across it; Player1 was eliminated (character hidden), then respawned on a new patch; Player2 received turf at the spot and coins. Characters were driven from the server with `Humanoid:MoveTo`, not real input.
+- Output clean on server and both clients (same Studio noise as solo).
+- Not verified: purchases in test mode (ids are zero, T-LCH-01), the death panel on screen, real touch/keyboard input.
 
 ## Not started (cannot be done in a cloud session)
 - **Nothing has been run in Roblox Studio.** T-INT-02 / T-INT-03 are the next real milestone.
