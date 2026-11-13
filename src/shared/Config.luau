@@ -22,6 +22,9 @@ Config.Arena = {
 	TrailDangerRadius = 6, -- cells, client warning
 }
 
+-- G6 claim feel (client): flash start is delayed by up to WaveTime, trail edge first, centroid last
+Config.ClaimFx = { WaveTime = 0.25 }
+
 Config.Camera = { Pitch = 55, MinDistance = 45, MaxDistance = 70, FieldOfView = 70 }
 
 -- G3.2 income

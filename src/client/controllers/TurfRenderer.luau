@@ -78,6 +78,9 @@ local blinkOn = false
 local claimAt: { [number]: number } = {}
 local flashLeft: { [number]: number } = {}
 local claimStolen: { [number]: boolean } = {} -- owner -> latest claim took cells from others
+local claimX: { [number]: number } = {} -- owner -> latest claim centroid (cell space) and radius
+local claimY: { [number]: number } = {}
+local claimR: { [number]: number } = {}
 local flashStart: { [BasePart]: number } = {}
 local flashFrom: { [BasePart]: Color3 } = {}
 local flashTo: { [BasePart]: Color3 } = {}
@@ -221,6 +224,18 @@ local function applyTexture(p: BasePart, s: Style)
 	end
 end
 
+-- Claim wave (GDD G6): a rect's flash starts later the closer its centre (x, y in cells) is to the
+-- claim centroid, so the highlight sweeps from the trail edge inward. Delay is 0..WaveTime.
+local function waveDelay(owner: number, x: number, y: number): number
+	local r = claimR[owner]
+	if not r then
+		return 0
+	end
+	local dx, dy = x - claimX[owner], y - claimY[owner]
+	return Config.ClaimFx.WaveTime * math.max(0, 1 - math.sqrt(dx * dx + dy * dy) / r)
+end
+
+-- Flash starts at max(now, claim time + wave delay); step() leaves the part at its final colour until then.
 local function startFlash(p: BasePart, owner: number, color: Color3, now: number)
 	local left = flashLeft[owner] or 0
 	if lowDetail or left <= 0 then
@@ -228,8 +243,9 @@ local function startFlash(p: BasePart, owner: number, color: Color3, now: number
 	end
 	flashLeft[owner] = left - 1
 	local from = if claimStolen[owner] then color:Lerp(STOLEN_COLOR, STOLEN_TINT) else color:Lerp(WHITE, FLASH_LIGHTEN)
-	p.Color = from
-	flashStart[p] = now
+	local pos = p.Position
+	local t0 = (claimAt[owner] or now) + waveDelay(owner, (pos.X + half) / CS, (pos.Z + half) / CS)
+	flashStart[p] = math.max(now, t0)
 	flashFrom[p] = from
 	flashTo[p] = color
 end
@@ -367,6 +383,9 @@ local function resetAll()
 	table.clear(claimAt)
 	table.clear(flashLeft)
 	table.clear(claimStolen)
+	table.clear(claimX)
+	table.clear(claimY)
+	table.clear(claimR)
 	dirtyHead = 1
 	half = size * CS / 2
 	cps = TrailRuns.chunksPerSide(size, CHUNK)
@@ -401,7 +420,9 @@ local function step()
 	if next(flashStart) ~= nil then
 		for p, t0 in flashStart do
 			local a = (now - t0) / FLASH_TIME
-			if a >= 1 then
+			if a < 0 then
+				continue -- wave has not reached this rect yet
+			elseif a >= 1 then
 				p.Color = flashTo[p]
 				flashStart[p] = nil
 				flashFrom[p] = nil
@@ -447,6 +468,11 @@ function TurfRenderer.start()
 	end
 	ClientState.profileChanged:Connect(readSettings)
 	readSettings()
+	ClientState.arenaEvent:Connect(function(ev: Types.ArenaEvent)
+		if ev.kind == "claim" then
+			TurfRenderer.claimFlash(ev.id, ev.stolen > 0, ev.cx, ev.cy, ev.cells)
+		end
+	end)
 
 	RunService.Heartbeat:Connect(step)
 end
@@ -481,12 +507,17 @@ function TurfRenderer.cellsChanged(indices: { number })
 end
 
 -- Claim wave trigger (GDD G6). Chunks whose delta already arrived and were rebuilt flash now;
--- the rest flash when rebuilt within FLASH_WINDOW.
-function TurfRenderer.claimFlash(owner: number, stolen: boolean?)
-	if lowDetail or owner == 0 then
+-- the rest flash when rebuilt within FLASH_WINDOW. cx/cy (centroid, cells) and cells size the wave.
+-- ponytail: ArenaClient still calls this without cx; that call is ignored and the arenaEvent
+-- listener in start() makes the full call. Pass ev.cx/ev.cy/ev.cells from ArenaClient and drop the listener.
+function TurfRenderer.claimFlash(owner: number, stolen: boolean?, cx: number?, cy: number?, cells: number?)
+	if lowDetail or owner == 0 or not cx or not cy then
 		return
 	end
 	claimStolen[owner] = stolen == true
+	claimX[owner] = cx + 0.5
+	claimY[owner] = cy + 0.5
+	claimR[owner] = math.max(1, math.sqrt((cells or 0) / math.pi))
 	local now = os.clock()
 	local estimate = 0
 	for c = 1, cps * cps do
