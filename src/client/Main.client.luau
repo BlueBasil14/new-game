@@ -74,7 +74,7 @@ boot("Panels", PanelController.start)
 boot("Tutorial", TutorialController.start)
 
 -- Studio-only test hook: automated playtests cannot click UI reliably under the device emulator.
--- script.Debug:Fire("open", "Shop") / ("close")
+-- script.Debug:Fire("open", "Shop") / ("close") / ("cut") / ("waveTime", "4")
 if game:GetService("RunService"):IsStudio() then
 	local debugEvent = Instance.new("BindableEvent")
 	debugEvent.Name = "Debug"
@@ -83,6 +83,19 @@ if game:GetService("RunService"):IsStudio() then
 			PanelController.open(arg)
 		elseif action == "close" then
 			PanelController.close()
+		elseif action == "cut" then
+			-- Replays the local "I cut someone" feedback (hit-stop, punch, cubes); nothing reaches the server.
+			local myId = ClientState.arena.myId
+			for id in ClientState.arena.runners do
+				if myId and id ~= myId then
+					ClientState.arenaEvent:Fire({ kind = "cut", killer = myId, victim = id, victimCells = 0, victimWasKing = false })
+					break
+				end
+			end
+		elseif action == "waveTime" and arg then
+			-- Slows the claim wave so a screenshot can catch it.
+			local Config = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Config")) :: any
+			Config.ClaimFx.WaveTime = tonumber(arg) or Config.ClaimFx.WaveTime
 		end
 	end)
 	debugEvent.Parent = script

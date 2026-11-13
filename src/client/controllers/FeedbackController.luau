@@ -54,9 +54,10 @@ local OTHER_BURST_SCALE = 0.4
 local OTHER_BURST_RANGE = 150 -- studs from the camera focus
 local OTHER_BURST_SLOTS = 8
 local SPEED_LINE_RATE = 30
-local SPEED_LINE_LIFE = 0.25
+local SPEED_LINE_LIFE = 0.35
 local SPEED_LINE_SPEED = 14
-local SPEED_LINE_STRETCH = 2.5 -- ParticleEmitter.Squash; positive = long and thin
+local SPEED_LINE_SIZE = 1.2
+local SPEED_LINE_STRETCH = -2.5 -- ParticleEmitter.Squash; negative = long along the direction of travel (seen in Studio)
 local CUBE_COUNT = 24
 local CUBE_SIZE = 0.8
 local CUBE_FLIGHT = 0.4
@@ -434,7 +435,7 @@ end
 -- G6 leaving turf: thin streaks thrown backwards off the local character while it has a trail.
 local speedLines: ParticleEmitter? = nil
 
-local function setSpeedLines(on: boolean)
+local function setSpeedLines(on: boolean, id: number?)
 	local pe = speedLines
 	if not on then
 		if pe then
@@ -460,13 +461,15 @@ local function setSpeedLines(on: boolean)
 		new.Orientation = Enum.ParticleOrientation.VelocityParallel
 		new.Shape = Enum.ParticleEmitterShape.Box
 		new.Squash = NumberSequence.new(SPEED_LINE_STRETCH)
-		new.Size = NumberSequence.new(0.5)
-		new.Transparency = NumberSequence.new(0.5, 1)
-		new.Color = ColorSequence.new(Color3.new(1, 1, 1))
-		new.LightEmission = 0.5
+		new.Size = NumberSequence.new(SPEED_LINE_SIZE)
+		new.Transparency = NumberSequence.new(0.3, 1)
 		new.Parent = root
 		speedLines = new
 		pe = new
+	end
+	-- Runner colour, not white: the neutral floor is near white.
+	if id then
+		pe.Color = ColorSequence.new(TurfRenderer.colorOf(id))
 	end
 	pe.Enabled = true
 end
@@ -520,7 +523,7 @@ local function checkDanger()
 		FeedbackController.play("trailStart")
 	end
 	lastTrailLen = n
-	setSpeedLines(n > 0 and arena.alive and not lowDetail())
+	setSpeedLines(n > 0 and arena.alive and not lowDetail(), myId)
 	if not (g and myId and trail and arena.alive and n > 0) then
 		setDanger(false, nil)
 		return

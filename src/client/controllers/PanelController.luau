@@ -716,6 +716,20 @@ local function buildShop(): PanelEntry
 		})
 		tabButtons[id].LayoutOrder = i
 	end
+	-- TextScaled gave each tab its own size ("Skins" huge, "Featured" small); one size for the row,
+	-- small enough for the longest caption.
+	local function sizeTabText()
+		local abs = tabBar.AbsoluteSize
+		local size = math.max(8, math.floor(math.min(abs.Y * 0.5, abs.X * tabWidth / 5.5)))
+		for _, child in tabBar:GetChildren() do
+			if child:IsA("TextButton") then
+				child.TextScaled = false
+				child.TextSize = size
+			end
+		end
+	end
+	tabBar:GetPropertyChangedSignal("AbsoluteSize"):Connect(sizeTabText)
+	tabBar.ChildAdded:Connect(sizeTabText)
 	toggleButton = button({
 		text = S.ownedToggle,
 		size = UDim2.fromScale(tabWidth, 1),

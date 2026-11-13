@@ -4,15 +4,15 @@ _Several agents share this working folder. Two agents must never edit the same f
 
 | Area / files | Owner right now | Notes |
 |---|---|---|
-| `src/client/ui/UiKit.luau`, `src/client/controllers/HudController.luau`, `src/client/controllers/PanelController.luau`, `src/shared/ArcadeIcons.luau`, `assets/`, `default.project.json`, `tools/build_place.py` | The agent applying the Arcade Commons icons / UI kit and the RBLX Essentials sound system (ChatGPT session) | Uncommitted edits seen live at about 23:25. Lead will not touch these until they are committed or the owner says so. |
-| `src/client/controllers/TurfRenderer.luau` | Lead's Opus subagent | GAP-14 claim wave |
-| `src/client/controllers/FeedbackController.luau`, `src/client/controllers/CameraController.luau` | Terminal session `coolb-40` | GAP-20 speed lines, GAP-09 hit-stop |
+| `src/client/ui/UiKit.luau`, `src/client/controllers/HudController.luau`, `src/shared/ArcadeIcons.luau`, `assets/`, `default.project.json`, `tools/build_place.py` | The agent applying the Arcade Commons icons / UI kit and the RBLX Essentials sound system (ChatGPT session) | **Still uncommitted at 02:30 on 2026-11-13** (last edit 23:32). Lead has not edited or committed them. Owner: please have that session commit, or tell the lead to. |
+| `src/client/controllers/TurfRenderer.luau`, `FeedbackController.luau`, `CameraController.luau`, `PanelController.luau`, `src/client/Main.client.luau` | Free (lead took them over on 2026-11-13 02:00; all committed) | The terminal task in `docs/TASKS_FOR_TERMINAL.md` was never started, so the lead did GAP-20/GAP-09 itself. That task file is obsolete. |
 | Roblox Studio (Play, Output, screenshots) | Lead session only | Check `list_roblox_studios` first; if another agent has a play session running, wait. |
 | `docs/PROGRESS.md` | Everyone, append-only | Add a dated section at the end of the non-"Decisions" part; never rewrite other sections. |
 
 ## Lead log (kept here while `docs/PROGRESS.md` has another agent's uncommitted edits)
 - 2026-11-12 23:50: GAP-14 claim wave committed (`TurfRenderer.luau`, `Config.ClaimFx.WaveTime`). Flash start is delayed by distance from the claim centroid so it sweeps from the trail edge inward. Checks pass (39 files compile, specs, xref 0, headless 10/10). **Not seen in Studio**: another agent had a play session running on a cloud-saved place ("BlazeHawks's Place: 11132026_2"), so the lead skipped Studio. To check live: wave direction on long or L-shaped claims, large claims that hit the 40-rectangle flash cap, phone frame rate. `TurfRenderer.luau` is free again.
 - The terminal task (GAP-20/GAP-09) was not delivered by message; it is in `docs/TASKS_FOR_TERMINAL.md` and waits for the owner.
+- 2026-11-13 02:30 (scheduled overnight run): GAP-20 speed lines and GAP-09 hit-stop done and seen in Studio; shop tab text sizes made uniform; Debug hook gained `("cut")` and `("waveTime", "4")`. Studio testing used a second Studio window on `build/TurfLoop.rbxlx` (closed afterwards); the cloud place "11132026_2" was left untouched and still holds older scripts (no claim wave, no speed lines). Details in `docs/PROGRESS.md`. `build/TurfLoop.rbxlx` on disk was rebuilt from the working tree (includes the uncommitted Arcade Commons UI) and is **not** committed.
 
 Rules:
 - Commit only your own files (`git add <paths>`), never `git add -A`.
