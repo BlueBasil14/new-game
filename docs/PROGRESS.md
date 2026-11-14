@@ -155,3 +155,13 @@ Phase 4 — Build (code only; Studio/Blender steps blocked, see Blockers)
 - Checked in a solo play session there: both sound-system boots report no failures, 9 bots spawn, a walked loop claimed turf and paid coins (42), the HUD shows the icon wallet and rail. No errors from our scripts.
 - Not checked: the 3D view (the capture showed the UI on a black background, which happens when the Studio window is covered), any of the overnight effects in this place.
 - This place has "Studio Access to API Services" off, so DataStores print `StudioAccessToApisNotAllowed` and the game uses the in-memory store. That is a security setting for the owner to change (Game Settings > Security) if saving should work in Studio.
+
+## Terminal session, 2026-11-14 (GAP-20/GAP-09)
+- Confirmed GAP-20 (speed lines) and GAP-09 (hit-stop) are already implemented in commit 9fda95d and present in current working tree.
+- **Config.luau**: `Config.CutFx = { HitStop = 0.08, PopTime = 0.6, PopSpeed = 60 }` added.
+- **FeedbackController.luau**: 
+  - `setSpeedLines(on, id)` creates a `ParticleEmitter` on the local HumanoidRootPart with `EmissionDirection = Back`, runner colour, rate 30, lifetime 0.35s, speed 14, squash -2.5. Enabled while the local player has a trail and is alive; disabled on return, death, or `lowDetail` setting.
+  - `hitStop()` calls `CameraController.hold(Config.CutFx.HitStop)` and pauses all playing animation tracks on the local character's Animator for 0.08 s.
+- **CameraController.luau**: `hold(seconds)` sets `holdUntil = os.clock() + seconds`; the render step returns early while `os.clock() < holdUntil`, freezing the camera.
+- All checks pass: 39 files compile, specs pass, xref 0 unresolved, headless 10/10.
+- Not verified without Studio: speed-line visual feel at real speed, hit-stop feel (80 ms is too short for a screenshot), how the hit-stop interacts with different movement animations, behavior on low-end devices.
