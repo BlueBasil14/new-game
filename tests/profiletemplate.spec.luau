@@ -69,6 +69,7 @@ assert((p.owned :: any).junk == nil, "non-boolean owned dropped")
 assert(p.equipped.skin == "default" and p.equipped.trail == "default_trail" and p.equipped.effect == "sparkle", "equipped repaired")
 assert(p.stats.kills == 0 and p.stats.kingSeconds == 0, "stats rebuilt")
 assert(p.daily.streak == 0 and p.daily.loops == 0, "daily filled")
+assert(p.daily.run == 0 and next(p.daily.milestones) == nil, "daily run/milestones default")
 assert(p.quests.day == 4 and #p.quests.list == 1, "quests repaired")
 assert(p.quests.list[1].progress == 0 and p.quests.list[1].claimed == true, "quest entry clamped")
 assert(#p.receipts == Config.Data.ReceiptHistory, "receipts trimmed")
@@ -78,5 +79,15 @@ assert(p.settings.music == false and p.settings.sfx == true and p.settings.lowDe
 assert(p.firstJoin == 123 and p.lastJoin == NOW, "join times")
 assert((p :: any).futureField and (p :: any).futureField.keep == true, "unknown top-level kept")
 assert(type(p.codes) == "table" and p.starterPackBought == false, "misc defaults")
+
+-- pre-T-RET-02 save: daily has no run/milestones
+local old = ProfileTemplate.reconcile({ daily = { streak = 5, lastClaimDay = 19000, loops = 2 } }, NOW)
+assert(old.daily.streak == 5 and old.daily.lastClaimDay == 19000 and old.daily.loops == 2, "old daily kept")
+assert(old.daily.run == 0 and type(old.daily.milestones) == "table" and next(old.daily.milestones) == nil, "old daily migrated")
+-- milestones survive a reload; junk entries dropped
+local saved = ProfileTemplate.reconcile({ daily = { run = 15, milestones = { ["14"] = true, ["21"] = "x", [7] = true } } }, NOW)
+assert(saved.daily.run == 15 and saved.daily.milestones["14"] == true, "milestones kept")
+assert(saved.daily.milestones["21"] == nil and (saved.daily.milestones :: any)[7] == nil, "bad milestones dropped")
+assert(ProfileTemplate.reconcile({ daily = { milestones = "nope" } }, NOW).daily.milestones ~= nil, "milestones repaired")
 
 return "profiletemplate ok"

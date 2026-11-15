@@ -76,6 +76,10 @@ eq(s.canClaim, true, "gap")
 eq(s.nextStreak, 1, "gap reset")
 s = F.dailyClaimState(0, 0, 19000)
 eq(s.nextStreak, 1, "first ever")
+eq(F.dailyNextRun(100, 12, 101), 13, "run continues")
+eq(F.dailyNextRun(100, 12, 102), 1, "run broken")
+eq(F.dailyNextRun(0, 0, 19000), 1, "run first ever")
+eq(F.dailyNextRun(100, 7, 101), 8, "run does not wrap with the week")
 
 local p = F.itemPrice("common", false) :: { currency: string, amount: number }
 eq(p.currency, "coins", "common cur")

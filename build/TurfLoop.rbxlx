@@ -1150,7 +1150,7 @@ export type Item = {
 	colorB: string?,
 	pattern: string, -- "solid" | "stripes" | "dots" | "checker" | "waves" | "stars" | "hex"
 	crownsRequired: number?,
-	source: string?, -- "vip" | "neonPack" | "starterPack" | "group" | "daily7"
+	source: string?, -- "vip" | "neonPack" | "starterPack" | "group" | "daily7" | "daily28"
 	default: boolean?,
 }
 
@@ -1288,6 +1288,7 @@ add("skin", "exclusive", "neon_orange", "Neon Orange", "#FF7A00", "#FFD1A3", "do
 add("trail", "exclusive", "neon_trail", "Neon Trail", "#00F0FF", "#FF2E9A", "stripes", { source = "neonPack" })
 add("skin", "exclusive", "team", "Team Colours", "#4F8BFF", "#FFFFFF", "stripes", { source = "group" })
 add("skin", "exclusive", "streak_week", "Week Streak", "#FF5CD6", "#FFE88A", "stars", { source = "daily7" })
+add("skin", "exclusive", "streak_month", "Month Streak", "#3DDCFF", "#FFC83D", "hex", { source = "daily28" })
 
 Catalog.items = items
 
@@ -1392,6 +1393,24 @@ Catalog.daily = {
 	{ currency = "coins", amount = 2500 },
 	{ currency = "gems", amount = 100, skin = "streak_week" },
 }
+
+-- One-time bonuses for consecutive daily claims (profile.daily.run), each granted once per profile ever.
+export type DailyMilestone = { day: number, currency: string, amount: number, skin: string? }
+Catalog.dailyMilestones = {
+	{ day = 14, currency = "gems", amount = 150 },
+	{ day = 21, currency = "gems", amount = 250 },
+	{ day = 28, currency = "gems", amount = 500, skin = "streak_month" },
+} :: { DailyMilestone }
+
+-- First milestone with day &gt;= fromDay that is not in `claimed` (keys are tostring(day)), or nil.
+function Catalog.nextDailyMilestone(fromDay: number, claimed: { [string]: boolean }): DailyMilestone?
+	for _, m in Catalog.dailyMilestones do
+		if m.day &gt;= fromDay and not claimed[tostring(m.day)] then
+			return m
+		end
+	end
+	return nil
+end
 
 -- Per-session playtime rewards
 Catalog.playtime = {
@@ -1951,6 +1970,14 @@ function Formulas.dailyClaimState(lastClaimDay: number, streak: number, today: n
 	return { canClaim = true, nextStreak = 1 }
 end
 
+-- Consecutive-day run after a claim today: +1 when the last claim was yesterday, else restarts at 1.
+function Formulas.dailyNextRun(lastClaimDay: number, run: number, today: number): number
+	if today - lastClaimDay == 1 then
+		return run + 1
+	end
+	return 1
+end
+
 -- nil when the rarity is not for sale (crown, exclusive, unknown)
 function Formulas.itemPrice(rarity: string, featured: boolean): { currency: string, amount: number }?
 	local def = (Config.Prices :: any)[rarity]
@@ -2388,7 +2415,7 @@ function ProfileTemplate.default(now: number): Profile
 			playSeconds = 0,
 			kingSeconds = 0,
 		},
-		daily = { streak = 0, lastClaimDay = 0, loops = 0 },
+		daily = { streak = 0, lastClaimDay = 0, loops = 0, run = 0, milestones = {} },
 		quests = { day = 0, list = {} },
 		codes = {},
 		starterPackBought = false,
@@ -2498,6 +2525,9 @@ function ProfileTemplate.reconcile(data: any, now: number): Profile
 	for k, tv in template do
 		if MAP_FIELDS[k] then
 			out[k] = reconcileMap(src[k], tv)
+		elseif k == "daily" then
+			out[k] = reconcileValue(src[k], tv)
+			out[k].milestones = reconcileMap(if type(src[k]) == "table" then src[k].milestones else nil, {})
 		elseif k == "receipts" then
 			out[k] = reconcileReceipts(src[k])
 		elseif k == "quests" then
@@ -2553,7 +2583,7 @@ Remotes.Requests = {
 	BuyUpgrade = "BuyUpgrade", -- (upgradeId: string)
 	BuyItem = "BuyItem", -- (itemId: string)
 	Equip = "Equip", -- (itemId: string)
-	ClaimDaily = "ClaimDaily", -- ()
+	ClaimDaily = "ClaimDaily", -- () -&gt; { streak, currency, amount, skin?, run, milestone? = { day, currency, amount, skin? } }
 	ClaimPlaytime = "ClaimPlaytime", -- (index: number)
 	ClaimQuest = "ClaimQuest", -- (index: number)
 	RedeemCode = "RedeemCode", -- (code: string)
@@ -2776,7 +2806,13 @@ export type Profile = {
 		playSeconds: number,
 		kingSeconds: number,
 	},
-	daily: { streak: number, lastClaimDay: number, loops: number }, -- day = floor(unix / 86400)
+	daily: {
+		streak: number,
+		lastClaimDay: number, -- day = floor(unix / 86400)
+		loops: number,
+		run: number, -- consecutive days claimed, unbounded
+		milestones: { [string]: boolean }, -- tostring(Catalog.dailyMilestones[i].day) -&gt; granted
+	},
 	quests: { day: number, list: { { id: string, progress: number, claimed: boolean } } },
 	codes: { [string]: boolean },
 	starterPackBought: boolean,
@@ -28659,16 +28695,24 @@ function RewardService.claimDaily(player: Player): (boolean, any)
 		return false, "already_claimed"
 	end
 	local reward = Catalog.daily[state.nextStreak]
-	local amount = reward.amount
-	if reward.currency == "gems" and EconomyService.hasPass(player, "vip") then
-		amount *= Config.Vip.DailyGemMultiplier
+	local vip = EconomyService.hasPass(player, "vip")
+	local function dailyAmount(currency: string, base: number): number
+		return if currency == "gems" and vip then base * Config.Vip.DailyGemMultiplier else base
 	end
+	local amount = dailyAmount(reward.currency, reward.amount)
 	local firstLoop = profile.daily.loops == 0
+	local run = Formulas.dailyNextRun(profile.daily.lastClaimDay, profile.daily.run, today())
+	local m = Catalog.nextDailyMilestone(run, profile.daily.milestones)
+	local hit = if m ~= nil and m.day == run then m else nil
 	DataService.update(player, function(p)
 		p.daily.streak = state.nextStreak
 		p.daily.lastClaimDay = today()
+		p.daily.run = run
 		if state.nextStreak == #Catalog.daily then
 			p.daily.loops += 1
+		end
+		if hit ~= nil then
+			p.daily.milestones[tostring(hit.day)] = true
 		end
 	end)
 	grant(player, { currency = reward.currency, amount = amount }, "daily")
@@ -28676,7 +28720,18 @@ function RewardService.claimDaily(player: Player): (boolean, any)
 	if reward.skin ~= nil and firstLoop and ShopService.grantItem(player, reward.skin) then
 		skin = reward.skin
 	end
-	return true, { streak = state.nextStreak, currency = reward.currency, amount = amount, skin = skin }
+	local milestone = nil
+	if hit ~= nil then
+		local bonus = dailyAmount(hit.currency, hit.amount)
+		grant(player, { currency = hit.currency, amount = bonus }, "daily_milestone")
+		local mSkin: string? = nil
+		if hit.skin ~= nil and ShopService.grantItem(player, hit.skin) then
+			mSkin = hit.skin
+		end
+		milestone = { day = hit.day, currency = hit.currency, amount = bonus, skin = mSkin }
+	end
+	return true,
+		{ streak = state.nextStreak, currency = reward.currency, amount = amount, skin = skin, run = run, milestone = milestone }
 end
 
 function RewardService.claimPlaytime(player: Player, index: any): (boolean, any)
@@ -40778,6 +40833,7 @@ local S = {
 		starterPack = "Starter Pack",
 		group = "Group reward",
 		daily7 = "7-day streak",
+		daily28 = "28-day streak",
 	},
 	rarity = {
 		common = "Common",
@@ -40806,6 +40862,10 @@ local S = {
 	dailyWait = "Come back tomorrow",
 	dailySkin = "+ skin",
 	dailyClaimed = "Day %d claimed: %s",
+	dailyRun = "Login streak: %d. Day %d bonus: %s", -- no "days" so 1 needs no singular form
+	dailyRunDone = "All streak bonuses earned",
+	dailyMilestone = "Day %d streak bonus: %s",
+	dailyMilestoneSkin = "%s + %s",
 	currencyCoins = "coins",
 	currencyGems = "gems",
 	rewardText = "+%s %s",
@@ -40978,6 +41038,20 @@ end
 
 local function toastBad(text: string)
 	UiKit.toast(text, theme.Danger)
+end
+
+-- ClaimDaily result may carry a one-time streak milestone; RewardService already granted it.
+local function toastDailyMilestone(result: any)
+	local m = if type(result) == "table" then result.milestone else nil
+	if type(m) ~= "table" or type(m.day) ~= "number" then
+		return
+	end
+	local text = PanelController.rewardText(m, "")
+	local item = if type(m.skin) == "string" then Catalog.byId(m.skin) else nil
+	if item then
+		text = string.format(S.dailyMilestoneSkin, text, item.name)
+	end
+	toastGood(string.format(S.dailyMilestone, m.day, text))
 end
 
 local function round(x: number): number
@@ -41799,9 +41873,10 @@ local function buildDaily(): PanelEntry
 	local days = UiKit.frame({
 		BackgroundTransparency = 1,
 		Position = UDim2.fromScale(0.02, 0.04),
-		Size = UDim2.fromScale(0.96, 0.62),
+		Size = UDim2.fromScale(0.96, 0.54),
 		parent = body,
 	})
+	local runLabel = plainLabel(body, "", UDim2.fromScale(0.05, 0.61), UDim2.fromScale(0.9, 0.09), Enum.TextXAlignment.Center)
 	local count = #Catalog.daily
 	local gap = 0.012
 	UiKit.list(days, { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(gap, 0) })
@@ -41863,6 +41938,7 @@ local function buildDaily(): PanelEntry
 				sound("reward")
 				local day = if type(result) == "table" and type(result.streak) == "number" then result.streak else state.nextStreak
 				toastGood(string.format(S.dailyClaimed, day, PanelController.rewardText(result, "")))
+				toastDailyMilestone(result)
 			else
 				sound("error")
 				toastBad(errorText(result))
@@ -41894,6 +41970,14 @@ local function buildDaily(): PanelEntry
 				cell.status.Text = ""
 			end
 		end
+		-- Run as it stands before today's claim (a missed day shows 0).
+		local run = if state.canClaim
+			then Formulas.dailyNextRun(p.daily.lastClaimDay, p.daily.run, Formulas.dayNumber(ClientState.serverNow())) - 1
+			else p.daily.run
+		local nextM = Catalog.nextDailyMilestone(run + 1, p.daily.milestones)
+		runLabel.Text = if nextM
+			then string.format(S.dailyRun, run, nextM.day, PanelController.rewardText(nextM, ""))
+			else S.dailyRunDone
 		if state.canClaim then
 			styleButton(claimBtn, string.format(S.dailyClaim, state.nextStreak), theme.Yellow, false)
 			UiKit.pulse(claimBtn)
@@ -42524,6 +42608,7 @@ local function buildAway(): PanelEntry
 			sound("reward")
 			local day = if type(result) == "table" and type(result.streak) == "number" then result.streak else state.nextStreak
 			toastGood(string.format(S.dailyClaimed, day, PanelController.rewardText(result, "")))
+			toastDailyMilestone(result)
 		else
 			sound("error")
 			toastBad(errorText(result))

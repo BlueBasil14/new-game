@@ -25,7 +25,7 @@ function ProfileTemplate.default(now: number): Profile
 			playSeconds = 0,
 			kingSeconds = 0,
 		},
-		daily = { streak = 0, lastClaimDay = 0, loops = 0 },
+		daily = { streak = 0, lastClaimDay = 0, loops = 0, run = 0, milestones = {} },
 		quests = { day = 0, list = {} },
 		codes = {},
 		starterPackBought = false,
@@ -135,6 +135,9 @@ function ProfileTemplate.reconcile(data: any, now: number): Profile
 	for k, tv in template do
 		if MAP_FIELDS[k] then
 			out[k] = reconcileMap(src[k], tv)
+		elseif k == "daily" then
+			out[k] = reconcileValue(src[k], tv)
+			out[k].milestones = reconcileMap(if type(src[k]) == "table" then src[k].milestones else nil, {})
 		elseif k == "receipts" then
 			out[k] = reconcileReceipts(src[k])
 		elseif k == "quests" then

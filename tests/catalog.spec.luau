@@ -25,7 +25,7 @@ local expect = {
 	["skin:common"] = 12, ["skin:rare"] = 8, ["skin:epic"] = 6, ["skin:legendary"] = 3, ["skin:crown"] = 4,
 	["trail:common"] = 2, ["trail:rare"] = 3, ["trail:epic"] = 2, ["trail:legendary"] = 1,
 	["effect:rare"] = 2, ["effect:epic"] = 1, ["effect:legendary"] = 1,
-	["skin:exclusive"] = 9, ["trail:exclusive"] = 2,
+	["skin:exclusive"] = 10, ["trail:exclusive"] = 2, -- skin +streak_month (T-RET-02, departs from GDD G3.6)
 }
 for k, v in expect do
 	eq(counts[k], v, "count " .. k)
@@ -35,7 +35,7 @@ for k, v in counts do
 end
 eq(#Catalog.ofType("effect"), 5, "effects incl default") -- sparkle + 4
 eq(#Catalog.ofType("trail"), 8 + 1 + 2, "trails")
-eq(#Catalog.ofType("skin"), 1 + 33 + 9, "skins")
+eq(#Catalog.ofType("skin"), 1 + 33 + 10, "skins")
 eq((Catalog.byId("default") :: any).default, true, "default flag")
 eq(Catalog.byId("nope"), nil, "missing")
 eq((Catalog.byId("sparkle") :: any).type, "effect", "sparkle")
@@ -102,6 +102,22 @@ end
 
 eq(#Catalog.daily, 7, "daily")
 eq(Catalog.daily[7].skin, "streak_week", "daily7 skin")
+eq(#Catalog.dailyMilestones, 3, "milestones")
+eq(Catalog.dailyMilestones[1].day, 14, "milestone 14")
+eq(Catalog.dailyMilestones[2].amount, 250, "milestone 21 amount")
+eq(Catalog.dailyMilestones[3].skin, "streak_month", "milestone 28 skin")
+eq((Catalog.byId("streak_month") :: any).source, "daily28", "daily28 src")
+eq((Catalog.byId("streak_month") :: any).rarity, "exclusive", "streak_month exclusive")
+eq(Catalog.isPurchasable(Catalog.byId("streak_month") :: any), false, "streak_month not for sale")
+for _, m in Catalog.dailyMilestones do
+	eq(m.skin == nil or Catalog.byId(m.skin) ~= nil, true, "milestone skin exists")
+end
+eq((Catalog.nextDailyMilestone(1, {}) :: any).day, 14, "next from 1")
+eq((Catalog.nextDailyMilestone(14, {}) :: any).day, 14, "next at 14")
+eq((Catalog.nextDailyMilestone(15, {}) :: any).day, 21, "next from 15")
+eq((Catalog.nextDailyMilestone(1, { ["14"] = true }) :: any).day, 21, "skip claimed")
+eq(Catalog.nextDailyMilestone(29, {}), nil, "none above 28")
+eq(Catalog.nextDailyMilestone(1, { ["14"] = true, ["21"] = true, ["28"] = true }), nil, "all claimed")
 eq(#Catalog.playtime, 5, "playtime")
 eq(Catalog.playtime[1].seconds, 120, "playtime first")
 eq(Catalog.playtime[5].seconds, 1800, "playtime last")

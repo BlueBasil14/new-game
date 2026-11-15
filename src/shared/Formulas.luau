@@ -125,6 +125,14 @@ function Formulas.dailyClaimState(lastClaimDay: number, streak: number, today: n
 	return { canClaim = true, nextStreak = 1 }
 end
 
+-- Consecutive-day run after a claim today: +1 when the last claim was yesterday, else restarts at 1.
+function Formulas.dailyNextRun(lastClaimDay: number, run: number, today: number): number
+	if today - lastClaimDay == 1 then
+		return run + 1
+	end
+	return 1
+end
+
 -- nil when the rarity is not for sale (crown, exclusive, unknown)
 function Formulas.itemPrice(rarity: string, featured: boolean): { currency: string, amount: number }?
 	local def = (Config.Prices :: any)[rarity]

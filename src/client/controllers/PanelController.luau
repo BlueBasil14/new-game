@@ -74,6 +74,7 @@ local S = {
 		starterPack = "Starter Pack",
 		group = "Group reward",
 		daily7 = "7-day streak",
+		daily28 = "28-day streak",
 	},
 	rarity = {
 		common = "Common",
@@ -102,6 +103,10 @@ local S = {
 	dailyWait = "Come back tomorrow",
 	dailySkin = "+ skin",
 	dailyClaimed = "Day %d claimed: %s",
+	dailyRun = "Login streak: %d. Day %d bonus: %s", -- no "days" so 1 needs no singular form
+	dailyRunDone = "All streak bonuses earned",
+	dailyMilestone = "Day %d streak bonus: %s",
+	dailyMilestoneSkin = "%s + %s",
 	currencyCoins = "coins",
 	currencyGems = "gems",
 	rewardText = "+%s %s",
@@ -274,6 +279,20 @@ end
 
 local function toastBad(text: string)
 	UiKit.toast(text, theme.Danger)
+end
+
+-- ClaimDaily result may carry a one-time streak milestone; RewardService already granted it.
+local function toastDailyMilestone(result: any)
+	local m = if type(result) == "table" then result.milestone else nil
+	if type(m) ~= "table" or type(m.day) ~= "number" then
+		return
+	end
+	local text = PanelController.rewardText(m, "")
+	local item = if type(m.skin) == "string" then Catalog.byId(m.skin) else nil
+	if item then
+		text = string.format(S.dailyMilestoneSkin, text, item.name)
+	end
+	toastGood(string.format(S.dailyMilestone, m.day, text))
 end
 
 local function round(x: number): number
@@ -1095,9 +1114,10 @@ local function buildDaily(): PanelEntry
 	local days = UiKit.frame({
 		BackgroundTransparency = 1,
 		Position = UDim2.fromScale(0.02, 0.04),
-		Size = UDim2.fromScale(0.96, 0.62),
+		Size = UDim2.fromScale(0.96, 0.54),
 		parent = body,
 	})
+	local runLabel = plainLabel(body, "", UDim2.fromScale(0.05, 0.61), UDim2.fromScale(0.9, 0.09), Enum.TextXAlignment.Center)
 	local count = #Catalog.daily
 	local gap = 0.012
 	UiKit.list(days, { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(gap, 0) })
@@ -1159,6 +1179,7 @@ local function buildDaily(): PanelEntry
 				sound("reward")
 				local day = if type(result) == "table" and type(result.streak) == "number" then result.streak else state.nextStreak
 				toastGood(string.format(S.dailyClaimed, day, PanelController.rewardText(result, "")))
+				toastDailyMilestone(result)
 			else
 				sound("error")
 				toastBad(errorText(result))
@@ -1190,6 +1211,14 @@ local function buildDaily(): PanelEntry
 				cell.status.Text = ""
 			end
 		end
+		-- Run as it stands before today's claim (a missed day shows 0).
+		local run = if state.canClaim
+			then Formulas.dailyNextRun(p.daily.lastClaimDay, p.daily.run, Formulas.dayNumber(ClientState.serverNow())) - 1
+			else p.daily.run
+		local nextM = Catalog.nextDailyMilestone(run + 1, p.daily.milestones)
+		runLabel.Text = if nextM
+			then string.format(S.dailyRun, run, nextM.day, PanelController.rewardText(nextM, ""))
+			else S.dailyRunDone
 		if state.canClaim then
 			styleButton(claimBtn, string.format(S.dailyClaim, state.nextStreak), theme.Yellow, false)
 			UiKit.pulse(claimBtn)
@@ -1820,6 +1849,7 @@ local function buildAway(): PanelEntry
 			sound("reward")
 			local day = if type(result) == "table" and type(result.streak) == "number" then result.streak else state.nextStreak
 			toastGood(string.format(S.dailyClaimed, day, PanelController.rewardText(result, "")))
+			toastDailyMilestone(result)
 		else
 			sound("error")
 			toastBad(errorText(result))

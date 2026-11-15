@@ -70,16 +70,24 @@ function RewardService.claimDaily(player: Player): (boolean, any)
 		return false, "already_claimed"
 	end
 	local reward = Catalog.daily[state.nextStreak]
-	local amount = reward.amount
-	if reward.currency == "gems" and EconomyService.hasPass(player, "vip") then
-		amount *= Config.Vip.DailyGemMultiplier
+	local vip = EconomyService.hasPass(player, "vip")
+	local function dailyAmount(currency: string, base: number): number
+		return if currency == "gems" and vip then base * Config.Vip.DailyGemMultiplier else base
 	end
+	local amount = dailyAmount(reward.currency, reward.amount)
 	local firstLoop = profile.daily.loops == 0
+	local run = Formulas.dailyNextRun(profile.daily.lastClaimDay, profile.daily.run, today())
+	local m = Catalog.nextDailyMilestone(run, profile.daily.milestones)
+	local hit = if m ~= nil and m.day == run then m else nil
 	DataService.update(player, function(p)
 		p.daily.streak = state.nextStreak
 		p.daily.lastClaimDay = today()
+		p.daily.run = run
 		if state.nextStreak == #Catalog.daily then
 			p.daily.loops += 1
+		end
+		if hit ~= nil then
+			p.daily.milestones[tostring(hit.day)] = true
 		end
 	end)
 	grant(player, { currency = reward.currency, amount = amount }, "daily")
@@ -87,7 +95,18 @@ function RewardService.claimDaily(player: Player): (boolean, any)
 	if reward.skin ~= nil and firstLoop and ShopService.grantItem(player, reward.skin) then
 		skin = reward.skin
 	end
-	return true, { streak = state.nextStreak, currency = reward.currency, amount = amount, skin = skin }
+	local milestone = nil
+	if hit ~= nil then
+		local bonus = dailyAmount(hit.currency, hit.amount)
+		grant(player, { currency = hit.currency, amount = bonus }, "daily_milestone")
+		local mSkin: string? = nil
+		if hit.skin ~= nil and ShopService.grantItem(player, hit.skin) then
+			mSkin = hit.skin
+		end
+		milestone = { day = hit.day, currency = hit.currency, amount = bonus, skin = mSkin }
+	end
+	return true,
+		{ streak = state.nextStreak, currency = reward.currency, amount = amount, skin = skin, run = run, milestone = milestone }
 end
 
 function RewardService.claimPlaytime(player: Player, index: any): (boolean, any)

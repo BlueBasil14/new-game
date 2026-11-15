@@ -29,7 +29,7 @@ Remotes.Requests = {
 	BuyUpgrade = "BuyUpgrade", -- (upgradeId: string)
 	BuyItem = "BuyItem", -- (itemId: string)
 	Equip = "Equip", -- (itemId: string)
-	ClaimDaily = "ClaimDaily", -- ()
+	ClaimDaily = "ClaimDaily", -- () -> { streak, currency, amount, skin?, run, milestone? = { day, currency, amount, skin? } }
 	ClaimPlaytime = "ClaimPlaytime", -- (index: number)
 	ClaimQuest = "ClaimQuest", -- (index: number)
 	RedeemCode = "RedeemCode", -- (code: string)

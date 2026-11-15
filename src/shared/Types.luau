@@ -44,7 +44,13 @@ export type Profile = {
 		playSeconds: number,
 		kingSeconds: number,
 	},
-	daily: { streak: number, lastClaimDay: number, loops: number }, -- day = floor(unix / 86400)
+	daily: {
+		streak: number,
+		lastClaimDay: number, -- day = floor(unix / 86400)
+		loops: number,
+		run: number, -- consecutive days claimed, unbounded
+		milestones: { [string]: boolean }, -- tostring(Catalog.dailyMilestones[i].day) -> granted
+	},
 	quests: { day: number, list: { { id: string, progress: number, claimed: boolean } } },
 	codes: { [string]: boolean },
 	starterPackBought: boolean,

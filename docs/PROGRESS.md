@@ -176,3 +176,12 @@ Phase 4 — Build (code only; Studio/Blender steps blocked, see Blockers)
 - Not verified: the bonus with two real friend accounts (mock only); the chip when active; the invite prompt opening (not clicked); a friend leaving while the check is still running.
 - The cloud place "11132026_2" does not have this change yet.
 - Next (from `docs/ALGORITHM_PLAN.md`): measure time to first capture, streak rewards for days 8–28, remaining 8 sounds, then the owner's gameplay video.
+
+## Lead session, 2026-11-15: streak milestones (T-RET-02)
+- Decision (Fable): keep the 7-day reward table and panel; add a consecutive-day counter `daily.run` and one-time bonuses in `Catalog.dailyMilestones`: day 14 +150 gems, day 21 +250 gems, day 28 +500 gems and a new exclusive skin `streak_month` ("Month Streak", source `daily28`). This adds one exclusive skin beyond the GDD G3.6 count on purpose. Built by an Opus subagent (touches saves and currency).
+- Server: `RewardService.claimDaily` computes the run with the pure `Formulas.dailyNextRun`, records an earned milestone in `daily.milestones` (string day keys) in the same profile update, and grants it once per profile. Gems get the same VIP multiplier as daily gems. Old profiles load with run 0 and no milestones.
+- Client: the Daily panel shows "Login streak: N. Day 14 bonus: +150 gems" under the cards, or "All streak bonuses earned"; a second toast announces an earned milestone.
+- Checks: 39 files compile, specs pass (new lines in catalog, formulas and profile-template specs), xref 0, headless 12/12 (new `tests/headless/k_daily_streak.luau`, which moves the mock clock).
+- Seen live (solo play, iPhone emulator, local build): the panel with the new line fits; claiming day 1 returned run 1 and the panel switched to "Claimed" / "Come back tomorrow"; Output clean apart from the known Studio noise. The line's wording was changed after that capture and the new wording has not been seen.
+- Not verified: a milestone actually being earned in Studio (headless only), the two toasts in a row, how the Month Streak skin looks, the VIP multiplier on milestone gems.
+- Known limits: a run that jumps past a milestone day without landing on it never pays that milestone (cannot happen in normal play).

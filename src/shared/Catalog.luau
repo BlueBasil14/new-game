@@ -11,7 +11,7 @@ export type Item = {
 	colorB: string?,
 	pattern: string, -- "solid" | "stripes" | "dots" | "checker" | "waves" | "stars" | "hex"
 	crownsRequired: number?,
-	source: string?, -- "vip" | "neonPack" | "starterPack" | "group" | "daily7"
+	source: string?, -- "vip" | "neonPack" | "starterPack" | "group" | "daily7" | "daily28"
 	default: boolean?,
 }
 
@@ -149,6 +149,7 @@ add("skin", "exclusive", "neon_orange", "Neon Orange", "#FF7A00", "#FFD1A3", "do
 add("trail", "exclusive", "neon_trail", "Neon Trail", "#00F0FF", "#FF2E9A", "stripes", { source = "neonPack" })
 add("skin", "exclusive", "team", "Team Colours", "#4F8BFF", "#FFFFFF", "stripes", { source = "group" })
 add("skin", "exclusive", "streak_week", "Week Streak", "#FF5CD6", "#FFE88A", "stars", { source = "daily7" })
+add("skin", "exclusive", "streak_month", "Month Streak", "#3DDCFF", "#FFC83D", "hex", { source = "daily28" })
 
 Catalog.items = items
 
@@ -253,6 +254,24 @@ Catalog.daily = {
 	{ currency = "coins", amount = 2500 },
 	{ currency = "gems", amount = 100, skin = "streak_week" },
 }
+
+-- One-time bonuses for consecutive daily claims (profile.daily.run), each granted once per profile ever.
+export type DailyMilestone = { day: number, currency: string, amount: number, skin: string? }
+Catalog.dailyMilestones = {
+	{ day = 14, currency = "gems", amount = 150 },
+	{ day = 21, currency = "gems", amount = 250 },
+	{ day = 28, currency = "gems", amount = 500, skin = "streak_month" },
+} :: { DailyMilestone }
+
+-- First milestone with day >= fromDay that is not in `claimed` (keys are tostring(day)), or nil.
+function Catalog.nextDailyMilestone(fromDay: number, claimed: { [string]: boolean }): DailyMilestone?
+	for _, m in Catalog.dailyMilestones do
+		if m.day >= fromDay and not claimed[tostring(m.day)] then
+			return m
+		end
+	end
+	return nil
+end
 
 -- Per-session playtime rewards
 Catalog.playtime = {
