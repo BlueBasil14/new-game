@@ -60,6 +60,26 @@ H.eq(H.processReceipt({ PlayerId = 88, ProductId = 5, PurchaseId = "X2" }), NP, 
 -- receipt persisted before PurchaseGranted
 local stored = H.M.dsBacking.stores["PlayerData_v1/global"]["u_88"]
 H.check(stored and table.find(stored.receipts, "SAME"), "receipt not saved before granting")
+-- Failed persistence must stay pending, including repeat delivery in this server.
+local realSave = Data.save
+local failMode = "false"
+Data.save = function(player)
+	if failMode == "error" then error("injected receipt save failure") end
+	if failMode == "false" then return false end
+	return realSave(player)
+end
+local beforeFailure = Data.get(p).gems
+H.eq(buy("gemsS", "RETRY_SAVE"), NP, "failed save acknowledged")
+H.eq(buy("gemsS", "RETRY_SAVE"), NP, "unsaved in-memory receipt acknowledged")
+failMode = "error"
+H.eq(buy("gemsS", "RETRY_SAVE"), NP, "throwing save acknowledged")
+H.eq(Data.get(p).gems - beforeFailure, Config.Products.gemsS.Gems, "retry granted twice")
+failMode = "ok"
+H.eq(buy("gemsS", "RETRY_SAVE"), G, "successful retry not acknowledged")
+H.eq(Data.get(p).gems - beforeFailure, Config.Products.gemsS.Gems, "successful retry granted twice")
+Data.save = realSave
+stored = H.M.dsBacking.stores["PlayerData_v1/global"]["u_88"]
+H.check(table.find(stored.receipts, "RETRY_SAVE") ~= nil, "retry receipt not persisted")
 -- game passes: 2x Speed via PromptGamePassPurchaseFinished doubles the applied and allowed speed at once
 local Econ = H.svc("EconomyService")
 local base = H.humanoid(p).WalkSpeed

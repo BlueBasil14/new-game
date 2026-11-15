@@ -127,7 +127,10 @@ local function processReceipt(info: { [string]: any }): Enum.ProductPurchaseDeci
 	end
 	local purchaseId = tostring(info.PurchaseId)
 	if DataService.hasReceipt(profile, purchaseId) then
-		return Enum.ProductPurchaseDecision.PurchaseGranted
+		-- This may be an in-memory receipt from a failed save, not a durable one.
+		-- Retry persistence without granting the reward again.
+		local ok, saved = pcall(DataService.save, player)
+		return if ok and saved == true then Enum.ProductPurchaseDecision.PurchaseGranted else Enum.ProductPurchaseDecision.NotProcessedYet
 	end
 
 	local cfg = (Config.Products :: any)[productKey]
@@ -170,7 +173,10 @@ local function processReceipt(info: { [string]: any }): Enum.ProductPurchaseDeci
 		return Enum.ProductPurchaseDecision.NotProcessedYet
 	end
 	-- Persist the receipt before telling Roblox the purchase is granted.
-	pcall(DataService.save, player)
+	local saveOk, saved = pcall(DataService.save, player)
+	if not saveOk or saved ~= true then
+		return Enum.ProductPurchaseDecision.NotProcessedYet
+	end
 	local bought = MonetizationService.onProductBought
 	if bought ~= nil then
 		pcall(bought, player, productKey, tonumber(info.CurrencySpent) or 0)
