@@ -224,3 +224,11 @@ Owner brief: capture juice, trail visibility, friend-avatar bots, music without 
 - Not verified: the real purchase prompt (ids are 0, so it shows "Coming soon"); clicking the grey 2x button (MCP clicks do not register); the layout on the 750x381 phone view (arithmetic only); the glow by eye in motion.
 - Output warnings seen: `Asset is not approved for the requester` for ids 13282611376 and 5948551602 (not in `src/`; most likely items on a friend's avatar), and `No asset content representation` for `economy_star` when used as a particle texture.
 - `build/TurfLoop.rbxlx` is committed again and matches the tree.
+
+## New cloud place loaded, 2026-11-15 (lead)
+- The owner confirmed the open Studio place: "BlazeHawks's Place: 11132026_2", **placeId 80441552680451** (universe 10776297454). This is a different place from the earlier 122808046982168; it was an empty baseplate template.
+- Loaded from commit 05d58b9: `Shared`, `Server`, `Client` and `SoundService.RBLXEssentials` (tracks and SFX only). Removed the template's Baseplate and SpawnLocation (the game builds its own arena), set `Workspace.StreamingEnabled = false` to match the build, and removed the template's Lighting children (Sky, SunRays, Atmosphere, Bloom, DepthOfField), which stacked with WorldBuilder's own effects and washed out and blurred the turf. Saved to Roblox as place version 3. Saved only, **not published**.
+- Checked in solo play there: arena builds, 8 of 8 bots are R15 friend avatars, a walked loop claimed turf (0.3 %, 114 coins), HUD shows the grey 2x button and Invite, turf is crisp after the Lighting clean-up. No errors from our scripts.
+- Output there: DataStores rejected ("Studio access to APIs is not allowed"; in-memory store used); `rbxassetid://81504106` not found (not in `src/`; likely an item on a friend's avatar); `No asset content representation` for economy_star, economy_energy and economy_coin, which are the Arcade Commons images used as particle textures.
+- Not checked there: passes, music by ear, capture effects, two players.
+- The earlier place 122808046982168 still has the build from b91cabc.
