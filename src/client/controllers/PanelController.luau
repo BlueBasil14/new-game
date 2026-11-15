@@ -89,11 +89,13 @@ local S = {
 	boostSub = "%d min",
 	starterName = "Starter Pack",
 	starterSub = "%s gems + skin",
-	passNames = { vip = "VIP", doubleCoins = "2x Coins", neonPack = "Neon Pack" },
+	passNames = { vip = "VIP", doubleCoins = "2x Coins", neonPack = "Neon Pack", skipMusic = "Skip Music", doubleSpeed = "2x Speed" },
 	passDescs = {
 		vip = "Gold name tag, VIP skin and trail, bonus coins",
 		doubleCoins = "Double coins forever",
 		neonPack = "5 neon skins and a neon trail",
+		skipMusic = "Skip any song you don't like",
+		doubleSpeed = "Run %dx faster, forever",
 	},
 
 	dailyDay = "Day %d",
@@ -200,7 +202,6 @@ local ERRORS: { [string]: string } = {
 -- Display-only Robux prices; they must match the Roblox dashboard.
 local ROBUX = {
 	products = { gemsS = 49, gemsM = 199, gemsL = 449, gemsXL = 999, boost15 = 29, starterPack = 79, secondChance = 15 },
-	passes = { vip = 399, doubleCoins = 249, neonPack = 199 },
 }
 
 local RARITY_HEX: { [string]: string } = {
@@ -213,13 +214,27 @@ local RARITY_HEX: { [string]: string } = {
 }
 
 local GEM_PRODUCTS = { "gemsS", "gemsM", "gemsL", "gemsXL" }
-local PASS_ORDER = { "vip", "doubleCoins", "neonPack" }
+local PASS_ORDER = { "vip", "doubleCoins", "neonPack", "skipMusic", "doubleSpeed" }
+local PASS_ICONS: { [string]: string } = {
+	vip = "economy_crown",
+	doubleCoins = "economy_coin_stack",
+	neonPack = "gameplay_cosmetics",
+	skipMusic = "gameplay_skip",
+	doubleSpeed = "economy_energy",
+}
+local PASS_COLORS: { [string]: Color3 } = {
+	vip = UiKit.theme.Yellow,
+	doubleCoins = UiKit.theme.Success,
+	neonPack = UiKit.theme.Pink,
+	skipMusic = UiKit.theme.Gem,
+	doubleSpeed = UiKit.theme.Yellow,
+}
 local TAB_ORDER = { "featured", "skins", "trails", "effects", "gems", "passes" }
 local TAB_TYPES: { [string]: string } = { skins = "skin", trails = "trail", effects = "effect" }
 local SETTING_ORDER = { "music", "sfx", "shake", "lowDetail" }
 
 local CARD_WIDTH = 0.32
-local CARD_HEIGHT_PER_WIDTH = 1.15
+local CARD_HEIGHT_PER_WIDTH = 1.28
 local CARDS_PER_ROW = 3
 local PULSE_SECONDS = 1.5
 local REBIRTH_CONFIRM_SECONDS = 3
@@ -233,13 +248,17 @@ local COIN_STAGGER = 0.05
 local AWAY_DELAY = 1.2
 
 local theme = UiKit.theme
-local PANEL_BG = Color3.fromHex(Config.Colors.UiDark)
-local CARD_BG = PANEL_BG:Lerp(theme.UiLight, 0.1)
-local DIM = Color3.fromRGB(95, 104, 128)
-local TRACK = PANEL_BG:Lerp(Color3.new(0, 0, 0), 0.4)
+local PANEL_BG = Color3.fromHex("FFF9EE")
+local CARD_BG = Color3.fromRGB(255, 255, 255)
+local DIM = Color3.fromHex("DAD8D2")
+local TRACK = Color3.fromHex("E1DACA")
+local INK = Color3.fromHex("202840")
+local MUTED = Color3.fromHex("626779")
 
 local PanelController = {}
 PanelController.onSound = nil :: ((name: string) -> ())?
+
+local shopSetTab: ((string) -> ())? = nil
 
 function PanelController.sound(name: string)
 	local hook = PanelController.onSound
@@ -385,7 +404,7 @@ end
 local function styleButton(btn: TextButton, text: string, color: Color3, dim: boolean)
 	btn.Text = text
 	btn.BackgroundColor3 = if dim then DIM else color
-	btn.TextColor3 = if dim then theme.UiLight else theme.UiDark
+	btn.TextColor3 = if dim then INK else theme.UiDark
 end
 
 local function currencyColor(currency: string): Color3
@@ -405,6 +424,7 @@ end
 local function bar(parent: Instance, pos: UDim2, size: UDim2): (Frame, Frame, TextLabel)
 	local track = UiKit.frame({ Name = "Track", Position = pos, Size = size, BackgroundColor3 = TRACK, parent = parent })
 	UiKit.corner(track, 100)
+	UiKit.stroke(track, INK, 2)
 	local fill = UiKit.frame({ Name = "Fill", Size = UDim2.fromScale(0, 1), BackgroundColor3 = theme.Success, parent = track })
 	UiKit.corner(fill, 100)
 	local text = UiKit.label({
@@ -433,6 +453,10 @@ local function promptPass(key: string)
 		return
 	end
 	MarketplaceService:PromptGamePassPurchase(Players.LocalPlayer, id)
+end
+
+function PanelController.promptPass(key: string)
+	promptPass(key)
 end
 
 -- Registry ----------------------------------------------------------------------------------
@@ -501,7 +525,7 @@ local function buildUpgrades(): PanelEntry
 			promptPass("doubleCoins")
 		end,
 	})
-	footer.TextColor3 = theme.UiLight
+	footer.TextColor3 = INK
 
 	type Row = { id: string, level: TextLabel, value: TextLabel, cost: TextButton }
 	local rows: { Row } = {}
@@ -516,8 +540,11 @@ local function buildUpgrades(): PanelEntry
 			parent = list,
 		})
 		UiKit.corner(row, 12)
-		plainLabel(row, S.upgradeNames[id], UDim2.fromScale(0.03, 0.08), UDim2.fromScale(0.33, 0.45))
-		local level = plainLabel(row, "", UDim2.fromScale(0.03, 0.56), UDim2.fromScale(0.33, 0.32))
+		UiKit.stroke(row, INK, 2)
+		local icons = { coinBoost = "economy_coin_stack", speed = "gameplay_speed", shield = "gameplay_shield", startSize = "gameplay_territory" }
+		UiKit.icon(icons[id], { Name = "UpgradeIcon", Position = UDim2.fromScale(0.02, 0.1), Size = UDim2.fromScale(0.11, 0.8), parent = row })
+		plainLabel(row, S.upgradeNames[id], UDim2.fromScale(0.15, 0.08), UDim2.fromScale(0.22, 0.45))
+		local level = plainLabel(row, "", UDim2.fromScale(0.15, 0.56), UDim2.fromScale(0.22, 0.32))
 		level.TextTransparency = 0.25
 		local value = plainLabel(row, "", UDim2.fromScale(0.38, 0.2), UDim2.fromScale(0.3, 0.6), Enum.TextXAlignment.Center)
 		local cost: TextButton = nil :: any
@@ -600,6 +627,7 @@ type CardSpec = {
 	big: string?,
 	badge: string?,
 	borderColor: Color3,
+	icon: string?,
 	action: string,
 	actionColor: Color3,
 	dim: boolean,
@@ -616,30 +644,25 @@ local function makeCard(parent: Instance, spec: CardSpec, order: number)
 		parent = parent,
 	})
 	UiKit.corner(card, 12)
-	UiKit.stroke(card, spec.borderColor, 2)
+	UiKit.stroke(card, INK, 3)
 	local swatch = UiKit.frame({
 		Name = "Swatch",
-		Position = UDim2.fromScale(0.06, 0.04),
-		Size = UDim2.fromScale(0.88, 0.42),
-		BackgroundColor3 = spec.colorA,
+		Position = UDim2.fromScale(0.02, 0.02),
+		Size = UDim2.fromScale(0.96, 0.44),
+		BackgroundColor3 = spec.colorA:Lerp(CARD_BG, 0.68),
 		parent = card,
 	})
 	UiKit.corner(swatch, 8)
 	if spec.colorB then
 		local g = Instance.new("UIGradient")
-		g.Color = ColorSequence.new(spec.colorA, spec.colorB)
+		g.Color = ColorSequence.new(spec.colorA:Lerp(CARD_BG, 0.6), spec.colorB:Lerp(CARD_BG, 0.72))
 		g.Rotation = 45
 		g.Parent = swatch
 	end
-	if spec.big then
-		UiKit.label({
-			Text = spec.big,
-			TextColor3 = theme.UiDark,
-			Size = UDim2.fromScale(0.8, 0.5),
-			Position = UDim2.fromScale(0.1, 0.25),
-			parent = swatch,
-		})
-	end
+	UiKit.icon(spec.icon or "gameplay_cosmetics", {
+		Name = "ProductIcon", AnchorPoint = Vector2.new(0.5, 0.5),
+		Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromScale(0.72, 0.86), parent = swatch,
+	})
 	if spec.badge then
 		local badge = UiKit.frame({
 			Name = "Badge",
@@ -661,7 +684,7 @@ local function makeCard(parent: Instance, spec: CardSpec, order: number)
 		pulseFor(card, PULSE_SECONDS)
 	end
 	local sub = plainLabel(card, spec.sub, UDim2.fromScale(0.06, 0.62), UDim2.fromScale(0.88, 0.11), Enum.TextXAlignment.Center)
-	sub.TextColor3 = spec.subColor
+	sub.TextColor3 = MUTED
 	local btn: TextButton = nil :: any
 	btn = button({
 		text = spec.action,
@@ -722,6 +745,7 @@ local function buildShop(): PanelEntry
 		lastSig = ""
 		refresh()
 	end
+	shopSetTab = setTab
 
 	local tabWidth = (1 - 0.008 * #TAB_ORDER) / (#TAB_ORDER + 1)
 	for i, id in TAB_ORDER do
@@ -793,6 +817,7 @@ local function buildShop(): PanelEntry
 		local spec: CardSpec = {
 			key = "",
 			name = item.name,
+			icon = if item.type == "trail" then "gameplay_capture_loop" elseif item.type == "effect" then "economy_star" else "gameplay_cosmetics",
 			sub = S.rarity[item.rarity] or item.rarity,
 			subColor = rarityColor,
 			colorA = Color3.fromHex(item.colorA),
@@ -923,8 +948,9 @@ local function buildShop(): PanelEntry
 		return {
 			key = specKey({ key, action }),
 			name = name,
+			icon = if key == "boost15" then "economy_coin_stack" elseif key == "starterPack" then "economy_reward_chest" else "economy_gem_cluster",
 			sub = sub,
-			subColor = theme.UiLight,
+			subColor = INK,
 			colorA = colorA,
 			colorB = colorB,
 			big = big,
@@ -941,15 +967,20 @@ local function buildShop(): PanelEntry
 
 	local function passSpec(key: string): CardSpec
 		local owned = ClientState.session.passes[key] == true
-		local robux = (ROBUX.passes :: any)[key]
-		local colorA = if key == "vip" then theme.Yellow elseif key == "doubleCoins" then theme.Success else theme.Pink
+		local robux = (Config.Passes :: any)[key].Robux
+		local colorA = PASS_COLORS[key]
+		local desc = S.passDescs[key]
+		if key == "doubleSpeed" then
+			desc = string.format(desc, Config.Passes.doubleSpeed.SpeedMultiplier)
+		end
 		return {
 			key = specKey({ key, if owned then "o" else "b" }),
 			name = S.passNames[key],
-			sub = S.passDescs[key],
-			subColor = theme.UiLight,
+			icon = PASS_ICONS[key],
+			sub = desc,
+			subColor = INK,
 			colorA = colorA,
-			colorB = theme.UiLight,
+			colorB = CARD_BG,
 			big = nil,
 			badge = nil,
 			borderColor = colorA,
@@ -971,7 +1002,7 @@ local function buildShop(): PanelEntry
 			for _, key in GEM_PRODUCTS do
 				local gems = (Config.Products :: any)[key].Gems
 				local text = UiKit.formatNumber(gems)
-				table.insert(specs, productSpec(key, string.format(S.gemsName, text), "", text, theme.Gem, theme.UiLight))
+				table.insert(specs, productSpec(key, string.format(S.gemsName, text), "", text, theme.Gem, CARD_BG))
 			end
 			local minutes = round(Config.Products.boost15.Seconds / 60)
 			table.insert(
@@ -1024,11 +1055,11 @@ local function buildShop(): PanelEntry
 			return
 		end
 		for id, btn in tabButtons do
-			btn.BackgroundColor3 = if id == tab then theme.Yellow else DIM
-			btn.TextColor3 = if id == tab then theme.UiDark else theme.UiLight
+			btn.BackgroundColor3 = if id == tab then theme.Yellow else CARD_BG
+			btn.TextColor3 = if id == tab then theme.UiDark else INK
 		end
-		toggleButton.BackgroundColor3 = if ownedOnly then theme.Success else DIM
-		toggleButton.TextColor3 = if ownedOnly then theme.UiDark else theme.UiLight
+		toggleButton.BackgroundColor3 = if ownedOnly then theme.Success else CARD_BG
+		toggleButton.TextColor3 = if ownedOnly then theme.UiDark else INK
 
 		local specs = buildSpecs(p)
 		passPulse = false
@@ -1053,7 +1084,7 @@ local function buildShop(): PanelEntry
 		end
 		if showNeon then
 			local banner = button({
-				text = string.format(S.neonBanner, ROBUX.passes.neonPack),
+				text = string.format(S.neonBanner, Config.Passes.neonPack.Robux),
 				color = theme.Pink,
 				size = UDim2.new(0.98, 0, 0, 44),
 				parent = scroller,
@@ -1062,7 +1093,7 @@ local function buildShop(): PanelEntry
 				end,
 			})
 			banner.Name = "NeonBanner"
-			banner.TextColor3 = theme.UiLight
+			banner.TextColor3 = INK
 			banner.LayoutOrder = 0
 		end
 		if #specs == 0 then
@@ -1133,28 +1164,14 @@ local function buildDaily(): PanelEntry
 			parent = days,
 		})
 		UiKit.corner(card, 10)
-		local stroke = UiKit.stroke(card, theme.UiLight, 3)
-		stroke.Enabled = false
+		local stroke = UiKit.stroke(card, INK, 3)
+		stroke.Enabled = true
 		plainLabel(card, string.format(S.dailyDay, i), UDim2.fromScale(0.05, 0.04), UDim2.fromScale(0.9, 0.12), Enum.TextXAlignment.Center)
-		local coin = UiKit.frame({
-			Name = "Icon",
-			AnchorPoint = Vector2.new(0.5, 0),
-			Position = UDim2.fromScale(0.5, 0.22),
-			Size = UDim2.fromScale(0.78, 0.2),
-			BackgroundColor3 = currencyColor(reward.currency),
-			parent = card,
+		UiKit.icon(if reward.skin then "economy_reward_chest" elseif reward.currency == "gems" then "economy_gem_cluster" else "economy_coin_stack", {
+			Name = "RewardIcon", Position = UDim2.fromScale(0.08, 0.2), Size = UDim2.fromScale(0.84, 0.39), parent = card,
 		})
-		UiKit.corner(coin, 100)
-		UiKit.aspect(coin, 1)
-		UiKit.label({
-			Text = UiKit.formatNumber(reward.amount),
-			TextColor3 = theme.UiDark,
-			Size = UDim2.fromScale(0.8, 0.4),
-			Position = UDim2.fromScale(0.1, 0.3),
-			parent = coin,
-		})
-		local word = plainLabel(card, currencyWord(reward.currency), UDim2.fromScale(0.05, 0.62), UDim2.fromScale(0.9, 0.1), Enum.TextXAlignment.Center)
-		word.TextTransparency = 0.25
+		local word = plainLabel(card, UiKit.formatNumber(reward.amount) .. " " .. currencyWord(reward.currency), UDim2.fromScale(0.05, 0.62), UDim2.fromScale(0.9, 0.1), Enum.TextXAlignment.Center)
+		word.TextColor3 = INK
 		local status = plainLabel(card, "", UDim2.fromScale(0.05, 0.78), UDim2.fromScale(0.9, 0.12), Enum.TextXAlignment.Center)
 		cells[i] = { card = card, stroke = stroke, status = status }
 	end
@@ -1197,9 +1214,10 @@ local function buildDaily(): PanelEntry
 		local today = if state.canClaim then state.nextStreak else p.daily.streak
 		for i, cell in cells do
 			local done = i <= claimedThrough
-			cell.stroke.Enabled = i == today
-			cell.stroke.Color = if state.canClaim then theme.Yellow else theme.Success
-			cell.card.BackgroundColor3 = if done then PANEL_BG:Lerp(theme.Success, 0.3) else CARD_BG
+			cell.stroke.Enabled = true
+			cell.stroke.Color = INK
+			cell.stroke.Thickness = if i == today then 3 else 2
+			cell.card.BackgroundColor3 = if done then Color3.fromHex("D6F5E2") elseif i == today then Color3.fromHex("FFF0B3") elseif i == count then Color3.fromHex("E6DBFF") else Color3.fromHex("EAE7DF")
 			local skinNote = Catalog.daily[i].skin ~= nil and p.daily.loops == 0
 			if done then
 				cell.status.Text = S.dailyDone
@@ -1208,7 +1226,7 @@ local function buildDaily(): PanelEntry
 			elseif skinNote then
 				cell.status.Text = S.dailySkin
 			else
-				cell.status.Text = ""
+				cell.status.Text = "Locked"
 			end
 		end
 		-- Run as it stands before today's claim (a missed day shows 0).
@@ -1254,7 +1272,7 @@ local function buildQuests(): PanelEntry
 				promptProduct("boost15")
 			end,
 		})
-		boost.TextColor3 = theme.UiLight
+		boost.TextColor3 = INK
 	end
 
 	type Row = { root: Frame, desc: TextLabel, fill: Frame, progress: TextLabel, reward: TextLabel, claim: TextButton }
@@ -1316,7 +1334,7 @@ local function buildQuests(): PanelEntry
 				row.fill.Size = UDim2.fromScale(math.clamp(entry.progress / def.target, 0, 1), 1)
 				row.progress.Text = string.format(S.questProgress, UiKit.formatNumber(math.floor(progress)), UiKit.formatNumber(def.target))
 				row.reward.Text = string.format(S.rewardText, UiKit.formatNumber(def.reward.amount), currencyWord(def.reward.currency))
-				row.reward.TextColor3 = currencyColor(def.reward.currency)
+				row.reward.TextColor3 = MUTED
 				local complete = entry.progress >= def.target
 				if entry.claimed then
 					styleButton(row.claim, S.questClaimed, theme.Success, true)
@@ -1378,7 +1396,7 @@ local function buildRebirth(): PanelEntry
 		progress.Text = string.format(S.rebirthProgress, UiKit.formatNumber(math.floor(p.lifetimeCoinsSinceRebirth)), UiKit.formatNumber(need))
 		if armed and eligible() then
 			styleButton(confirm, S.rebirthConfirm, theme.Danger, false)
-			confirm.TextColor3 = theme.UiLight
+			confirm.TextColor3 = INK
 		else
 			armed = false
 			styleButton(confirm, S.rebirthButton, theme.Pink, not eligible())
@@ -1444,7 +1462,7 @@ local function buildCodes(): PanelEntry
 	box.BorderSizePixel = 0
 	box.Font = Enum.Font.GothamBold
 	box.TextScaled = true
-	box.TextColor3 = theme.UiLight
+	box.TextColor3 = INK
 	box.PlaceholderText = S.codePlaceholder
 	box.PlaceholderColor3 = DIM
 	box.Text = ""
@@ -1509,18 +1527,24 @@ local function buildSettings(): PanelEntry
 	local toggles: { [string]: TextButton } = {}
 	local busy = false
 	local function paint(btn: TextButton, on: boolean)
-		styleButton(btn, if on then S.on else S.off, theme.Success, not on)
+		styleButton(btn, "", theme.Success, not on)
+		local knob = btn:FindFirstChild("Knob")
+		if knob and knob:IsA("Frame") then
+			knob.Position = UDim2.fromScale(if on then 0.56 else 0.06, 0.12)
+		end
 	end
 
 	for i, key in SETTING_ORDER do
 		local row = UiKit.frame({ Name = key, Size = UDim2.fromScale(1, 0.2), BackgroundColor3 = CARD_BG, LayoutOrder = i, parent = list })
 		UiKit.corner(row, 12)
-		plainLabel(row, S.settingNames[key], UDim2.fromScale(0.04, 0.15), UDim2.fromScale(0.6, 0.7))
+		local icons = { music = "gameplay_music", sfx = "gameplay_sound_on", shake = "economy_star", lowDetail = "gameplay_shield" }
+		UiKit.icon(icons[key], { Name = "SettingIcon", Position = UDim2.fromScale(0.02, 0.17), Size = UDim2.fromScale(0.12, 0.66), parent = row })
+		plainLabel(row, S.settingNames[key], UDim2.fromScale(0.17, 0.15), UDim2.fromScale(0.57, 0.7))
 		local btn: TextButton = nil :: any
 		btn = button({
 			text = "",
-			size = UDim2.fromScale(0.28, 0.6),
-			position = UDim2.fromScale(0.68, 0.2),
+			size = UDim2.fromScale(0.14, 0.44),
+			position = UDim2.fromScale(0.81, 0.28),
 			parent = row,
 			onClick = function()
 				local p = ClientState.profile
@@ -1539,6 +1563,10 @@ local function buildSettings(): PanelEntry
 				end
 			end,
 		})
+		UiKit.corner(btn, 100)
+		local knob = UiKit.frame({ Name = "Knob", BackgroundColor3 = CARD_BG, Position = UDim2.fromScale(0.56, 0.12), Size = UDim2.fromScale(0.38, 0.76), parent = btn })
+		UiKit.corner(knob, 100)
+		UiKit.stroke(knob, INK, 2)
 		toggles[key] = btn
 	end
 
@@ -1641,7 +1669,7 @@ local function buildDeath(): PanelEntry
 			promptProduct("secondChance")
 		end,
 	})
-	second.TextColor3 = theme.UiLight
+	second.TextColor3 = INK
 	death.ui = { stats = stats, killer = killer, respawn = respawn, second = second }
 	return { panel = panel, refresh = function() end }
 end
@@ -1699,7 +1727,7 @@ local function buildStarter(): PanelEntry
 	local panel = UiKit.panel({ title = S.starterTitle, size = UDim2.fromScale(0.6, 0.66) })
 	local body = panel.body
 	local head = plainLabel(body, S.starterHeadline, UDim2.fromScale(0.1, 0.04), UDim2.fromScale(0.8, 0.1), Enum.TextXAlignment.Center)
-	head.TextColor3 = theme.Yellow
+	head.TextColor3 = INK
 
 	local starter = Config.Products.starterPack
 	local offers = {
@@ -1746,7 +1774,7 @@ local function buildStarter(): PanelEntry
 		onClick = function()
 			panel.hide()
 		end,
-	}).TextColor3 = theme.UiLight
+	}).TextColor3 = INK
 
 	local function refresh()
 		local p = ClientState.profile
@@ -1811,7 +1839,7 @@ local function buildAway(): PanelEntry
 	local panel = UiKit.panel({ title = S.awayTitle, size = UDim2.fromScale(0.5, 0.5) })
 	local body = panel.body
 	local streak = plainLabel(body, "", UDim2.fromScale(0.08, 0.06), UDim2.fromScale(0.84, 0.16), Enum.TextXAlignment.Center)
-	streak.TextColor3 = theme.Yellow
+	streak.TextColor3 = INK
 
 	local function row(y: number): (TextLabel, TextButton, Frame)
 		local box = UiKit.frame({
@@ -1890,6 +1918,14 @@ builders.Death = buildDeath
 builders.Starter = buildStarter
 
 -- Public API --------------------------------------------------------------------------------
+
+-- Opens the Shop on a given tab id ("passes", "skins", ...). Used by the Studio test hook.
+function PanelController.openShopTab(id: string)
+	PanelController.open("Shop")
+	if shopSetTab then
+		shopSetTab(id)
+	end
+end
 
 function PanelController.open(name: string)
 	local deathEntry = built.Death

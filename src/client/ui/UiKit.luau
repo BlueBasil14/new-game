@@ -23,6 +23,13 @@ for k, v in Config.Colors do
 	end
 end
 UiKit.theme = theme
+theme.UiDark = Color3.fromHex("202840")
+theme.Paper = Color3.fromHex("FFF9EE")
+theme.Yellow = Color3.fromHex("FFC94A")
+theme.Pink = Color3.fromHex("FF6B78")
+theme.Gem = Color3.fromHex("43D8E8")
+theme.Success = Color3.fromHex("6DE0A5")
+theme.Violet = Color3.fromHex("9C7DFF")
 
 local FONT = Enum.Font.GothamBold
 local PANEL_ICONS: { [string]: string } = {
@@ -83,7 +90,7 @@ end
 
 function UiKit.frame(props: { [string]: any }?): Frame
 	local f = Instance.new("Frame")
-	f.BackgroundColor3 = theme.UiDark
+	f.BackgroundColor3 = theme.Paper
 	f.BorderSizePixel = 0
 	applyProps(f, props)
 	return f
@@ -93,7 +100,7 @@ function UiKit.label(props: { [string]: any }?): TextLabel
 	local l = Instance.new("TextLabel")
 	l.BackgroundTransparency = 1
 	l.Font = FONT
-	l.TextColor3 = theme.UiLight
+	l.TextColor3 = theme.UiDark
 	l.TextScaled = true
 	l.BorderSizePixel = 0
 	applyProps(l, props)
@@ -113,8 +120,8 @@ end
 
 function UiKit.stroke(inst: Instance, color: Color3?, thickness: number?): UIStroke
 	local s = Instance.new("UIStroke")
-	s.Color = color or theme.UiLight
-	s.Thickness = thickness or 2
+	s.Color = color or theme.UiDark
+	s.Thickness = thickness or 3
 	s.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
 	s.Parent = inst
 	return s
@@ -178,6 +185,7 @@ function UiKit.button(props: {
 	b.Size = props.size or UDim2.fromScale(0.3, 0.1)
 	b.Position = props.position or UDim2.new()
 	UiKit.corner(b, 12)
+	UiKit.stroke(b, theme.UiDark, 3)
 	local c = Instance.new("UITextSizeConstraint")
 	c.MaxTextSize = 36
 	c.MinTextSize = 8
@@ -258,10 +266,14 @@ function UiKit.panel(props: { title: string?, size: UDim2?, parent: Instance? })
 		Size = props.size or UDim2.fromScale(0.6, 0.7),
 		parent = dimmer,
 	})
-	UiKit.corner(root, 18)
-	UiKit.stroke(root, theme.UiLight, 2)
+	UiKit.corner(root, 24)
+	UiKit.stroke(root, theme.UiDark, 4)
+	local shadow = UiKit.frame({Name = "RaisedEdge", Size = UDim2.fromScale(1, 1), Position = UDim2.fromOffset(0, 8), BackgroundColor3 = theme.UiDark, ZIndex = 0, parent = root})
+	UiKit.corner(shadow, 24)
+	local surface = UiKit.frame({Name = "Surface", Size = UDim2.fromScale(1, 1), BackgroundColor3 = theme.Paper, parent = root})
+	UiKit.corner(surface, 24)
 	local limit = Instance.new("UISizeConstraint")
-	limit.MaxSize = Vector2.new(720, 560)
+	limit.MaxSize = Vector2.new(900, 620)
 	limit.Parent = root
 	local scale = Instance.new("UIScale")
 	scale.Parent = root
@@ -269,7 +281,7 @@ function UiKit.panel(props: { title: string?, size: UDim2?, parent: Instance? })
 	local bar = UiKit.frame({
 		Name = "TitleBar",
 		Size = UDim2.fromScale(1, 0.12),
-		BackgroundColor3 = theme.Pink,
+		BackgroundColor3 = if props.title == "Settings" then Color3.fromHex("C9B7FF") elseif props.title == "Daily Reward" then theme.Yellow else theme.Gem,
 		parent = root,
 	})
 	UiKit.corner(bar, 18)
@@ -297,6 +309,8 @@ function UiKit.panel(props: { title: string?, size: UDim2?, parent: Instance? })
 	})
 	closeBtn.Text = ""
 	closeBtn.BackgroundTransparency = 1
+	local closeStroke = closeBtn:FindFirstChildOfClass("UIStroke")
+	if closeStroke then closeStroke.Enabled = false end
 	UiKit.icon("core_close", { Name = "CloseIcon", Size = UDim2.fromScale(1, 1), parent = closeBtn })
 	UiKit.aspect(closeBtn, 1)
 
@@ -309,12 +323,17 @@ function UiKit.panel(props: { title: string?, size: UDim2?, parent: Instance? })
 	})
 
 	local open = false
+	local blur = Instance.new("BlurEffect")
+	blur.Name = "ArcadePanelBlur"
+	blur.Size = 0
+	blur.Parent = game:GetService("Lighting")
 	local panel: Panel
 	local function hide()
 		if not open then
 			return
 		end
 		open = false
+		blur.Size = 0
 		dimmer.Visible = false
 		if currentPanel == panel then
 			currentPanel = nil
@@ -326,6 +345,7 @@ function UiKit.panel(props: { title: string?, size: UDim2?, parent: Instance? })
 		end
 		currentPanel = panel
 		open = true
+		blur.Size = 12
 		scale.Scale = 0.8
 		dimmer.Visible = true
 		tween(scale, 0.18, { Scale = 1 }, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
@@ -460,7 +480,7 @@ function UiKit.toast(text: string, color: Color3?)
 	local t = UiKit.frame({
 		Name = "Toast",
 		Size = UDim2.fromScale(1, 0.14),
-		BackgroundColor3 = color or theme.UiDark,
+		BackgroundColor3 = color or theme.Paper,
 		parent = toastHolder,
 	})
 	UiKit.corner(t, 12)

@@ -83,6 +83,8 @@ if game:GetService("RunService"):IsStudio() then
 	debugEvent.Event:Connect(function(action: string, arg: string?)
 		if action == "open" and arg then
 			PanelController.open(arg)
+		elseif action == "shopTab" and arg then
+			PanelController.openShopTab(arg) -- e.g. ("shopTab", "passes")
 		elseif action == "close" then
 			PanelController.close()
 		elseif action == "cut" then

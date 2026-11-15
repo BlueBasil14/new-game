@@ -17,17 +17,21 @@ local PanelController = require(script.Parent.PanelController)
 local ArenaClient = require(script.Parent.ArenaClient)
 local TurfRenderer = require(script.Parent.TurfRenderer)
 local FeedbackController = require(script.Parent.FeedbackController)
+local MusicController = require(script.Parent.MusicController)
 
 local S = {
 	coinsIcon = "economy_coin",
 	gemsIcon = "economy_gem",
 	crownsIcon = "economy_crown",
-	mapLabel = "MAP",
+	mapLabel = "YOUR TERRITORY",
 	percent = "%.1f%%",
 	boost = "%dx %s",
 	weekend = "%dx WEEKEND",
 	friend = "+%d%% FRIEND",
 	inviteIcon = "core_friends",
+	speedIcon = "economy_energy",
+	speedLabel = "%dx",
+	skipIcon = "gameplay_skip",
 	kingMark = "K",
 	starterBadge = "!",
 	cutFeed = "%s cut %s",
@@ -36,8 +40,8 @@ local S = {
 	claimed = "OK",
 	rewardClaimed = "Reward claimed",
 	rail = {
-		{ panel = "Upgrades", text = "Upgrades" },
 		{ panel = "Shop", text = "Shop" },
+		{ panel = "Upgrades", text = "Upgrades" },
 		{ panel = "Quests", text = "Quests" },
 		{ panel = "Daily", text = "Daily" },
 		{ panel = "Rebirth", text = "Rebirth" },
@@ -63,7 +67,10 @@ local INVITE_SIZE = 0.55 -- invite button side as a fraction of the minimap side
 local INVITE_GAP = 6 -- px between the invite button and the minimap
 
 local theme = UiKit.theme
-local PANEL_BG = Color3.fromHex(Config.Colors.UiDark)
+local PANEL_BG = Color3.fromHex("FFF9EE")
+local INK = Color3.fromHex("202840")
+local CYAN = Color3.fromHex("43D8E8")
+local LILAC = Color3.fromHex("C9B7FF")
 
 local started = false
 local railButtons: { [string]: TextButton } = {}
@@ -97,16 +104,18 @@ end
 local function walletRow(parent: Frame, order: number, icon: string, color: Color3): TextLabel
 	local row = UiKit.frame({
 		Name = "Row" .. order,
-		BackgroundTransparency = 1,
-		Size = UDim2.fromScale(1, 0.3),
+		BackgroundColor3 = PANEL_BG,
+		Size = UDim2.fromScale(0.32, 1),
 		LayoutOrder = order,
 		parent = parent,
 	})
+	UiKit.corner(row, 14)
+	UiKit.stroke(row, INK, 3)
 	local badge = UiKit.frame({
 		Name = "Badge",
 		AnchorPoint = Vector2.new(0, 0.5),
-		Position = UDim2.fromScale(0, 0.5),
-		Size = UDim2.fromScale(0.20, 0.95),
+		Position = UDim2.fromScale(0.04, 0.5),
+		Size = UDim2.fromScale(0.28, 0.85),
 		BackgroundColor3 = color,
 		BackgroundTransparency = 1,
 		parent = row,
@@ -118,12 +127,14 @@ local function walletRow(parent: Frame, order: number, icon: string, color: Colo
 		parent = badge,
 	})
 	mark.Name = "Mark"
+	UiKit.label({ Name = "Currency", Text = ({ "Coins", "Gems", "Crowns" })[order], TextColor3 = INK, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromScale(0.35, 0.08), Size = UDim2.fromScale(0.61, 0.23), parent = row })
 	return UiKit.label({
 		Name = "Value",
+		TextColor3 = INK,
 		Text = "0",
 		TextXAlignment = Enum.TextXAlignment.Left,
-		Size = UDim2.fromScale(0.78, 0.8),
-		Position = UDim2.fromScale(0.22, 0.1),
+		Size = UDim2.fromScale(0.61, 0.55),
+		Position = UDim2.fromScale(0.35, 0.33),
 		parent = row,
 	})
 end
@@ -140,15 +151,14 @@ end
 local function buildWallet(gui: ScreenGui)
 	local wallet = UiKit.frame({
 		Name = "Wallet",
-		Size = UDim2.fromScale(0.17, 0.16),
+		Size = UDim2.fromScale(0.34, 0.075),
 		BackgroundColor3 = PANEL_BG,
-		BackgroundTransparency = 0.25,
+		BackgroundTransparency = 1,
 		parent = gui,
 	})
 	belowTopbar(wallet, 0.012, 0.02)
 	UiKit.corner(wallet, 12)
-	UiKit.padding(wallet, 0.03)
-	UiKit.list(wallet, { Padding = UDim.new(0.03, 0) })
+	UiKit.list(wallet, { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0.02, 0) })
 
 	local labels = {
 		coins = walletRow(wallet, 1, S.coinsIcon, theme.Yellow),
@@ -221,31 +231,42 @@ local function buildTopCentre(gui: ScreenGui)
 		BackgroundTransparency = 1,
 		AnchorPoint = Vector2.new(0.5, 0),
 		Position = UDim2.fromScale(0.5, 0.02),
-		Size = UDim2.fromScale(0.34, 0.09),
+		Size = UDim2.fromScale(0.30, 0.10),
 		parent = gui,
 	})
-	UiKit.list(holder, {
-		FillDirection = Enum.FillDirection.Horizontal,
-		HorizontalAlignment = Enum.HorizontalAlignment.Center,
-		Padding = UDim.new(0.02, 0),
-	})
+	
 
-	local _, mapMain, mapSub = chip(holder, "Map", 0.34, PANEL_BG, 1)
+	local mapChip, mapMain, mapSub = chip(holder, "Map", 0.48, PANEL_BG, 1)
+	mapChip.Position = UDim2.fromScale(0.26, 0)
+	mapChip.BackgroundTransparency = 1
+	mapMain.TextColor3 = Color3.new(1, 1, 1)
+	mapMain.TextStrokeColor3 = INK
+	mapMain.TextStrokeTransparency = 0
+	mapSub.TextColor3 = INK
+	mapSub.TextTransparency = 0
 	mapSub.Text = S.mapLabel
 	mapMain.Text = string.format(S.percent, 0)
 
 	local boostChip, boostMain, boostSub = chip(holder, "Boost", 0.3, theme.Pink, 2)
+	boostChip.Position = UDim2.fromScale(0, 1.1)
+	boostChip.Size = UDim2.fromScale(0.31, 0.55)
 	boostChip.Visible = false
 	boostSub.Text = ""
 
-	local weekendChip, weekendMain, _ = chip(holder, "Weekend", 0.3, theme.Success, 3)
+	local weekendChip, weekendMain, weekendSub = chip(holder, "Weekend", 0.3, theme.Success, 3)
+	weekendSub.Text = ""
+	weekendChip.Position = UDim2.fromScale(0.345, 1.1)
+	weekendChip.Size = UDim2.fromScale(0.31, 0.55)
 	weekendChip.Visible = false
 	weekendMain.Text = string.format(S.weekend, Config.Income.WeekendMultiplier)
 	weekendMain.TextColor3 = theme.UiDark
 	weekendMain.Size = UDim2.fromScale(0.9, 0.7)
 	weekendMain.Position = UDim2.fromScale(0.05, 0.15)
 
-	local friendChip, friendMain, _ = chip(holder, "Friend", 0.3, theme.Gem, 4)
+	local friendChip, friendMain, friendSub = chip(holder, "Friend", 0.3, theme.Gem, 4)
+	friendSub.Text = ""
+	friendChip.Position = UDim2.fromScale(0.69, 1.1)
+	friendChip.Size = UDim2.fromScale(0.31, 0.55)
 	friendChip.Visible = false
 	friendMain.Text = string.format(S.friend, math.floor(Config.Income.FriendBonus * 100 + 0.5))
 	friendMain.TextColor3 = theme.UiDark
@@ -293,19 +314,26 @@ type BoardEntry = { id: number, runner: Types.RunnerInfo, cells: number }
 local function buildLeaderboard(gui: ScreenGui)
 	local board = UiKit.frame({
 		Name = "Leaderboard",
-		BackgroundTransparency = 1,
+		BackgroundColor3 = PANEL_BG,
+		BackgroundTransparency = 0,
 		AnchorPoint = Vector2.new(1, 0),
 		Position = UDim2.fromScale(0.988, 0.02),
 		Size = UDim2.fromScale(0.2, 0.33),
 		parent = gui,
 	})
+	UiKit.corner(board, 16)
+	UiKit.stroke(board, INK, 3)
+	UiKit.padding(board, 0.04)
 	UiKit.list(board, { Padding = UDim.new(0.008, 0) })
+	local heading = UiKit.frame({ Name = "Heading", Size = UDim2.fromScale(1, 0.13), BackgroundTransparency = 1, LayoutOrder = 0, parent = board })
+	UiKit.icon("core_leaderboard", { Size = UDim2.fromScale(0.18, 1), parent = heading })
+	UiKit.label({ Text = "Top runners", TextColor3 = INK, TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromScale(0.22, 0), Size = UDim2.fromScale(0.77, 1), parent = heading })
 
 	local rows: { BoardRow } = {}
 	for i = 1, BOARD_ROWS do
 		local root = UiKit.frame({
 			Name = "Row" .. i,
-			Size = UDim2.fromScale(1, 0.115),
+			Size = UDim2.fromScale(1, 0.098),
 			BackgroundColor3 = PANEL_BG,
 			BackgroundTransparency = 0.35,
 			LayoutOrder = i,
@@ -324,11 +352,9 @@ local function buildLeaderboard(gui: ScreenGui)
 		})
 		UiKit.corner(crown, 100)
 		UiKit.aspect(crown, 1)
-		UiKit.label({
-			Text = S.kingMark,
-			TextColor3 = theme.UiDark,
-			Size = UDim2.fromScale(0.7, 0.7),
-			Position = UDim2.fromScale(0.15, 0.15),
+		crown.BackgroundTransparency = 1
+		UiKit.icon("economy_crown", {
+			Size = UDim2.fromScale(1, 1),
 			parent = crown,
 		})
 		local swatch = UiKit.frame({
@@ -377,12 +403,13 @@ local function buildLeaderboard(gui: ScreenGui)
 				row.root.Visible = true
 				row.swatch.BackgroundColor3 = Color3.fromHex(playerColorHex(entry.runner.colorIndex))
 				row.name.Text = entry.runner.name
-				row.name.TextColor3 = if isVip(entry.runner) then theme.Yellow else theme.UiLight
+				row.name.TextColor3 = if isVip(entry.runner) then Color3.fromHex("8A5900") else INK
+				row.percent.TextColor3 = INK
 				row.percent.Text = string.format(S.percent, entry.cells / arena.totalCells * 100)
 				row.crown.Visible = entry.id == arena.kingId
 				local mine = entry.id == arena.myId
-				row.root.BackgroundColor3 = if mine then theme.Yellow else PANEL_BG
-				row.root.BackgroundTransparency = if mine then 0.55 else 0.35
+				row.root.BackgroundColor3 = if mine then Color3.fromHex("C7F3ED") else PANEL_BG
+				row.root.BackgroundTransparency = 0
 			end
 		end
 	end
@@ -464,24 +491,24 @@ end
 
 -- Button rail -------------------------------------------------------------------------------
 
-local RAIL_BUTTON_HEIGHT = 0.13
+local RAIL_BUTTON_HEIGHT = 0.115
 local RAIL_TEXT_WIDTH_DIVISOR = 5.2 -- widest label ("Upgrades") fits when TextSize <= width / this
 
 local function buildRail(gui: ScreenGui): (() -> ())
 	local rail = UiKit.frame({
 		Name = "Rail",
 		BackgroundTransparency = 1,
-		Size = UDim2.fromScale(0.13, 0.38),
+		Size = UDim2.fromScale(0.13, 0.48),
 		parent = gui,
 	})
-	belowTopbar(rail, 0.012, 0.2)
-	UiKit.list(rail, { Padding = UDim.new(0.014, 0) })
+	belowTopbar(rail, 0.012, 0.13)
+	UiKit.list(rail, { Padding = UDim.new(0.032, 0) })
 
 	local dots: { [string]: Frame } = {}
 	for i, def in S.rail do
 		local b = UiKit.button({
 			text = def.text,
-			color = theme.Yellow,
+			color = if def.panel == "Shop" then theme.Yellow elseif def.panel == "Upgrades" then CYAN elseif def.panel == "Daily" then LILAC else PANEL_BG,
 			size = UDim2.fromScale(1, RAIL_BUTTON_HEIGHT),
 			parent = rail,
 			onClick = function()
@@ -492,7 +519,6 @@ local function buildRail(gui: ScreenGui): (() -> ())
 		b.Name = def.panel
 		b.LayoutOrder = i
 		railButtons[def.panel] = b
-		UiKit.stroke(b, theme.UiDark, 2)
 		UiKit.icon("core_" .. string.lower(def.panel), {
 			Name = "MenuIcon",
 			AnchorPoint = Vector2.new(0, 0.5),
@@ -767,6 +793,85 @@ local function buildInvite(gui: ScreenGui)
 	end)
 end
 
+-- 2x Speed (always shown: glows for owners, grey + opens the purchase prompt for others) and Skip Music (owners only),
+-- both left of the minimap next to the Invite button: speed beside Invite, skip below Invite.
+local function buildPassButtons(gui: ScreenGui): (() -> ())
+	local minimap = gui:FindFirstChild("Minimap") :: Frame
+	local grey = PANEL_BG:Lerp(INK, 0.25)
+	local glow = UiKit.frame({ Name = "SpeedGlow", BackgroundColor3 = theme.Yellow, BackgroundTransparency = 0.75, parent = gui })
+	UiKit.corner(glow, 16)
+	TweenService:Create(glow, TweenInfo.new(0.9, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true), { BackgroundTransparency = 0.2 }):Play()
+
+	local speed = UiKit.button({
+		color = theme.Yellow,
+		parent = gui,
+		onClick = function()
+			if ClientState.session.passes.doubleSpeed ~= true then
+				PanelController.sound("click")
+				PanelController.promptPass("doubleSpeed")
+			end
+		end,
+	})
+	speed.Name = "Speed"
+	speed.AnchorPoint = Vector2.new(1, 0)
+	local speedIcon = UiKit.icon(S.speedIcon, {
+		Size = UDim2.fromScale(0.6, 0.6),
+		Position = UDim2.fromScale(0.2, 0.04),
+		parent = speed,
+	})
+	local speedText = UiKit.label({
+		Text = string.format(S.speedLabel, Config.Passes.doubleSpeed.SpeedMultiplier),
+		Size = UDim2.fromScale(0.8, 0.28),
+		Position = UDim2.fromScale(0.1, 0.66),
+		parent = speed,
+	})
+
+	local skip = UiKit.button({
+		color = theme.Yellow,
+		parent = gui,
+		onClick = function()
+			PanelController.sound("click")
+			MusicController.skip()
+		end,
+	})
+	skip.Name = "SkipMusic"
+	skip.AnchorPoint = Vector2.new(1, 0)
+	skip.Visible = false
+	UiKit.icon(S.skipIcon, {
+		Size = UDim2.fromScale(0.7, 0.7),
+		Position = UDim2.fromScale(0.15, 0.15),
+		parent = skip,
+	})
+
+	local function place()
+		local side = minimap.AbsoluteSize.Y
+		local size = math.floor(side * INVITE_SIZE)
+		local small = math.floor(side * INVITE_SIZE * 0.75)
+		local x = minimap.Position.X.Scale
+		local y = minimap.Position.Y.Scale
+		local left = -minimap.AbsoluteSize.X - INVITE_GAP
+		speed.Size = UDim2.fromOffset(size, size)
+		speed.Position = UDim2.new(x, left - size - INVITE_GAP, y, -side)
+		glow.Size = UDim2.fromOffset(size + 10, size + 10)
+		glow.AnchorPoint = Vector2.new(1, 0)
+		glow.Position = UDim2.new(x, left - size - INVITE_GAP + 5, y, -side - 5)
+		skip.Size = UDim2.fromOffset(small, small)
+		skip.Position = UDim2.new(x, left, y, -side + size + INVITE_GAP)
+	end
+	minimap:GetPropertyChangedSignal("AbsoluteSize"):Connect(place)
+	place()
+
+	return function()
+		local owned = ClientState.session.passes.doubleSpeed == true
+		speed.BackgroundColor3 = if owned then theme.Yellow else grey
+		speedIcon.ImageColor3 = if owned then Color3.new(1, 1, 1) else grey:Lerp(Color3.new(0, 0, 0), 0.3)
+		speedIcon.ImageTransparency = if owned then 0 else 0.35
+		speedText.TextTransparency = if owned then 0 else 0.4
+		glow.Visible = owned
+		skip.Visible = MusicController.canSkip()
+	end
+end
+
 local function buildPlaytime(gui: ScreenGui): (() -> ())
 	local count = #Catalog.playtime
 	local function nodeX(i: number): number
@@ -775,12 +880,15 @@ local function buildPlaytime(gui: ScreenGui): (() -> ())
 
 	local bar = UiKit.frame({
 		Name = "Playtime",
-		BackgroundTransparency = 1,
+		BackgroundColor3 = PANEL_BG,
 		AnchorPoint = Vector2.new(0.5, 1),
 		Position = UDim2.fromScale(0.5, 0.985),
 		Size = UDim2.fromScale(0.4, 0.12),
 		parent = gui,
 	})
+	UiKit.corner(bar, 14)
+	UiKit.stroke(bar, INK, 3)
+	UiKit.padding(bar, 0.08)
 	local track = UiKit.frame({
 		Name = "Track",
 		AnchorPoint = Vector2.new(0, 0.5),
@@ -880,11 +988,11 @@ local function buildPlaytime(gui: ScreenGui): (() -> ())
 				node.button.BackgroundColor3 = currencyColor(def.currency)
 				node.button.TextColor3 = theme.UiDark
 				node.stroke.Enabled = true
-				node.stroke.Color = theme.UiLight
+				node.stroke.Color = INK
 			else
 				node.button.Text = UiKit.formatNumber(def.amount)
 				node.button.BackgroundColor3 = PANEL_BG
-				node.button.TextColor3 = theme.UiLight
+				node.button.TextColor3 = INK
 				node.stroke.Enabled = true
 				node.stroke.Color = currencyColor(def.currency)
 			end
@@ -919,10 +1027,12 @@ function HudController.start()
 	buildKillFeed(gui)
 	buildMinimap(gui)
 	buildInvite(gui)
+	local updatePasses = buildPassButtons(gui)
 	local updateDots = buildRail(gui)
 	local updatePlaytime = buildPlaytime(gui)
 
 	local function updateAll()
+		updatePasses()
 		updateTimers()
 		updateDots()
 		updatePlaytime()
