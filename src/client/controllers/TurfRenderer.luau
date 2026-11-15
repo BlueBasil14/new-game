@@ -28,7 +28,6 @@ local TRAIL_H = 0.6
 local TRAIL_WIDTH = 0.6 -- fraction of a cell
 local EDGE_H = 0.5 -- neon rim sits under the trail strip: top 0.1 below it, 0.4 above the turf
 local FLASH_TIME = 0.25
-local FLASH_LIGHTEN = 0.6
 local STOLEN_TINT = 0.7 -- stolen-claim flash starts this far from the owner colour toward Danger
 local FLASH_WINDOW = 0.6 -- seconds a claim event and its cell delta may arrive apart
 local BLINK_HZ = 4
@@ -181,7 +180,12 @@ end
 -- Trail look (G8): a darker strip of the trail colour over a lighter neon rim. Dark colours get a
 -- much lighter rim, so the trail reads on light, dark and same-colour turf.
 local function trailColors(base: Color3): (Color3, Color3)
-	local lift = if luminance(base) < FX.DarkLuminance then FX.EdgeLightenDark else FX.EdgeLighten
+	local lum = luminance(base)
+	if lum > FX.LightLuminance then
+		-- a light rim vanishes on a pale floor: light colours get a dark rim instead
+		return base:Lerp(BLACK, FX.TrailDarken), base:Lerp(BLACK, FX.EdgeDarkenLight)
+	end
+	local lift = if lum < FX.DarkLuminance then FX.EdgeLightenDark else FX.EdgeLighten
 	return base:Lerp(BLACK, FX.TrailDarken), base:Lerp(WHITE, lift)
 end
 
@@ -276,7 +280,7 @@ local function startFlash(p: BasePart, owner: number, color: Color3, now: number
 		return
 	end
 	flashLeft[owner] = left - 1
-	local from = if claimStolen[owner] then color:Lerp(STOLEN_COLOR, STOLEN_TINT) else color:Lerp(WHITE, FLASH_LIGHTEN)
+	local from = if claimStolen[owner] then color:Lerp(STOLEN_COLOR, STOLEN_TINT) else color:Lerp(BLACK, FX.FlashDarken)
 	local pos = p.Position
 	local t0 = (claimAt[owner] or now) + waveDelay(owner, (pos.X + half) / CS, (pos.Z + half) / CS)
 	if t0 > now then

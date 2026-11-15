@@ -23,11 +23,14 @@ Config.Arena = {
 }
 
 -- G6 claim feel (client): flash start is delayed by up to WaveTime, sweeping out from the loop-close point
-Config.ClaimFx = { WaveTime = 0.5 }
+Config.ClaimFx = { WaveTime = 0.7 }
 -- G6/G8 turf renderer looks (client only).
 Config.TurfFx = {
-	TrailDarken = 0.45, -- trail strip = owner's trail colour moved this far toward black
-	EdgeWidth = 0.3, -- neon rim under the trail: extra width in cells (split over both sides)
+	TrailDarken = 0.35, -- trail strip = owner's trail colour moved this far toward black
+	FlashDarken = 0.25, -- claim flash starts this far toward black so it pops on a pale floor
+	LightLuminance = 0.7, -- trail colours brighter than this get a dark rim instead of a light one
+	EdgeDarkenLight = 0.2,
+	EdgeWidth = 0.5, -- neon rim under the trail: extra width in cells (split over both sides)
 	EdgeLighten = 0.45, -- rim = trail colour moved this far toward white...
 	EdgeLightenDark = 0.8, -- ...or this far when the colour is darker than DarkLuminance
 	DarkLuminance = 0.25, -- relative luminance 0..1
@@ -43,20 +46,20 @@ Config.CutFx = { HitStop = 0.08, PopTime = 0.6, PopSpeed = 60 } -- Pop*: elimina
 -- Capture payoff (client only, local player's own captures). Percent = cells / map cells * 100.
 -- FullPercent: capture size at which FOV kick, shake and burst reach their max. BigPercent: big-tier threshold.
 Config.CaptureFx = {
-	BigPercent = 5,
-	FullPercent = 10,
+	BigPercent = 0.8,
+	FullPercent = 2.5,
 	ComboWindow = 6, -- seconds between captures that keep the combo alive
 	PitchStep = 0.06, -- claimPop PlaybackSpeed added per combo step and per note inside one capture (single ladder)
 	PitchMax = 1.9,
-	FovMin = 2, -- degrees of FOV kick at ~0% / at FullPercent
+	FovMin = 3, -- degrees of FOV kick at ~0% / at FullPercent
 	FovMax = 9,
-	ShakeMin = 0.08, -- studs of camera shake
+	ShakeMin = 0.15, -- studs of camera shake
 	ShakeMax = 0.6,
 	ShakeTime = 0.35,
 	BurstPoints = 8, -- emitter positions around the new area (pooled)
-	BurstMin = 16, -- total particles per capture at ~0% / at FullPercent
-	BurstMax = 70,
-	BigBurstMult = 2,
+	BurstMin = 28, -- total particles per capture at ~0% / at FullPercent
+	BurstMax = 120,
+	BigBurstMult = 3,
 	LowDetailBurst = 0.25, -- particle multiplier when lowDetail is on
 	RingMaxRadius = 60, -- studs, cap for the sqrt(cells/pi) ring
 	PopupTime = 1,
@@ -65,8 +68,8 @@ Config.CaptureFx = {
 	BigPopupScale = 1.5,
 	FlashTime = 0.25, -- fade-in seconds
 	FlashFade = 0.45, -- fade-out seconds
-	FlashAlpha = 0.45, -- peak opacity
-	BannerTime = 2.2,
+	FlashAlpha = 0.3, -- peak opacity
+	BannerTime = 1.8,
 }
 
 -- WallFade: local transparency of the south wall when it hides the runner; WallFadeMargin: studs over which it fades in.

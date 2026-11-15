@@ -607,13 +607,13 @@ local function ringPoint(i: number): RingPoint?
 		pe.Texture = texture
 		pe.Speed = NumberRange.new(8, 18)
 		pe.Lifetime = NumberRange.new(0.6, 1)
-		pe.Size = NumberSequence.new(1.6, 0)
+		pe.Size = NumberSequence.new(3.2, 0)
 		pe.Transparency = NumberSequence.new(0, 1)
 		pe.SpreadAngle = Vector2.new(180, 180)
 		pe.EmissionDirection = Enum.NormalId.Top
 		pe.Acceleration = Vector3.new(0, 6, 0)
 		pe.Drag = 2
-		pe.LightEmission = 1
+		pe.LightEmission = 0.15
 		pe.Rotation = NumberRange.new(-180, 180)
 		pe.RotSpeed = NumberRange.new(-120, 120)
 		pe.Parent = part
@@ -685,11 +685,12 @@ local function capturePopup(pos: Vector3, percent: number, color: Color3, big: b
 	}):Play()
 end
 
-local function flashScreen()
+local function flashScreen(color: Color3)
 	local f = flashFrame
 	if not f then
 		return
 	end
+	f.BackgroundColor3 = color -- a white flash is invisible on the pale floor
 	if flashTween then
 		flashTween:Cancel()
 	end
@@ -718,8 +719,8 @@ local function showBanner(percent: number, combo: number)
 	comboLabel.Text = "COMBO x" .. combo
 	group.GroupTransparency = 0
 	group.Visible = true
-	scale.Scale = 0.5
-	TweenService:Create(scale, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+	scale.Scale = 0.4
+	TweenService:Create(scale, TweenInfo.new(0.35, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
 	task.delay(CFX.BannerTime, function()
 		if token == bannerToken then
 			TweenService:Create(group, TweenInfo.new(0.4), { GroupTransparency = 1 }):Play()
@@ -755,7 +756,7 @@ local function onClaim(ev: { id: number, cells: number, neutral: number, stolen:
 	end
 	if big then
 		if not low then
-			flashScreen()
+			flashScreen(TurfRenderer.colorOf(ev.id))
 		end
 		showBanner(percent, comboCount)
 	end
@@ -1293,9 +1294,9 @@ local function buildCaptureGui()
 	group.Visible = false
 	group.AnchorPoint = Vector2.new(0.5, 0)
 	group.Position = UDim2.fromScale(0.5, 0.22) -- below the map pill and its chips, between wallet and leaderboard
-	group.Size = UDim2.new(0.36, 0, 0, 64)
+	group.Size = UDim2.new(0.5, 0, 0, 110)
 	local limit = Instance.new("UISizeConstraint")
-	limit.MaxSize = Vector2.new(320, 64)
+	limit.MaxSize = Vector2.new(560, 110)
 	limit.Parent = group
 	local scale = Instance.new("UIScale")
 	scale.Parent = group
