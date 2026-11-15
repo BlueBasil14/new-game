@@ -185,3 +185,9 @@ Phase 4 — Build (code only; Studio/Blender steps blocked, see Blockers)
 - Seen live (solo play, iPhone emulator, local build): the panel with the new line fits; claiming day 1 returned run 1 and the panel switched to "Claimed" / "Come back tomorrow"; Output clean apart from the known Studio noise. The line's wording was changed after that capture and the new wording has not been seen.
 - Not verified: a milestone actually being earned in Studio (headless only), the two toasts in a row, how the Month Streak skin looks, the VIP multiplier on milestone gems.
 - Known limits: a run that jumps past a milestone day without landing on it never pays that milestone (cannot happen in normal play).
+
+## Lead session, 2026-11-15: sounds 17 of 20 (T-AUD-01)
+- Five more ids filled from the RBLX Essentials pack already in the place: `uiHover` (Hover), `questComplete` (Level_Up), `bigClaim` (Reward_Rise_01), `crownFanfare` (Roulette_Reward), `snip` (Movement_Swish_01, a swish rather than scissors). All five load in Studio (lengths 0.13–3.24 s). None judged by ear.
+- Decision (Fable): `lobbyMusic` and `arenaMusic` stay 0 because the pack's music player already plays music; setting them would overlap two tracks. `trailLoop` stays 0 (no suitable quiet loop found).
+- The cloud place "11132026_2" was not open in Studio, so it does not have T-RET-01, T-RET-02 or these sounds yet. `build/TurfLoop.rbxlx` is current.
+- Still for the owner: listen to all 17 sounds in play; time to first capture for a new player was not measured (needs a person playing).
