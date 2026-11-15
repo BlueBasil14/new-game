@@ -191,3 +191,9 @@ Phase 4 — Build (code only; Studio/Blender steps blocked, see Blockers)
 - Decision (Fable): `lobbyMusic` and `arenaMusic` stay 0 because the pack's music player already plays music; setting them would overlap two tracks. `trailLoop` stays 0 (no suitable quiet loop found).
 - The cloud place "11132026_2" was not open in Studio, so it does not have T-RET-01, T-RET-02 or these sounds yet. `build/TurfLoop.rbxlx` is current.
 - Still for the owner: listen to all 17 sounds in play; time to first capture for a new player was not measured (needs a person playing).
+
+## Cloud place updated, 2026-11-15 (lead)
+- "BlazeHawks's Place: 11132026_2" now holds the scripts from commit b91cabc (friend bonus and invite, streak milestones, 17 sound ids). Saved to Roblox as place version 6. Saved only, **not published**. Same method as on 2026-11-13; the temporary model file was deleted.
+- Checked in a solo play session there: both sound-system boots report no failures, 9 bots, a walked loop claimed turf, the Invite button is visible, ClaimDaily returned run 1 and the Daily panel reads "Login streak: 1. Day 14 bonus: +150 gems" (the reworded line, now seen on screen). No errors from our scripts.
+- Not checked: sounds by ear, the friend bonus with a real friend, the 3D view by eye.
+- "Studio Access to API Services" is still off for this place, so DataStores are rejected in Studio and the in-memory store is used.
