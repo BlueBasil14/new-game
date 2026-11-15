@@ -16,6 +16,16 @@ _Several agents share this working folder. Two agents must never edit the same f
 - 2026-11-13 05:30 (scheduled overnight run): GAP-28 south wall fade (`CameraController.luau`) and GAP-19 elimination pop (`FeedbackController.luau`) done, both client only, numbers in `Config.luau`. Tested in a second Studio window on `build/TurfLoop.rbxlx` (closed afterwards). Those files are free again. Details in `docs/PROGRESS.md`.
 - 2026-11-13 08:15 (last scheduled overnight run): no code changed. GAP-19 pop confirmed on 5 real cuts in a second Studio window (closed afterwards). The Arcade Commons / sound-system files are still uncommitted and untouched by the lead. Owner summary in `docs/MORNING_SUMMARY.md`.
 
+## Upgrade pass, 2026-11-15 (lead + subagents). One writer per file.
+| Files | Owner |
+|---|---|
+| `src/client/ui/UiKit.luau`, `src/client/controllers/HudController.luau`, `src/client/controllers/PanelController.luau` | **Another agent (UI restyle), uncommitted edits seen 11:51–11:54.** Lead and subagents do not touch them until committed. |
+| `src/client/controllers/TurfRenderer.luau` | Subagent A: trail visibility, fill sweep from the loop-close point |
+| `src/client/controllers/FeedbackController.luau`, `src/client/controllers/CameraController.luau` | Subagent B: capture effects |
+| `src/server/services/BotService.luau` | Subagent C: friend-avatar bots |
+| `src/server/services/MonetizationService.luau`, `ArenaService.luau`, `EconomyService.luau`, `src/server/Main.server.luau`, `assets/rblxessentials`, `tools/build_place.py` | Subagent D: gamepasses (Skip Music, 2x Speed), music |
+| `src/shared/Config.luau` | Shared: each subagent adds only its own named block with the Edit tool, re-reading first |
+
 Rules:
 - Commit only your own files (`git add <paths>`), never `git add -A`.
 - Do not commit `build/TurfLoop.rbxlx` unless you rebuilt it yourself from a tree where all checks pass.
