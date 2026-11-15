@@ -1197,6 +1197,15 @@ defclass("GlobalDataStore", "Instance", { notCreatable = true })
 defclass("DataStore", "GlobalDataStore", { notCreatable = true })
 defclass("OrderedDataStore", "GlobalDataStore", { notCreatable = true })
 defclass("DataStorePages", "Instance", { notCreatable = true, props = { IsFinished = RO("boolean", true) } })
+-- bot avatars (BotService): friend pages, animation, collision groups
+defclass("FriendPages", "Instance", { notCreatable = true, props = { IsFinished = RO("boolean", true) } })
+defclass("Animator", "Instance", {})
+defclass("Animation", "Instance", { props = { AnimationId = P("string", "") } })
+defclass("AnimationTrack", "Instance", {
+	notCreatable = true,
+	props = { IsPlaying = RO("boolean", false), Looped = P("boolean", false), Speed = RO("number", 1) },
+})
+service("PhysicsService", {})
 
 ---------------------------------------------------------------------------------------------
 -- instance core
@@ -2035,6 +2044,51 @@ Classes.Players.methods = {
 		end
 		return nil
 	end,
+	-- One page of M.friends[uid] (one direction, like the web endpoint); empty by default.
+	GetFriendsAsync = function(self, uid)
+		local d = instData(self, "GetFriendsAsync", 2)
+		needNum(uid, "GetFriendsAsync", 2)
+		d.S.sleep(0.05)
+		local page = {}
+		for id in M.friends[uid] or {} do
+			table.insert(page, { Id = id, Username = "user" .. id, DisplayName = "Friend" .. id, IsOnline = false })
+		end
+		table.sort(page, function(a, b)
+			return a.Id < b.Id
+		end)
+		local pages = newInstance(d.S, "FriendPages", true)
+		DATA[pages].page = page
+		return pages
+	end,
+	-- Minimal R15-like rig: HumanoidRootPart, Head, Humanoid with Animator, and an Animate script.
+	CreateHumanoidModelFromUserId = function(self, uid)
+		local d = instData(self, "CreateHumanoidModelFromUserId", 2)
+		needNum(uid, "CreateHumanoidModelFromUserId", 2)
+		d.S.sleep(0.1)
+		if uid <= 0 then
+			error("Players:CreateHumanoidModelFromUserId() failed because HTTP 400 (Bad Request)", 2)
+		end
+		local S = d.S
+		local m = newInstance(S, "Model", true)
+		m.Name = "User" .. uid
+		local hrp = newInstance(S, "Part", true)
+		hrp.Name = "HumanoidRootPart"
+		hrp.Size = v3(2, 2, 1)
+		hrp.Transparency = 1
+		hrp.Parent = m
+		local head = newInstance(S, "Part", true)
+		head.Name = "Head"
+		head.Size = v3(2, 1, 1)
+		head.Parent = m
+		local h = newInstance(S, "Humanoid", true)
+		h.Parent = m
+		newInstance(S, "Animator", true).Parent = h
+		local animate = newInstance(S, "Script", true)
+		animate.Name = "Animate"
+		animate.Parent = m
+		m.PrimaryPart = hrp
+		return m
+	end,
 }
 
 -- game / workspace / run service ----------------------------------------------------------
@@ -2218,6 +2272,66 @@ Classes.DataStorePages.methods = {
 	end,
 	AdvanceToNextPageAsync = function(self)
 		instData(self, "AdvanceToNextPageAsync", 2).page = {}
+	end,
+}
+Classes.FriendPages.methods = Classes.DataStorePages.methods
+Classes.Animator.methods = {
+	LoadAnimation = function(self, anim)
+		local d = instData(self, "LoadAnimation", 2)
+		if TYPE[anim] ~= "Instance" or DATA[anim].className ~= "Animation" then
+			misuse("LoadAnimation: Animation expected", 2)
+		end
+		if DATA[anim].props.AnimationId == "" then
+			misuse("LoadAnimation: empty AnimationId", 2)
+		end
+		return newInstance(d.S, "AnimationTrack", true)
+	end,
+}
+local function optNum(v, what)
+	if v ~= nil then
+		needNum(v, what, 3)
+	end
+end
+Classes.AnimationTrack.methods = {
+	Play = function(self, fade, weight, speed)
+		local d = instData(self, "Play", 2)
+		optNum(fade, "Play")
+		optNum(weight, "Play")
+		optNum(speed, "Play")
+		d.props.IsPlaying = true
+	end,
+	Stop = function(self, fade)
+		local d = instData(self, "Stop", 2)
+		optNum(fade, "Stop")
+		d.props.IsPlaying = false
+	end,
+	AdjustSpeed = function(self, speed)
+		instData(self, "AdjustSpeed", 2).props.Speed = needNum(speed, "AdjustSpeed", 2)
+	end,
+}
+Classes.PhysicsService.methods = {
+	RegisterCollisionGroup = function(self, name)
+		local d = instData(self, "RegisterCollisionGroup", 2)
+		if type(name) ~= "string" or #name == 0 then
+			misuse("RegisterCollisionGroup: string expected", 2)
+		end
+		d.groups = d.groups or {}
+		d.groups[name] = true
+	end,
+	IsCollisionGroupRegistered = function(self, name)
+		local d = instData(self, "IsCollisionGroupRegistered", 2)
+		return name == "Default" or (d.groups ~= nil and d.groups[name] == true)
+	end,
+	CollisionGroupSetCollidable = function(self, a, b, collidable)
+		local d = instData(self, "CollisionGroupSetCollidable", 2)
+		for _, n in { a, b } do
+			if n ~= "Default" and (d.groups == nil or not d.groups[n]) then
+				error("CollisionGroupSetCollidable: group '" .. tostring(n) .. "' is not registered", 2)
+			end
+		end
+		if type(collidable) ~= "boolean" then
+			misuse("CollisionGroupSetCollidable: boolean expected", 2)
+		end
 	end,
 }
 Classes.DataStoreService.methods = {

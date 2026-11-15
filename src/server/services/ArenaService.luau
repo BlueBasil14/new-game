@@ -323,6 +323,16 @@ local function applyVipTag(st: PState)
 	gui.Parent = head
 end
 
+-- Single source of a player's WalkSpeed: upgrade level times the 2x Speed pass. The speed check reads
+-- st.walkSpeed, so owners are allowed exactly what they are given.
+local function playerWalkSpeed(player: Player): number
+	local speed = UpgradeService.walkSpeed(player)
+	if EconomyService.hasPass(player, "doubleSpeed") then
+		speed *= Config.Passes.doubleSpeed.SpeedMultiplier
+	end
+	return speed
+end
+
 -- Re-reads the VIP pass into RunnerInfo, refreshes the world tag and re-broadcasts (pass bought or loaded).
 function ArenaService.refreshVip(player: Player)
 	local st = states[player]
@@ -358,7 +368,7 @@ local function addPlayerRunner(st: PState, now: number)
 	st.id = id
 	playerById[id] = st
 	applyVipTag(st)
-	st.walkSpeed = UpgradeService.walkSpeed(player)
+	st.walkSpeed = playerWalkSpeed(player)
 	resetLife(st, now)
 	local r = sim:runner(id)
 	if r ~= nil then
@@ -676,7 +686,7 @@ local function doRespawn(st: PState, now: number)
 	st.pendingUntil = nil
 	AnalyticsService.funnelOnce(player, 5, "respawn")
 	sim:respawn(st.id, UpgradeService.startPatch(player), UpgradeService.shieldSeconds(player), now)
-	st.walkSpeed = UpgradeService.walkSpeed(player)
+	st.walkSpeed = playerWalkSpeed(player)
 	resetLife(st, now)
 	local r = sim:runner(st.id)
 	if r ~= nil then
@@ -826,7 +836,7 @@ function ArenaService.join(player: Player)
 		humanoid = nil,
 		connections = {},
 		charConnections = {},
-		walkSpeed = UpgradeService.walkSpeed(player),
+		walkSpeed = playerWalkSpeed(player),
 		prevWalkSpeed = 0,
 		speedGraceUntil = 0,
 		lastPos = nil,
@@ -965,13 +975,13 @@ function ArenaService.secondChance(player: Player): boolean
 	return true
 end
 
--- After a speed upgrade or a rebirth.
+-- After a speed upgrade, a rebirth or a pass grant (2x Speed).
 function ArenaService.refreshWalkSpeed(player: Player)
 	local st = states[player]
 	if st == nil then
 		return
 	end
-	local speed = UpgradeService.walkSpeed(player)
+	local speed = playerWalkSpeed(player)
 	if speed < st.walkSpeed then
 		st.prevWalkSpeed = st.walkSpeed
 		st.speedGraceUntil = os.clock() + SPEED_DROP_GRACE
@@ -1000,7 +1010,10 @@ function ArenaService.start()
 	end
 
 	MonetizationService.onSecondChance = ArenaService.secondChance
-	MonetizationService.onPassOwned = ArenaService.refreshVip
+	MonetizationService.onPassOwned = function(player: Player)
+		ArenaService.refreshVip(player)
+		ArenaService.refreshWalkSpeed(player) -- 2x Speed applies at once, no respawn needed
+	end
 	EconomyService.cellsProvider = function(player: Player): number
 		local st = states[player]
 		if st == nil or st.id == 0 or not sim:isAlive(st.id) then

@@ -9,6 +9,7 @@ H.boot({
 			Config.Ids.Products[key] = 1000 + n
 			ids[key] = 1000 + n
 		end
+		Config.Ids.Passes.doubleSpeed = 2001 -- skipMusic stays 0: granted through the Studio debug hook below
 	end,
 })
 H.run(1)
@@ -59,3 +60,35 @@ H.eq(H.processReceipt({ PlayerId = 88, ProductId = 5, PurchaseId = "X2" }), NP, 
 -- receipt persisted before PurchaseGranted
 local stored = H.M.dsBacking.stores["PlayerData_v1/global"]["u_88"]
 H.check(stored and table.find(stored.receipts, "SAME"), "receipt not saved before granting")
+-- game passes: 2x Speed via PromptGamePassPurchaseFinished doubles the applied and allowed speed at once
+local Econ = H.svc("EconomyService")
+local base = H.humanoid(p).WalkSpeed
+H.check(base > 0, "player walking")
+H.firePassPurchase(p, 2001, false)
+H.run(0.2)
+H.check(not Econ.hasPass(p, "doubleSpeed"), "declined purchase granted the pass")
+H.firePassPurchase(p, 2001, true)
+H.run(0.5)
+H.check(Econ.hasPass(p, "doubleSpeed"), "doubleSpeed not owned after purchase")
+H.eq(H.humanoid(p).WalkSpeed, base * Config.Passes.doubleSpeed.SpeedMultiplier, "doubled WalkSpeed")
+-- owner walks at the doubled speed without strikes or snap-backs
+local cx0, cy0 = H.cellOf(p)
+local dir = if cx0 < Config.Arena.GridSize / 2 then 1 else -1 -- walk toward the centre
+H.walkCells(p, { { cx0 + 8 * dir, cy0 } })
+H.run(2)
+local cx1 = H.cellOf(p)
+H.check((cx1 - cx0) * dir >= 6, "fast owner was snapped back")
+H.check(H.inGame(p), "fast owner kicked")
+-- Studio debug grant runs the same path; session.passes carries both new keys
+local main = H.S.modules["ServerScriptService.Server.Main"]
+local grant = main:FindFirstChild("DebugGrantPass")
+H.check(grant ~= nil, "DebugGrantPass missing in Studio")
+H.clearSent(p)
+grant:Fire(p, "skipMusic")
+H.run(0.5)
+H.check(Econ.hasPass(p, "skipMusic"), "debug grant skipMusic")
+local upd = H.last(p, "ProfileUpdate")
+H.check(upd ~= nil, "no ProfileUpdate after pass grant")
+local passes = upd.args[1].session.passes
+H.eq(passes.skipMusic, true, "session.passes.skipMusic")
+H.eq(passes.doubleSpeed, true, "session.passes.doubleSpeed")

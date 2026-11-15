@@ -1,6 +1,7 @@
 --!strict
 local MarketplaceService = game:GetService("MarketplaceService")
 local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Config = require(Shared.Config)
@@ -45,6 +46,15 @@ local function markPassOwned(player: Player, passKey: string)
 	if hook ~= nil then
 		pcall(hook, player)
 	end
+end
+
+-- Studio-only: same path as a finished pass purchase, for testing with placeholder ids. No-op in live servers.
+function MonetizationService.debugGrantPass(player: Player, passKey: string): boolean
+	if not RunService:IsStudio() or (Config.Ids.Passes :: any)[passKey] == nil then
+		return false
+	end
+	markPassOwned(player, passKey)
+	return true
 end
 
 local function checkPasses(player: Player)

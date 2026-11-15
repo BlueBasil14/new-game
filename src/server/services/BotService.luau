@@ -1,7 +1,11 @@
 --!strict
--- Server bots (GDD G10): keeps the arena at Config.Arena.MinRunners with BotBrain-driven runners
--- shown as simple anchored rigs. Rigs live in workspace.Bots, named tostring(runnerId).
+-- Server bots (GDD G10): keeps the arena at Config.Arena.MinRunners with BotBrain-driven runners.
+-- Rigs live in workspace.Bots, named tostring(runnerId). A bot starts as a simple anchored stand-in
+-- rig; its R15 avatar (a joining player's friend, else a Config fallback) is built asynchronously
+-- and swapped in. The arena sim stays authoritative: the avatar walks after it with Humanoid:MoveTo.
 local Players = game:GetService("Players")
+local PhysicsService = game:GetService("PhysicsService")
+local ServerStorage = game:GetService("ServerStorage")
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local BotBrain = require(Shared.BotBrain)
@@ -19,10 +23,18 @@ type Bot = {
 	px: number, -- continuous position in cell units; the sim floors it
 	py: number,
 	model: Model,
-	body: Part,
-	head: Part,
+	body: Part?, -- stand-in rig parts; nil once the avatar is swapped in
+	head: Part?,
 	respawnAt: number?,
+	avatarUserId: number?,
+	hum: Humanoid?, -- set once the avatar is swapped in
+	root: BasePart?,
+	lift: number, -- avatar root height above the floor
+	run: AnimationTrack?,
+	idle: AnimationTrack?,
+	moving: boolean?,
 }
+type PoolEntry = { userId: number, displayName: string, owner: Player }
 
 local NAMES = {
 	"PixelPanda", "TurboTaco", "SunnySprout", "ZippyZebra", "MangoMoose", "CosmoCub", "BubbleBolt", "NovaNugget",
@@ -53,6 +65,14 @@ local warnedBrain = false
 local started = false
 -- One bot at a time is steered toward a tutorial player who has no bot nearby (GAP-07).
 local steer: { botId: number, targetId: number }? = nil
+local BOT_GROUP = "TurfBots" -- avatar rigs: collide with the floor (Default), not with players or each other
+local PLAYER_GROUP = "TurfPlayers" -- player characters: same as Default except they pass through bots
+local pool: { PoolEntry } = {} -- friends of players in the server, tagged with that player
+local templates: { [number]: Model } = {} -- built avatars by userId, kept in ServerStorage
+local templateOrder: { number } = {}
+local building: { [number]: boolean } = {}
+local failed: { [number]: boolean } = {} -- userIds whose avatar could not be built (not retried)
+local store: Folder? = nil
 
 local function pickName(): string
 	local used: { [string]: boolean } = {}
@@ -137,10 +157,262 @@ local function makeRig(info: RunnerInfo): (Model, Part, Part)
 	return model, body, head
 end
 
-local function placeRig(b: Bot)
-	local wx, wz = ArenaService.sim.grid:cellToWorld(b.px - 0.5, b.py - 0.5)
-	b.body.CFrame = CFrame.new(wx, FLOOR_Y + BODY_HEIGHT / 2, wz) * CFrame.Angles(0, 0, math.pi / 2)
-	b.head.CFrame = CFrame.new(wx, FLOOR_Y + BODY_HEIGHT + HEAD_SIZE / 2, wz)
+local function animate(b: Bot, moving: boolean, walkSpeed: number)
+	local run, idle = b.run, b.idle
+	if run == nil or idle == nil then
+		return
+	end
+	if b.moving ~= moving then
+		b.moving = moving
+		if moving then
+			idle:Stop(0.2)
+			run:Play(0.2)
+		else
+			run:Stop(0.2)
+			idle:Play(0.2)
+		end
+	end
+	if moving then
+		run:AdjustSpeed(walkSpeed / Config.Bots.RunAnimationSpeed)
+	end
+end
+
+-- Stand-in: anchored parts placed on the simulated position. Avatar: walks with Humanoid:MoveTo
+-- toward a point a little ahead of the simulated position along (dx, dy) at the simulated speed
+-- (cells/s); PivotTo only when `snap` or when it drifted further than RigSnapDistance.
+local function placeRig(b: Bot, snap: boolean, dx: number, dy: number, speed: number)
+	local grid = ArenaService.sim.grid
+	local wx, wz = grid:cellToWorld(b.px - 0.5, b.py - 0.5)
+	local hum, root = b.hum, b.root
+	if hum == nil or root == nil then
+		local body, head = b.body, b.head
+		if body ~= nil and head ~= nil then
+			body.CFrame = CFrame.new(wx, FLOOR_Y + BODY_HEIGHT / 2, wz) * CFrame.Angles(0, 0, math.pi / 2)
+			head.CFrame = CFrame.new(wx, FLOOR_Y + BODY_HEIGHT + HEAD_SIZE / 2, wz)
+		end
+		return
+	end
+	local ahead = Config.Bots.RigLookAheadCells
+	local tx, tz = grid:cellToWorld(b.px - 0.5 + dx * ahead, b.py - 0.5 + dy * ahead)
+	local rp = root.Position
+	if snap or Vector3.new(rp.X - wx, 0, rp.Z - wz).Magnitude > Config.Bots.RigSnapDistance then
+		local pos = Vector3.new(wx, FLOOR_Y + b.lift, wz)
+		local look = if dx ~= 0 or dy ~= 0 then Vector3.new(tx - wx, 0, tz - wz) else root.CFrame.LookVector * Vector3.new(1, 0, 1)
+		b.model:PivotTo(if look.Magnitude > 1e-3 then CFrame.new(pos, pos + look) else CFrame.new(pos))
+		root.AssemblyLinearVelocity = Vector3.zero
+	end
+	local walkSpeed = math.max(speed * Config.Arena.CellSize * Config.Bots.RigSpeedScale, 1)
+	hum.WalkSpeed = walkSpeed
+	hum:MoveTo(Vector3.new(tx, FLOOR_Y, tz))
+	animate(b, dx ~= 0 or dy ~= 0, walkSpeed)
+end
+
+-- Parents the rig into workspace.Bots on the simulated position; avatar roots stay server-owned.
+local function showRig(b: Bot)
+	placeRig(b, true, 0, 0, 0)
+	b.model.Parent = folder
+	local root = b.root
+	if root ~= nil then
+		pcall(root.SetNetworkOwner, root, nil)
+	end
+end
+
+-- Swaps the stand-in rig for a clone of a built avatar template (keeps the simulated state).
+local function applyAvatar(b: Bot, template: Model)
+	local m = template:Clone()
+	local hum = m:FindFirstChildOfClass("Humanoid")
+	local root = m.PrimaryPart or m:FindFirstChild("HumanoidRootPart")
+	if hum == nil or root == nil or not root:IsA("BasePart") then
+		m:Destroy()
+		return
+	end
+	m.Name = tostring(b.id)
+	m.PrimaryPart = root
+	hum.DisplayName = b.info.name
+	hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+	hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+	for _, d in m:GetDescendants() do
+		if d:IsA("BasePart") then
+			d.Anchored = false
+			d.CollisionGroup = BOT_GROUP
+		end
+	end
+	local animator = hum:FindFirstChildOfClass("Animator")
+	if animator == nil then
+		local a = Instance.new("Animator")
+		a.Parent = hum
+		animator = a
+	end
+	local function load(id: string): AnimationTrack?
+		local anim = Instance.new("Animation")
+		anim.AnimationId = id
+		local ok, track = pcall((animator :: Animator).LoadAnimation, animator :: Animator, anim)
+		if ok and track ~= nil then
+			track.Looped = true
+			return track
+		end
+		return nil
+	end
+	local visible = b.model.Parent ~= nil
+	b.model:Destroy()
+	b.model, b.body, b.head = m, nil, nil
+	b.hum, b.root = hum, root
+	b.lift = hum.HipHeight + root.Size.Y / 2
+	b.run, b.idle, b.moving = load(Config.Bots.RunAnimationId), load(Config.Bots.IdleAnimationId), nil
+	if visible then
+		showRig(b)
+	end
+end
+
+-- Builds (once per userId, off the caller's thread) and caches the avatar, then applies it to every
+-- bot still waiting for it. On failure the bot keeps its stand-in rig.
+local function requestAvatar(userId: number)
+	local cached = templates[userId]
+	if cached ~= nil then
+		for _, b in bots do
+			if b.avatarUserId == userId and b.hum == nil then
+				applyAvatar(b, cached)
+			end
+		end
+		return
+	end
+	if building[userId] or failed[userId] then
+		return
+	end
+	building[userId] = true
+	task.spawn(function()
+		local ok, model = pcall(Players.CreateHumanoidModelFromUserId, Players, userId)
+		building[userId] = nil
+		if not ok or typeof(model) ~= "Instance" or not (model :: Instance):IsA("Model") then
+			failed[userId] = true
+			return
+		end
+		local m = model :: Model
+		for _, d in m:GetDescendants() do
+			if d:IsA("LuaSourceContainer") then
+				d:Destroy()
+			end
+		end
+		m.Name = tostring(userId)
+		m.Parent = store
+		templates[userId] = m
+		table.insert(templateOrder, userId)
+		while #templateOrder > Config.Bots.AvatarCacheMax do
+			local old = table.remove(templateOrder, 1) :: number
+			local t = templates[old]
+			templates[old] = nil
+			if t ~= nil then
+				t:Destroy()
+			end
+		end
+		requestAvatar(userId)
+	end)
+end
+
+-- A friend from the pool not worn by another bot and not in the server, else a fallback avatar
+-- with a generated name. Returns (avatar userId or nil, runner name).
+local function pickAvatar(): (number?, string)
+	local inUse: { [number]: boolean } = {}
+	for _, b in bots do
+		local uid = b.avatarUserId
+		if uid ~= nil then
+			inUse[uid] = true
+		end
+	end
+	local function free(uid: number): boolean
+		return not inUse[uid] and not failed[uid] and Players:GetPlayerByUserId(uid) == nil
+	end
+	if #pool > 0 then
+		local start = rng:NextInteger(1, #pool)
+		for k = 0, #pool - 1 do
+			local e = pool[(start + k - 1) % #pool + 1]
+			if free(e.userId) then
+				return e.userId, e.displayName
+			end
+		end
+	end
+	for _, uid in Config.Bots.FallbackUserIds do
+		if free(uid) then
+			return uid, pickName()
+		end
+	end
+	return nil, pickName()
+end
+
+-- Adds up to FriendsPerPlayer of the player's friends to the pool (yields; run off the join path).
+local function fetchFriends(player: Player)
+	local ok, pages = pcall(Players.GetFriendsAsync, Players, player.UserId)
+	if not ok then
+		return
+	end
+	local got: { PoolEntry } = {}
+	local cap = Config.Bots.FriendsPerPlayer
+	while #got < cap do
+		local okPage, page = pcall(function()
+			return (pages :: any):GetCurrentPage()
+		end)
+		if not okPage or type(page) ~= "table" then
+			break
+		end
+		for _, f in page do
+			if #got >= cap then
+				break
+			end
+			local id, name = f.Id, f.DisplayName or f.Username
+			if type(id) == "number" and id > 0 and type(name) == "string" then
+				table.insert(got, { userId = id, displayName = name, owner = player })
+			end
+		end
+		if (pages :: any).IsFinished then
+			break
+		end
+		if not pcall(function()
+			(pages :: any):AdvanceToNextPageAsync()
+		end) then
+			break
+		end
+	end
+	if player.Parent ~= Players then
+		return
+	end
+	local have: { [number]: boolean } = {}
+	for _, e in pool do
+		have[e.userId] = true
+	end
+	for _, e in got do
+		if not have[e.userId] then
+			have[e.userId] = true
+			table.insert(pool, e)
+		end
+	end
+end
+
+local function dropFriends(player: Player)
+	for i = #pool, 1, -1 do
+		if pool[i].owner == player then
+			table.remove(pool, i)
+		end
+	end
+end
+
+local function setPlayerGroup(char: Model)
+	local function set(d: Instance)
+		if d:IsA("BasePart") then
+			d.CollisionGroup = PLAYER_GROUP
+		end
+	end
+	for _, d in char:GetDescendants() do
+		set(d)
+	end
+	char.DescendantAdded:Connect(set)
+end
+
+local function watchPlayer(player: Player)
+	task.spawn(fetchFriends, player)
+	if player.Character ~= nil then
+		setPlayerGroup(player.Character)
+	end
+	player.CharacterAdded:Connect(setPlayerGroup)
 end
 
 local function hideBot(b: Bot)
@@ -159,17 +431,17 @@ local function resetBot(b: Bot)
 	BotBrain.reset(b.brain)
 	ArenaService.botPositions[b.id] = { x = b.px, y = b.py }
 	b.model.Name = tostring(b.id)
-	placeRig(b)
-	b.model.Parent = folder
+	showRig(b)
 end
 
 local function spawnBot(now: number)
 	local tiers = Config.Bots.Tiers
 	local tier = tiers[rng:NextInteger(1, #tiers)]
+	local avatarUserId, name = pickAvatar()
 	local info: RunnerInfo = {
 		id = 0,
-		userId = 0,
-		name = pickName(),
+		userId = 0, -- stays 0: bots are off the leaderboards and never matched to a Player
+		name = name,
 		colorIndex = ArenaService.freeColorIndex(),
 		skin = pickCosmetic("skin"),
 		trail = pickCosmetic("trail"),
@@ -190,9 +462,14 @@ local function spawnBot(now: number)
 		body = body,
 		head = head,
 		respawnAt = nil,
+		avatarUserId = avatarUserId,
+		lift = 0,
 	}
 	bots[id] = b
 	resetBot(b)
+	if avatarUserId ~= nil then
+		requestAvatar(avatarUserId)
+	end
 end
 
 local function removeBot(b: Bot, now: number)
@@ -218,11 +495,14 @@ local function maintain(now: number)
 			spawnBot(now)
 		end
 	elseif count > target then
+		-- A player joined: drop the bot with the fewest cells (one wearing a player now in the server
+		-- goes first). removeRunner clears its trail and makes all its cells neutral (no killer share).
 		local sim = ArenaService.sim
 		local pick: Bot? = nil
 		local best = math.huge
 		for id, b in bots do
-			local score = if sim:isAlive(id) then sim:cellsOf(id) else -1
+			local uid = b.avatarUserId
+			local score = if uid ~= nil and Players:GetPlayerByUserId(uid) ~= nil then -1 else sim:cellsOf(id)
 			if score < best then
 				pick, best = b, score
 			end
@@ -353,7 +633,7 @@ local function moveBot(b: Bot, r: any, now: number, dt: number, gentle: { number
 	b.px = math.clamp(b.px, 0.5, size - 0.5)
 	b.py = math.clamp(b.py, 0.5, size - 0.5)
 	ArenaService.botPositions[b.id] = { x = b.px, y = b.py }
-	placeRig(b)
+	placeRig(b, false, dx, dy, speed)
 end
 
 local function preStep(now: number, dt: number)
@@ -426,6 +706,24 @@ function BotService.start()
 	f.Name = "Bots"
 	f.Parent = workspace
 	folder = f
+	local s = Instance.new("Folder")
+	s.Name = "BotAvatars"
+	s.Parent = ServerStorage
+	store = s
+	pcall(function()
+		for _, g in { BOT_GROUP, PLAYER_GROUP } do
+			if not PhysicsService:IsCollisionGroupRegistered(g) then
+				PhysicsService:RegisterCollisionGroup(g)
+			end
+		end
+		PhysicsService:CollisionGroupSetCollidable(BOT_GROUP, BOT_GROUP, false)
+		PhysicsService:CollisionGroupSetCollidable(BOT_GROUP, PLAYER_GROUP, false)
+	end)
+	for _, p in Players:GetPlayers() do
+		watchPlayer(p)
+	end
+	Players.PlayerAdded:Connect(watchPlayer)
+	Players.PlayerRemoving:Connect(dropFriends)
 	ArenaService.preStep = preStep
 	ArenaService.onEvent:Connect(onEvent)
 end

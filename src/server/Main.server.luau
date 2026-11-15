@@ -220,6 +220,19 @@ MonetizationService.onProductBought = function(player: Player, productKey: strin
 	end
 end
 
+-- Studio-only test grant (never created on a live server): script.DebugGrantPass:Fire(player, "doubleSpeed")
+-- runs the same path as a finished game pass purchase.
+if game:GetService("RunService"):IsStudio() then
+	local grant = Instance.new("BindableEvent")
+	grant.Name = "DebugGrantPass"
+	grant.Event:Connect(function(player: any, passKey: any)
+		if typeof(player) == "Instance" and player:IsA("Player") and type(passKey) == "string" then
+			MonetizationService.debugGrantPass(player, passKey)
+		end
+	end)
+	grant.Parent = script
+end
+
 -- 4. request router ---------------------------------------------------------------------------------
 
 type Handler = (Player, ...any) -> (boolean, any)

@@ -26,10 +26,9 @@ local BUDGET_LOW = 3
 local TURF_H = 0.2
 local TRAIL_H = 0.6
 local TRAIL_WIDTH = 0.6 -- fraction of a cell
-local TRAIL_BRIGHTEN = 0.35
+local EDGE_H = 0.5 -- neon rim sits under the trail strip: top 0.1 below it, 0.4 above the turf
 local FLASH_TIME = 0.25
 local FLASH_LIGHTEN = 0.6
-local FLASH_MAX = 40
 local STOLEN_TINT = 0.7 -- stolen-claim flash starts this far from the owner colour toward Danger
 local FLASH_WINDOW = 0.6 -- seconds a claim event and its cell delta may arrive apart
 local BLINK_HZ = 4
@@ -37,7 +36,10 @@ local TEXTURE_TILE_CELLS = 2
 
 local CS = Config.Arena.CellSize
 local FLOOR = Config.Arena.FloorY
+local FX = Config.TurfFx
 local WHITE = Color3.new(1, 1, 1)
+local BLACK = Color3.new(0, 0, 0)
+local GROUND = Color3.fromHex(Config.Colors.Ground)
 local FALLBACK = Color3.fromHex(Config.Colors.GridLine)
 local STOLEN_COLOR = Color3.fromHex(Config.Colors.Danger)
 
@@ -46,6 +48,7 @@ type Style = {
 	b: Color3?,
 	pattern: string,
 	trail: Color3,
+	edge: Color3,
 	image: number?,
 }
 
@@ -68,6 +71,8 @@ local gainTime: { number } = {}
 local turfPool: { BasePart } = {}
 local trailPool: { BasePart } = {}
 local partTexture: { [BasePart]: Texture } = {}
+local edgeOf: { [BasePart]: BasePart } = {} -- trail strip -> its neon rim (pooled together)
+local pulseLevel = -1
 
 local styles: { [number]: Style } = {}
 local trailParts: { [number]: { BasePart } } = {}
@@ -81,6 +86,10 @@ local claimStolen: { [number]: boolean } = {} -- owner -> latest claim took cell
 local claimX: { [number]: number } = {} -- owner -> latest claim centroid (cell space) and radius
 local claimY: { [number]: number } = {}
 local claimR: { [number]: number } = {}
+local claimOX: { [number]: number } = {} -- owner -> loop-close point of the latest claim (cell space)
+local claimOY: { [number]: number } = {}
+local lastTX: { [number]: number } = {} -- owner -> last trail cell seen (survives trail clears)
+local lastTY: { [number]: number } = {}
 local flashStart: { [BasePart]: number } = {}
 local flashFrom: { [BasePart]: Color3 } = {}
 local flashTo: { [BasePart]: Color3 } = {}
@@ -125,8 +134,14 @@ local function acquireTrail(): BasePart
 	else
 		p = newPart()
 		p.Name = "Trail"
+		local e = newPart()
+		e.Name = "TrailEdge"
+		edgeOf[p] = e
 	end
-	p.Material = if lowDetail then Enum.Material.SmoothPlastic else Enum.Material.Neon
+	local e = edgeOf[p]
+	e.Material = if lowDetail then Enum.Material.SmoothPlastic else Enum.Material.Neon
+	e.Transparency = 0
+	e.Parent = folder
 	p.Parent = folder
 	return p
 end
@@ -147,6 +162,7 @@ end
 
 local function releaseTrail(p: BasePart)
 	p.Parent = nil
+	edgeOf[p].Parent = nil
 	table.insert(trailPool, p)
 end
 
@@ -156,6 +172,17 @@ local function hex(s: string?): Color3?
 	end
 	local ok, c = pcall(Color3.fromHex, s)
 	return if ok then c else nil
+end
+
+local function luminance(c: Color3): number
+	return 0.2126 * c.R + 0.7152 * c.G + 0.0722 * c.B
+end
+
+-- Trail look (G8): a darker strip of the trail colour over a lighter neon rim. Dark colours get a
+-- much lighter rim, so the trail reads on light, dark and same-colour turf.
+local function trailColors(base: Color3): (Color3, Color3)
+	local lift = if luminance(base) < FX.DarkLuminance then FX.EdgeLightenDark else FX.EdgeLighten
+	return base:Lerp(BLACK, FX.TrailDarken), base:Lerp(WHITE, lift)
 end
 
 local function styleOf(owner: number): Style
@@ -181,11 +208,13 @@ local function styleOf(owner: number): Style
 			trailBase = hex(trailItem.colorA) or a
 		end
 	end
+	local trail, edge = trailColors(trailBase)
 	s = {
 		a = a,
 		b = b,
 		pattern = pattern,
-		trail = trailBase:Lerp(WHITE, TRAIL_BRIGHTEN),
+		trail = trail,
+		edge = edge,
 		image = TurfRenderer.patternImages[pattern],
 	}
 	styles[owner] = s
@@ -224,18 +253,23 @@ local function applyTexture(p: BasePart, s: Style)
 	end
 end
 
--- Claim wave (GDD G6): a rect's flash starts later the closer its centre (x, y in cells) is to the
--- claim centroid, so the highlight sweeps from the trail edge inward. Delay is 0..WaveTime.
+-- Claim wave (GDD G6): the fill floods out from the loop-close point. A rect's flash starts
+-- WaveTime * clamp(distance / maxDistance) after the claim, distance from the close point to the
+-- rect centre (x, y in cells); maxDistance = close point to centroid + claim radius.
 local function waveDelay(owner: number, x: number, y: number): number
 	local r = claimR[owner]
 	if not r then
 		return 0
 	end
-	local dx, dy = x - claimX[owner], y - claimY[owner]
-	return Config.ClaimFx.WaveTime * math.max(0, 1 - math.sqrt(dx * dx + dy * dy) / r)
+	local ox, oy = claimOX[owner], claimOY[owner]
+	local mx, my = claimX[owner] - ox, claimY[owner] - oy
+	local maxD = math.sqrt(mx * mx + my * my) + r
+	local dx, dy = x - ox, y - oy
+	return Config.ClaimFx.WaveTime * math.clamp(math.sqrt(dx * dx + dy * dy) / maxD, 0, 1)
 end
 
--- Flash starts at max(now, claim time + wave delay); step() leaves the part at its final colour until then.
+-- Flash starts at max(now, claim time + wave delay). Until then the rect shows a faded "not yet
+-- claimed" colour; step() then pops it to the bright flash colour and settles on the final one.
 local function startFlash(p: BasePart, owner: number, color: Color3, now: number)
 	local left = flashLeft[owner] or 0
 	if lowDetail or left <= 0 then
@@ -245,6 +279,9 @@ local function startFlash(p: BasePart, owner: number, color: Color3, now: number
 	local from = if claimStolen[owner] then color:Lerp(STOLEN_COLOR, STOLEN_TINT) else color:Lerp(WHITE, FLASH_LIGHTEN)
 	local pos = p.Position
 	local t0 = (claimAt[owner] or now) + waveDelay(owner, (pos.X + half) / CS, (pos.Z + half) / CS)
+	if t0 > now then
+		p.Color = color:Lerp(GROUND, FX.PendingFade)
+	end
 	flashStart[p] = math.max(now, t0)
 	flashFrom[p] = from
 	flashTo[p] = color
@@ -334,7 +371,12 @@ local function placeRun(p: BasePart, r: TrailRuns.Runs)
 	local y0, y1 = math.min(r.sy, r.ey), math.max(r.sy, r.ey)
 	local thin = CS * TRAIL_WIDTH
 	p.Size = Vector3.new((x1 - x0) * CS + thin, TRAIL_H, (y1 - y0) * CS + thin)
-	p.CFrame = CFrame.new((x0 + x1 + 1) * 0.5 * CS - half, FLOOR + TRAIL_H * 0.5, (y0 + y1 + 1) * 0.5 * CS - half)
+	local cx, cz = (x0 + x1 + 1) * 0.5 * CS - half, (y0 + y1 + 1) * 0.5 * CS - half
+	p.CFrame = CFrame.new(cx, FLOOR + TRAIL_H * 0.5, cz)
+	local e = edgeOf[p]
+	local wide = thin + CS * FX.EdgeWidth
+	e.Size = Vector3.new((x1 - x0) * CS + wide, EDGE_H, (y1 - y0) * CS + wide)
+	e.CFrame = CFrame.new(cx, FLOOR + EDGE_H * 0.5, cz)
 end
 
 local function clearTrail(id: number)
@@ -357,8 +399,10 @@ local function recolorTrail(id: number)
 		return
 	end
 	local c = trailColor(id)
+	local ec = styleOf(id).edge
 	for _, p in list do
 		p.Color = c
+		edgeOf[p].Color = ec
 	end
 end
 
@@ -386,6 +430,8 @@ local function resetAll()
 	table.clear(claimX)
 	table.clear(claimY)
 	table.clear(claimR)
+	table.clear(claimOX)
+	table.clear(claimOY)
 	dirtyHead = 1
 	half = size * CS / 2
 	cps = TrailRuns.chunksPerSide(size, CHUNK)
@@ -429,6 +475,21 @@ local function step()
 				flashTo[p] = nil
 			else
 				p.Color = flashFrom[p]:Lerp(flashTo[p], a)
+			end
+		end
+	end
+
+	-- Open-trail pulse: every visible trail is open, so all rims breathe on one shared phase.
+	if not lowDetail and next(trailParts) ~= nil then
+		local steps = FX.PulseSteps
+		local level = math.floor((math.sin(now * FX.PulseHz * 2 * math.pi) + 1) * 0.5 * steps + 0.5)
+		if level ~= pulseLevel then
+			pulseLevel = level
+			local t = FX.PulseDepth * level / steps
+			for _, list in trailParts do
+				for _, p in list do
+					edgeOf[p].Transparency = t
+				end
 			end
 		end
 	end
@@ -518,27 +579,13 @@ function TurfRenderer.claimFlash(owner: number, stolen: boolean?, cx: number?, c
 	claimX[owner] = cx + 0.5
 	claimY[owner] = cy + 0.5
 	claimR[owner] = math.max(1, math.sqrt((cells or 0) / math.pi))
+	-- Loop-close point: the runner's last trail cell (one step from where it re-entered its turf).
+	claimOX[owner] = (lastTX[owner] or cx) + 0.5
+	claimOY[owner] = (lastTY[owner] or cy) + 0.5
 	local now = os.clock()
-	local estimate = 0
-	for c = 1, cps * cps do
-		if gainOwner[c] == owner and now - gainTime[c] < FLASH_WINDOW then
-			local pOwner = chunkOwners[c]
-			local found = 0
-			for k = 1, #pOwner do
-				if pOwner[k] == owner then
-					found += 1
-				end
-			end
-			estimate += math.max(found, 1)
-		end
-	end
-	if estimate > FLASH_MAX then
-		flashLeft[owner] = 0
-		claimAt[owner] = nil
-		return
-	end
 	claimAt[owner] = now
-	flashLeft[owner] = FLASH_MAX
+	-- ponytail: rects past FlashMax pop straight to final; pending rects only cost a compare per frame.
+	flashLeft[owner] = FX.FlashMax
 	for c = 1, cps * cps do
 		if gainOwner[c] == owner and not dirty[c] and now - gainTime[c] < FLASH_WINDOW then
 			gainOwner[c] = 0
@@ -575,11 +622,15 @@ function TurfRenderer.trailDelta(delta: Types.TrailDelta)
 	local runs = r :: TrailRuns.Runs
 	local parts = list :: { BasePart }
 	local color = trailColor(id)
+	local edge = styleOf(id).edge
+	local last = append[#append]
+	lastTX[id], lastTY[id] = last % size, last // size
 	for _, i in append do
 		local res = TrailRuns.push(runs, i % size, i // size)
 		if res == TrailRuns.NEW then
 			local p = acquireTrail()
 			p.Color = color
+			edgeOf[p].Color = edge
 			table.insert(parts, p)
 			placeRun(p, runs)
 		elseif res == TrailRuns.EXTEND then
@@ -594,6 +645,7 @@ function TurfRenderer.removeRunner(id: number)
 	trailParts[id] = nil
 	trailRuns[id] = nil
 	danger[id] = nil
+	lastTX[id], lastTY[id] = nil, nil
 end
 
 -- Base turf colour of a runner (same lookup the renderer uses); neutral grey for unknown ids.
@@ -633,9 +685,12 @@ function TurfRenderer.setLowDetail(on: boolean)
 	local material = if on then Enum.Material.SmoothPlastic else Enum.Material.Neon
 	for _, list in trailParts do
 		for _, p in list do
-			p.Material = material
+			local e = edgeOf[p]
+			e.Material = material
+			e.Transparency = 0
 		end
 	end
+	pulseLevel = -1
 	if on then
 		for p in flashStart do
 			p.Color = flashTo[p]

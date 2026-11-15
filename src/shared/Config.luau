@@ -22,10 +22,52 @@ Config.Arena = {
 	TrailDangerRadius = 6, -- cells, client warning
 }
 
--- G6 claim feel (client): flash start is delayed by up to WaveTime, trail edge first, centroid last
-Config.ClaimFx = { WaveTime = 0.25 }
+-- G6 claim feel (client): flash start is delayed by up to WaveTime, sweeping out from the loop-close point
+Config.ClaimFx = { WaveTime = 0.5 }
+-- G6/G8 turf renderer looks (client only).
+Config.TurfFx = {
+	TrailDarken = 0.45, -- trail strip = owner's trail colour moved this far toward black
+	EdgeWidth = 0.3, -- neon rim under the trail: extra width in cells (split over both sides)
+	EdgeLighten = 0.45, -- rim = trail colour moved this far toward white...
+	EdgeLightenDark = 0.8, -- ...or this far when the colour is darker than DarkLuminance
+	DarkLuminance = 0.25, -- relative luminance 0..1
+	PulseHz = 1.2, -- open-trail rim pulse speed
+	PulseDepth = 0.6, -- max rim transparency at the pulse trough
+	PulseSteps = 6, -- pulse is quantised so rims are rewritten only a few times per cycle
+	PendingFade = 0.7, -- claimed rects not yet reached by the sweep: final colour this far toward Ground
+	FlashMax = 400, -- max rects flashed per claim; the rest pop straight to their final colour
+}
 -- G6 cutting: client-only pause when the local player cuts someone.
 Config.CutFx = { HitStop = 0.08, PopTime = 0.6, PopSpeed = 60 } -- Pop*: eliminated runner flies apart (seconds, studs/s)
+
+-- Capture payoff (client only, local player's own captures). Percent = cells / map cells * 100.
+-- FullPercent: capture size at which FOV kick, shake and burst reach their max. BigPercent: big-tier threshold.
+Config.CaptureFx = {
+	BigPercent = 5,
+	FullPercent = 10,
+	ComboWindow = 6, -- seconds between captures that keep the combo alive
+	PitchStep = 0.06, -- claimPop PlaybackSpeed added per combo step and per note inside one capture (single ladder)
+	PitchMax = 1.9,
+	FovMin = 2, -- degrees of FOV kick at ~0% / at FullPercent
+	FovMax = 9,
+	ShakeMin = 0.08, -- studs of camera shake
+	ShakeMax = 0.6,
+	ShakeTime = 0.35,
+	BurstPoints = 8, -- emitter positions around the new area (pooled)
+	BurstMin = 16, -- total particles per capture at ~0% / at FullPercent
+	BurstMax = 70,
+	BigBurstMult = 2,
+	LowDetailBurst = 0.25, -- particle multiplier when lowDetail is on
+	RingMaxRadius = 60, -- studs, cap for the sqrt(cells/pi) ring
+	PopupTime = 1,
+	PopupHeight = 7, -- studs above the floor
+	PopupSize = 150, -- pixels wide at tier 1; big tier multiplies by BigPopupScale
+	BigPopupScale = 1.5,
+	FlashTime = 0.25, -- fade-in seconds
+	FlashFade = 0.45, -- fade-out seconds
+	FlashAlpha = 0.45, -- peak opacity
+	BannerTime = 2.2,
+}
 
 -- WallFade: local transparency of the south wall when it hides the runner; WallFadeMargin: studs over which it fades in.
 Config.Camera = { Pitch = 55, MinDistance = 45, MaxDistance = 70, FieldOfView = 70, WallFade = 0.85, WallFadeMargin = 6 }
@@ -78,7 +120,7 @@ Config.Prices = {
 -- G4 monetization. Ids are 0 until the owner creates them on Roblox (T-LCH-01).
 Config.Ids = {
 	GroupId = 0,
-	Passes = { vip = 0, doubleCoins = 0, neonPack = 0 },
+	Passes = { vip = 0, doubleCoins = 0, neonPack = 0, skipMusic = 0, doubleSpeed = 0 },
 	Products = {
 		starterPack = 0,
 		secondChance = 0,
@@ -109,6 +151,19 @@ Config.Products = {
 	gemsXL = { Gems = 2600 },
 }
 Config.Vip = { DailyGemMultiplier = 2, Skin = "vip_gold", Trail = "vip_gold_trail" }
+-- G4 game pass prices (Robux, shown in the shop; the real price is set on Roblox) and pass tunables.
+-- doubleSpeed: WalkSpeed multiplier while owned (players only; 2026-11-15 owner decision reverses "speed never sold").
+Config.Passes = {
+	vip = { Robux = 399 },
+	doubleCoins = { Robux = 249 },
+	neonPack = { Robux = 199 },
+	skipMusic = { Robux = 9 },
+	doubleSpeed = { Robux = 79, SpeedMultiplier = 2 },
+}
+-- Background music (client): pack tracks shuffled under SoundService.RBLXEssentials.SoundSystem.Music.
+-- Volume: multiplier on each track's authored (loudness-matched) Volume, inside the pack's Music SoundGroup (0.2).
+-- SkipKey: Enum.KeyCode name, bound only for skipMusic owners. LoadTimeout: seconds before an unloaded track is skipped.
+Config.Music = { Volume = 1, SkipKey = "M", LoadTimeout = 10 }
 
 -- G10 bots
 Config.Bots = {
@@ -121,6 +176,18 @@ Config.Bots = {
 	HuntRadius = 6,
 	GentleSeconds = 120, -- bots near a new player stay slow and never cut them
 	GentleSpeedScale = 0.8,
+	-- Friend avatars: bots wear the avatars of joining players' Roblox friends.
+	FriendsPerPlayer = 30, -- max friends fetched per joining player into the avatar pool
+	-- PLACEHOLDERS (old Roblox staff/test accounts): the owner should replace these with real
+	-- avatar UserIds. Used when the friend pool has no unused entry; such bots keep generated names.
+	FallbackUserIds = { 1, 2, 3, 156, 261, 6, 7, 9, 13, 16, 20, 21 },
+	AvatarCacheMax = 24, -- built avatar templates kept in ServerStorage (oldest dropped first)
+	RigLookAheadCells = 1.5, -- Humanoid:MoveTo target is this far ahead of the simulated position
+	RigSpeedScale = 1.1, -- rig WalkSpeed = simulated speed x this, so it keeps up instead of lagging
+	RigSnapDistance = 8, -- studs; a rig further than this from its simulated position is PivotTo'd
+	RunAnimationId = "rbxassetid://507767714", -- standard R15 run
+	IdleAnimationId = "rbxassetid://507766666", -- standard R15 idle
+	RunAnimationSpeed = 16, -- WalkSpeed at which the run animation plays at 1x
 }
 
 -- G11.6 anti-exploit

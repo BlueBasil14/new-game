@@ -106,8 +106,10 @@ def build(out_path):
     with open(out_path, "w", encoding="utf-8", newline="\n") as f:
         f.write("\n".join(out) + "\n")
 
-    # Preserve the authored Sound System assets and boot scripts on every rebuild.
+    # Sound System pack: only the SoundService tracks/SFX. Its music UI (StarterGui) and Kernel boot scripts
+    # are left out on purpose; src/client/controllers/MusicController.luau plays the music instead.
     vendor_dir = os.path.join(ROOT, "assets", "rblxessentials")
+    vendor_files = ("SoundService.rbxmx",)
     vendor_scripts = 0
     if os.path.isdir(vendor_dir):
         document = ET.parse(out_path)
@@ -116,7 +118,7 @@ def build(out_path):
             return next(item for item in parent.findall("Item")
                         if item.findtext("Properties/string[@name='Name']") == name)
         for filename in sorted(os.listdir(vendor_dir)):
-            if not filename.endswith(".rbxmx"):
+            if filename not in vendor_files:
                 continue
             service = filename[:-6]
             target = (named_child(named_child(place_root, "StarterPlayer"), "StarterPlayerScripts")

@@ -10,6 +10,7 @@ local TweenService = game:GetService("TweenService")
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
 local Config = require(Shared.Config)
 local Catalog = require(Shared.Catalog)
+local ArcadeIcons = require(Shared.ArcadeIcons)
 local SoundIds = require(Shared.SoundIds)
 local Types = require(Shared.Types)
 local ClientState = require(script.Parent.Parent.ClientState)
@@ -33,14 +34,11 @@ local POPUP_TIME = 0.9
 local POPUP_RISE = 6
 local POPUP_HEIGHT = 3
 local REWARD_MATCH_WINDOW = 1.5
-local SHAKE_MAX = 0.6
-local SHAKE_TIME = 0.35
 local PUNCH_FOV = 8 -- G6: FOV 70 -> 62 -> 70
 local DESAT_HOLD = 0.3
 local DESAT_RECOVER = 0.2
 local POP_CELLS = 20
 local POP_MAX = 12
-local POP_STEP = 0.06
 local POP_GAP = 0.05
 local CONFETTI_COUNT = 60
 local BEAM_HEIGHT = 40
@@ -71,7 +69,9 @@ local CROWN_RETRY = 0.5
 local BAND_ROT = CFrame.Angles(0, 0, math.rad(90)) -- cylinder axis is X; stand it upright
 
 local CONFETTI_MIN_CELLS = Config.Income.CaptureBonus[1].MinCells
-local SHAKE_FULL_CELLS = Config.Income.CaptureBonus[#Config.Income.CaptureBonus].MinCells
+local CFX = Config.CaptureFx
+-- Particle art from the Arcade Commons set (no default Roblox sparkle texture).
+local BURST_TEXTURES = { ArcadeIcons.economy_star, ArcadeIcons.economy_energy, ArcadeIcons.gameplay_capture_loop, ArcadeIcons.economy_coin }
 local FLOOR = Config.Arena.FloorY
 local DANGER_COLOR = Color3.fromHex(Config.Colors.Danger)
 local COIN_COLOR = Color3.fromHex(Config.Colors.Yellow)
@@ -311,6 +311,7 @@ end
 local function configureEmitter(pe: ParticleEmitter, preset: Preset, color: ColorSequence)
 	pe.Enabled = false
 	pe.Rate = 0
+	pe.Texture = BURST_TEXTURES[1]
 	pe.Color = color
 	pe.Speed = preset.speed
 	pe.Lifetime = preset.lifetime
@@ -563,23 +564,208 @@ local function checkDanger()
 	setDanger(found, myId)
 end
 
+-- Capture payoff (GAP capture feel): all client side, driven by the server's "claim" ArenaEvent.
+local comboCount = 0
+local lastCaptureAt = -math.huge
+local flashFrame: Frame? = nil
+local flashTween: Tween? = nil
+local bannerGroup: CanvasGroup? = nil
+local bannerTitle: TextLabel? = nil
+local bannerCombo: TextLabel? = nil
+local bannerScale: UIScale? = nil
+local bannerToken = 0
+type RingPoint = { part: BasePart, emitters: { ParticleEmitter } }
+local ringPoints: { RingPoint } = {}
+
+local function percentText(p: number): string
+	return string.format(if p >= 1 then "%.1f%%" else "%.2f%%", p)
+end
+
+local function ringPoint(i: number): RingPoint?
+	local existing = ringPoints[i]
+	if existing then
+		return existing
+	end
+	local folder = effectsFolder
+	if not folder then
+		return nil
+	end
+	local part = Instance.new("Part")
+	part.Name = "CaptureBurst"
+	part.Anchored = true
+	part.CanCollide = false
+	part.CanTouch = false
+	part.CanQuery = false
+	part.CastShadow = false
+	part.Transparency = 1
+	part.Size = Vector3.new(1, 1, 1)
+	local list: { ParticleEmitter } = {}
+	for _, texture in BURST_TEXTURES do
+		local pe = Instance.new("ParticleEmitter")
+		pe.Enabled = false
+		pe.Rate = 0
+		pe.Texture = texture
+		pe.Speed = NumberRange.new(8, 18)
+		pe.Lifetime = NumberRange.new(0.6, 1)
+		pe.Size = NumberSequence.new(1.6, 0)
+		pe.Transparency = NumberSequence.new(0, 1)
+		pe.SpreadAngle = Vector2.new(180, 180)
+		pe.EmissionDirection = Enum.NormalId.Top
+		pe.Acceleration = Vector3.new(0, 6, 0)
+		pe.Drag = 2
+		pe.LightEmission = 1
+		pe.Rotation = NumberRange.new(-180, 180)
+		pe.RotSpeed = NumberRange.new(-120, 120)
+		pe.Parent = part
+		table.insert(list, pe)
+	end
+	part.Parent = folder
+	local created: RingPoint = { part = part, emitters = list }
+	ringPoints[i] = created
+	return created
+end
+
+-- Burst on a ring of radius sqrt(cells/pi) cells around the centroid (stand-in for the new border).
+local function captureBurst(pos: Vector3, cells: number, id: number, t: number, big: boolean)
+	local low = lowDetail()
+	local total = CFX.BurstMin + (CFX.BurstMax - CFX.BurstMin) * t
+	if big then
+		total *= CFX.BigBurstMult
+	end
+	if low then
+		total *= CFX.LowDetailBurst
+	end
+	local points = if low then 2 else CFX.BurstPoints
+	local radius = math.min(math.sqrt(cells / math.pi) * Config.Arena.CellSize, CFX.RingMaxRadius)
+	local each = math.max(1, math.floor(total / points / #BURST_TEXTURES + 0.5))
+	local color = ColorSequence.new(TurfRenderer.colorOf(id))
+	local spin = rng:NextNumber(0, math.pi * 2)
+	for i = 1, points do
+		local point = ringPoint(i)
+		if point then
+			local a = spin + (i - 1) / points * math.pi * 2
+			point.part.CFrame = CFrame.new(pos + Vector3.new(math.cos(a) * radius, 0, math.sin(a) * radius))
+			for _, pe in point.emitters do
+				pe.Color = color
+				pe:Emit(each)
+			end
+		end
+	end
+end
+
+local function capturePopup(pos: Vector3, percent: number, color: Color3, big: boolean)
+	local anchor = tempAnchor(pos, CFX.PopupTime + 0.2)
+	local k = if big then CFX.BigPopupScale else 1
+	local bb = Instance.new("BillboardGui")
+	bb.Size = UDim2.fromOffset(CFX.PopupSize * k, CFX.PopupSize * 0.36 * k)
+	bb.AlwaysOnTop = true
+	bb.LightInfluence = 0
+	bb.Adornee = anchor
+	local label = Instance.new("TextLabel")
+	label.BackgroundTransparency = 1
+	label.Size = UDim2.fromScale(1, 1)
+	label.Font = Enum.Font.GothamBlack
+	label.TextScaled = true
+	label.Text = "+" .. percentText(percent)
+	label.TextColor3 = color
+	label.TextStrokeColor3 = STROKE_COLOR
+	label.TextStrokeTransparency = 0
+	label.Parent = bb
+	local scale = Instance.new("UIScale")
+	scale.Scale = 0.3
+	scale.Parent = label
+	bb.Parent = anchor
+	TweenService:Create(scale, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+	TweenService:Create(anchor, TweenInfo.new(CFX.PopupTime, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+		CFrame = anchor.CFrame + Vector3.new(0, POPUP_RISE, 0),
+	}):Play()
+	TweenService:Create(label, TweenInfo.new(CFX.PopupTime * 0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.In, 0, false, CFX.PopupTime * 0.5), {
+		TextTransparency = 1,
+		TextStrokeTransparency = 1,
+	}):Play()
+end
+
+local function flashScreen()
+	local f = flashFrame
+	if not f then
+		return
+	end
+	if flashTween then
+		flashTween:Cancel()
+	end
+	f.BackgroundTransparency = 1
+	local up = TweenService:Create(f, TweenInfo.new(CFX.FlashTime, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), { BackgroundTransparency = 1 - CFX.FlashAlpha })
+	flashTween = up
+	up.Completed:Connect(function(state)
+		if state == Enum.PlaybackState.Completed then
+			local down = TweenService:Create(f, TweenInfo.new(CFX.FlashFade), { BackgroundTransparency = 1 })
+			flashTween = down
+			down:Play()
+		end
+	end)
+	up:Play()
+end
+
+local function showBanner(percent: number, combo: number)
+	local group, title, comboLabel, scale = bannerGroup, bannerTitle, bannerCombo, bannerScale
+	if not (group and title and comboLabel and scale) then
+		return
+	end
+	bannerToken += 1
+	local token = bannerToken
+	title.Text = "BIG CAPTURE! +" .. percentText(percent)
+	comboLabel.Visible = combo >= 2
+	comboLabel.Text = "COMBO x" .. combo
+	group.GroupTransparency = 0
+	group.Visible = true
+	scale.Scale = 0.5
+	TweenService:Create(scale, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), { Scale = 1 }):Play()
+	task.delay(CFX.BannerTime, function()
+		if token == bannerToken then
+			TweenService:Create(group, TweenInfo.new(0.4), { GroupTransparency = 1 }):Play()
+			task.wait(0.4)
+			if token == bannerToken then
+				group.Visible = false -- GroupTransparency alone left the labels showing in Studio
+			end
+		end
+	end)
+end
+
 local function onClaim(ev: { id: number, cells: number, neutral: number, stolen: number, cx: number, cy: number })
 	local cells = ev.cells
+	local now = os.clock()
+	comboCount = if now - lastCaptureAt <= CFX.ComboWindow then comboCount + 1 else 1
+	lastCaptureAt = now
+	local percent = cells / math.max(1, ClientState.arena.totalCells) * 100
+	local big = percent >= CFX.BigPercent
+	local t = math.clamp(percent / CFX.FullPercent, 0, 1)
+	local low = lowDetail()
+	-- One pitch ladder: the combo sets the first note, each pop inside the capture climbs from there.
 	local steps = math.clamp(math.ceil(cells / POP_CELLS), 1, POP_MAX)
 	for k = 0, steps - 1 do
-		task.delay(k * POP_GAP, FeedbackController.play, "claimPop", 1 + POP_STEP * k)
+		local pitch = math.min(1 + CFX.PitchStep * (comboCount - 1 + k), CFX.PitchMax)
+		task.delay(k * POP_GAP, FeedbackController.play, "claimPop", pitch)
 	end
 	if ev.stolen > 0 then
 		FeedbackController.play("stealCrunch")
 	end
-	local s = settings()
-	if s and s.shake then
-		CameraController.shake(SHAKE_MAX * math.clamp(cells / SHAKE_FULL_CELLS, 0, 1), SHAKE_TIME)
+	CameraController.punch(CFX.FovMin + (CFX.FovMax - CFX.FovMin) * t)
+	if not low then
+		CameraController.shake(CFX.ShakeMin + (CFX.ShakeMax - CFX.ShakeMin) * t, CFX.ShakeTime)
+	end
+	if big then
+		if not low then
+			flashScreen()
+		end
+		showBanner(percent, comboCount)
 	end
 	local pos = cellWorld(ev.cx, ev.cy, 1)
 	if not pos then
 		return
 	end
+	local color = TurfRenderer.colorOf(ev.id)
+	captureBurst(pos, cells, ev.id, t, big)
+	capturePopup(pos + Vector3.new(0, CFX.PopupHeight - 1, 0), percent, color, big)
 	-- G7.3: the very first capture of a new player always gets confetti and an oversized popup.
 	local profile = ClientState.profile
 	local first = not firstClaimShown and profile ~= nil and not profile.tutorialDone
@@ -587,8 +773,10 @@ local function onClaim(ev: { id: number, cells: number, neutral: number, stolen:
 		firstClaimShown = true
 		popup(pos + Vector3.new(0, POPUP_HEIGHT, 0), "+" .. cells, COIN_COLOR, FIRST_POPUP_SCALE)
 	end
+	if big or first then
+		FeedbackController.play("bigClaim", math.min(1 + CFX.PitchStep * (comboCount - 1), CFX.PitchMax))
+	end
 	if cells >= CONFETTI_MIN_CELLS or first then
-		FeedbackController.play("bigClaim")
 		confetti(pos)
 	end
 	local info = ClientState.arena.runners[ev.id]
@@ -1080,6 +1268,60 @@ local function buildVignette()
 	gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
 end
 
+-- Flash and banner share one ScreenGui under the HUD and panels (negative DisplayOrder), never taking input.
+local function buildCaptureGui()
+	local gui = Instance.new("ScreenGui")
+	gui.Name = "CaptureFx"
+	gui.IgnoreGuiInset = true
+	gui.ResetOnSpawn = false
+	gui.DisplayOrder = -5
+
+	local flash = Instance.new("Frame")
+	flash.Name = "Flash"
+	flash.Active = false
+	flash.BorderSizePixel = 0
+	flash.BackgroundColor3 = Color3.new(1, 1, 1)
+	flash.BackgroundTransparency = 1
+	flash.Size = UDim2.fromScale(1, 1)
+	flash.Parent = gui
+	flashFrame = flash
+
+	local group = Instance.new("CanvasGroup")
+	group.Name = "Banner"
+	group.BackgroundTransparency = 1
+	group.GroupTransparency = 1
+	group.Visible = false
+	group.AnchorPoint = Vector2.new(0.5, 0)
+	group.Position = UDim2.fromScale(0.5, 0.22) -- below the map pill and its chips, between wallet and leaderboard
+	group.Size = UDim2.new(0.36, 0, 0, 64)
+	local limit = Instance.new("UISizeConstraint")
+	limit.MaxSize = Vector2.new(320, 64)
+	limit.Parent = group
+	local scale = Instance.new("UIScale")
+	scale.Parent = group
+	local function line(name: string, y: number, h: number, color: Color3): TextLabel
+		local l = Instance.new("TextLabel")
+		l.Name = name
+		l.BackgroundTransparency = 1
+		l.Position = UDim2.fromScale(0, y)
+		l.Size = UDim2.fromScale(1, h)
+		l.Font = Enum.Font.GothamBlack
+		l.TextScaled = true
+		l.TextColor3 = color
+		l.TextStrokeColor3 = STROKE_COLOR
+		l.TextStrokeTransparency = 0
+		l.Parent = group
+		return l
+	end
+	bannerTitle = line("Title", 0, 0.58, Color3.new(1, 1, 1))
+	bannerCombo = line("Combo", 0.6, 0.4, COIN_COLOR)
+	group.Parent = gui
+	bannerGroup = group
+	bannerScale = scale
+
+	gui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui")
+end
+
 function FeedbackController.start()
 	if started then
 		return
@@ -1111,6 +1353,7 @@ function FeedbackController.start()
 	beam = b
 
 	task.spawn(buildVignette)
+	task.spawn(buildCaptureGui)
 
 	local function readSettings()
 		local s = settings()

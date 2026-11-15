@@ -17,6 +17,7 @@ local FeedbackController = require(controllers:WaitForChild("FeedbackController"
 local HudController = require(controllers:WaitForChild("HudController"))
 local PanelController = require(controllers:WaitForChild("PanelController"))
 local TutorialController = require(controllers:WaitForChild("TutorialController"))
+local MusicController = require(controllers:WaitForChild("MusicController"))
 
 local PANEL_SOUNDS: { [string]: string } = {
 	click = "uiClick",
@@ -72,9 +73,10 @@ boot("Feedback", FeedbackController.start)
 boot("Hud", HudController.start)
 boot("Panels", PanelController.start)
 boot("Tutorial", TutorialController.start)
+boot("Music", MusicController.start)
 
 -- Studio-only test hook: automated playtests cannot click UI reliably under the device emulator.
--- script.Debug:Fire("open", "Shop") / ("close") / ("cut") / ("waveTime", "4")
+-- script.Debug:Fire("open", "Shop") / ("close") / ("cut") / ("capture", "7.5") / ("waveTime", "4")
 if game:GetService("RunService"):IsStudio() then
 	local debugEvent = Instance.new("BindableEvent")
 	debugEvent.Name = "Debug"
@@ -91,6 +93,17 @@ if game:GetService("RunService"):IsStudio() then
 					ClientState.arenaEvent:Fire({ kind = "cut", killer = myId, victim = id, victimCells = 0, victimWasKing = false })
 					break
 				end
+			end
+		elseif action == "capture" and arg then
+			-- Replays the local capture feedback for a fake claim of <arg> percent of the map at the player's position.
+			local myId = ClientState.arena.myId
+			local grid = ArenaClient.getGrid()
+			local char = game:GetService("Players").LocalPlayer.Character
+			local root = char and char:FindFirstChild("HumanoidRootPart")
+			if myId and grid and root and root:IsA("BasePart") then
+				local cells = math.max(1, math.floor((tonumber(arg) or 1) / 100 * ClientState.arena.totalCells + 0.5))
+				local cx, cy = grid:worldToCell(root.Position.X, root.Position.Z)
+				ClientState.arenaEvent:Fire({ kind = "claim", id = myId, cells = cells, neutral = cells, stolen = 0, cx = cx, cy = cy })
 			end
 		elseif action == "waveTime" and arg then
 			-- Slows the claim wave so a screenshot can catch it.
