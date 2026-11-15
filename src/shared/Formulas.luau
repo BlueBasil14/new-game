@@ -14,6 +14,7 @@ export type CoinContext = {
 	doubleCoins: boolean,
 	boostActive: boolean,
 	inGroup: boolean,
+	withFriend: boolean?, -- a Roblox friend is in the same server
 	weekend: boolean,
 }
 
@@ -64,6 +65,9 @@ function Formulas.coinMultiplier(ctx: CoinContext): number
 	end
 	if ctx.inGroup then
 		m *= 1 + inc.GroupBonus
+	end
+	if ctx.withFriend then
+		m *= 1 + inc.FriendBonus
 	end
 	if ctx.weekend then
 		m *= inc.WeekendMultiplier

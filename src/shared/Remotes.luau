@@ -14,7 +14,8 @@ Remotes.Death = "Death" -- sent to the eliminated player only
 Remotes.Reward = "Reward" -- (payload: { coins: number?, gems: number?, reason: string, cx: number?, cy: number? }) popup feedback
 -- (payload: { profile: Profile (receipts stripped), session: SessionInfo })
 -- SessionInfo = { multiplier: number, passes: { [string]: boolean }, featured: { string },
---   joinedAt: number (os.time), playtimeClaimed: { [number]: boolean }, starterOffer: boolean, serverTime: number }
+--   joinedAt: number (os.time), playtimeClaimed: { [number]: boolean }, starterOffer: boolean, serverTime: number,
+--   withFriend: boolean (a Roblox friend is in this server: Config.Income.FriendBonus is in multiplier) }
 -- Sent in full on load and after every profile change (throttled to 4 Hz per player).
 Remotes.ProfileUpdate = "ProfileUpdate"
 Remotes.Toast = "Toast" -- (text: string, kind: "info" | "good" | "bad")

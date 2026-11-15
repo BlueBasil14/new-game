@@ -1,7 +1,8 @@
 --!strict
--- Always-on HUD: wallet, map %, boost/weekend chips, leaderboard, kill feed, button rail, playtime bar.
+-- Always-on HUD: wallet, map %, boost/weekend/friend chips, invite button, leaderboard, kill feed, button rail, playtime bar.
 local GuiService = game:GetService("GuiService")
 local Players = game:GetService("Players")
+local SocialService = game:GetService("SocialService")
 local TweenService = game:GetService("TweenService")
 
 local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
@@ -25,6 +26,8 @@ local S = {
 	percent = "%.1f%%",
 	boost = "%dx %s",
 	weekend = "%dx WEEKEND",
+	friend = "+%d%% FRIEND",
+	inviteIcon = "core_friends",
 	kingMark = "K",
 	starterBadge = "!",
 	cutFeed = "%s cut %s",
@@ -56,6 +59,8 @@ local MINI_BLOCKS_PER_TICK = 100
 local MINI_DOT = 7
 local MINI_DOT_PERIOD = 0.1
 local MINI_BLOCK_EVERY = 5 -- dot periods per block refresh (2 Hz)
+local INVITE_SIZE = 0.55 -- invite button side as a fraction of the minimap side
+local INVITE_GAP = 6 -- px between the invite button and the minimap
 
 local theme = UiKit.theme
 local PANEL_BG = Color3.fromHex(Config.Colors.UiDark)
@@ -240,6 +245,13 @@ local function buildTopCentre(gui: ScreenGui)
 	weekendMain.Size = UDim2.fromScale(0.9, 0.7)
 	weekendMain.Position = UDim2.fromScale(0.05, 0.15)
 
+	local friendChip, friendMain, _ = chip(holder, "Friend", 0.3, theme.Gem, 4)
+	friendChip.Visible = false
+	friendMain.Text = string.format(S.friend, math.floor(Config.Income.FriendBonus * 100 + 0.5))
+	friendMain.TextColor3 = theme.UiDark
+	friendMain.Size = UDim2.fromScale(0.9, 0.7)
+	friendMain.Position = UDim2.fromScale(0.05, 0.15)
+
 	local lastPct = -1
 	local function updateMap()
 		local pct = math.floor(ClientState.myShare() * 1000 + 0.5) / 10
@@ -261,6 +273,7 @@ local function buildTopCentre(gui: ScreenGui)
 			boostChip.Visible = false
 		end
 		weekendChip.Visible = Formulas.isWeekendUTC(now)
+		friendChip.Visible = ClientState.session.withFriend == true
 	end
 	return updateTimers, updateMap
 end
@@ -719,6 +732,41 @@ end
 
 type Node = { wrap: Frame, button: TextButton, stroke: UIStroke, time: TextLabel }
 
+-- Invite button: left of the minimap, top-aligned with it (clear of the mobile jump button). Hidden when invites are unavailable.
+local function buildInvite(gui: ScreenGui)
+	local minimap = gui:FindFirstChild("Minimap") :: Frame
+	local player = Players.LocalPlayer
+	local b = UiKit.button({
+		color = theme.Yellow,
+		parent = gui,
+		onClick = function()
+			PanelController.sound("click")
+			pcall(SocialService.PromptGameInvite, SocialService, player)
+		end,
+	})
+	b.Name = "Invite"
+	b.AnchorPoint = Vector2.new(1, 0)
+	b.Visible = false
+	UiKit.stroke(b, theme.UiDark, 2)
+	UiKit.icon(S.inviteIcon, {
+		Size = UDim2.fromScale(0.8, 0.8),
+		Position = UDim2.fromScale(0.1, 0.1),
+		parent = b,
+	})
+	local function place()
+		local side = minimap.AbsoluteSize.Y
+		local size = math.floor(side * INVITE_SIZE)
+		b.Size = UDim2.fromOffset(size, size)
+		b.Position = UDim2.new(minimap.Position.X.Scale, -minimap.AbsoluteSize.X - INVITE_GAP, minimap.Position.Y.Scale, -side)
+	end
+	minimap:GetPropertyChangedSignal("AbsoluteSize"):Connect(place)
+	place()
+	task.spawn(function()
+		local ok, can = pcall(SocialService.CanSendGameInviteAsync, SocialService, player)
+		b.Visible = ok and can == true
+	end)
+end
+
 local function buildPlaytime(gui: ScreenGui): (() -> ())
 	local count = #Catalog.playtime
 	local function nodeX(i: number): number
@@ -870,6 +918,7 @@ function HudController.start()
 	buildLeaderboard(gui)
 	buildKillFeed(gui)
 	buildMinimap(gui)
+	buildInvite(gui)
 	local updateDots = buildRail(gui)
 	local updatePlaytime = buildPlaytime(gui)
 

@@ -25,6 +25,7 @@ M.dsDown = false -- false | "requests" | "all"
 M.dsLatency = 0.05
 M.passes = {} -- [userId] = { [passId] = true }
 M.groups = {} -- [userId] = { [groupId] = true }
+M.friends = {} -- [userId] = { [otherUserId] = true }; IsFriendsWith checks both directions
 M.badges = {} -- list of { userId, badgeId }
 
 local TYPE = setmetatable({}, { __mode = "k" })
@@ -1955,6 +1956,14 @@ Classes.Player.methods = {
 		d.S.sleep(0.05)
 		local g = M.groups[d.props.UserId]
 		return g ~= nil and g[groupId] == true
+	end,
+	IsFriendsWith = function(self, userId)
+		local d = instData(self, "IsFriendsWith", 2)
+		needNum(userId, "IsFriendsWith", 2)
+		d.S.sleep(0.05)
+		local me = d.props.UserId
+		local a, b = M.friends[me], M.friends[userId]
+		return (a ~= nil and a[userId] == true) or (b ~= nil and b[me] == true)
 	end,
 	GetRankInGroup = function(self, groupId)
 		local d = instData(self, "GetRankInGroup", 2)

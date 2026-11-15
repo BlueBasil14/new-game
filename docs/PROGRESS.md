@@ -165,3 +165,14 @@ Phase 4 — Build (code only; Studio/Blender steps blocked, see Blockers)
 - **CameraController.luau**: `hold(seconds)` sets `holdUntil = os.clock() + seconds`; the render step returns early while `os.clock() < holdUntil`, freezing the camera.
 - All checks pass: 39 files compile, specs pass, xref 0 unresolved, headless 10/10.
 - Not verified without Studio: speed-line visual feel at real speed, hit-stop feel (80 ms is too short for a screenshot), how the hit-stop interacts with different movement animations, behavior on low-end devices.
+
+## Lead session, 2026-11-15: discovery-algorithm plan and friend bonus (T-RET-01)
+- The owner supplied a video transcript about Roblox's ranking changes (28-day windows, bounce rate, co-play days, gameplay video, Roblox Kids, ads). `docs/ALGORITHM_PLAN.md` maps each claim to the game and lists a week-two plan. The claims were **not checked against Roblox's own posts**.
+- Decision (Fable): build the co-play incentive now. +10 % coins (`Config.Income.FriendBonus`) while at least one Roblox friend is in the server, no stacking per friend; an Invite button; a HUD chip. Built by an Opus subagent because it touches the economy.
+- Server: `EconomyService` checks `player:IsFriendsWith` off the join path in a pcall (errors count as not friends), updates both players, and clears links on leave. `withFriend` feeds `Formulas.coinMultiplier` and is sent in the session info. The client is never asked.
+- Client: "+10% FRIEND" chip in the top-centre row (hidden unless active); Invite button with the friends icon left of the minimap, shown only when `CanSendGameInviteAsync` returns true; it calls `SocialService:PromptGameInvite`.
+- Checks: 39 files compile, specs pass (two new formula lines), xref 0, headless 11/11 (new scenario `tests/headless/j_friend_bonus.luau`; the mock gained `IsFriendsWith`). `docs/HEADLESS.md` does not list the new scenario yet.
+- Seen live (solo play, iPhone emulator, local build): Invite button visible at 33 px beside the minimap, clear of the leaderboard and music button; friend chip hidden; `CanSendGameInviteAsync` returned true; Output clean apart from the known Studio noise.
+- Not verified: the bonus with two real friend accounts (mock only); the chip when active; the invite prompt opening (not clicked); a friend leaving while the check is still running.
+- The cloud place "11132026_2" does not have this change yet.
+- Next (from `docs/ALGORITHM_PLAN.md`): measure time to first capture, streak rewards for days 8–28, remaining 8 sounds, then the owner's gameplay video.

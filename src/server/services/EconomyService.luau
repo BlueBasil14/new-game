@@ -31,6 +31,7 @@ EconomyService.cellsProvider = nil :: ((Player) -> number)?
 
 local passOwned: { [Player]: { [string]: boolean } } = {}
 local inGroup: { [Player]: boolean } = {}
+local friendsHere: { [Player]: { [Player]: boolean } } = {} -- Roblox friends currently in this server
 local started = false
 
 local function fire(player: Player, currency: string, amount: number, reason: string)
@@ -65,6 +66,46 @@ function EconomyService.isInGroup(player: Player): boolean
 	return inGroup[player] == true
 end
 
+function EconomyService.hasFriendHere(player: Player): boolean
+	local set = friendsHere[player]
+	return set ~= nil and next(set) ~= nil
+end
+
+local function setFriendLink(player: Player, other: Player, linked: boolean)
+	local had = EconomyService.hasFriendHere(player)
+	local set = friendsHere[player]
+	if set == nil then
+		if not linked then
+			return
+		end
+		set = {}
+		friendsHere[player] = set
+	end
+	(set :: { [Player]: boolean })[other] = if linked then true else nil
+	if EconomyService.hasFriendHere(player) ~= had then
+		-- ponytail: an empty update only marks the profile dirty, so Main pushes ProfileUpdate with the new multiplier
+		DataService.update(player, function() end)
+	end
+end
+
+-- Friendship is symmetric: the newcomer asks once per other player. Web call: off the join path, errors = not friends.
+-- Bots are not Player instances, so Players:GetPlayers() never includes them.
+local function checkFriends(player: Player)
+	for _, other in Players:GetPlayers() do
+		if other ~= player then
+			task.spawn(function()
+				local ok, friends = pcall(function()
+					return player:IsFriendsWith(other.UserId)
+				end)
+				if ok and friends == true and player.Parent ~= nil and other.Parent ~= nil then
+					setFriendLink(player, other, true)
+					setFriendLink(other, player, true)
+				end
+			end)
+		end
+	end
+end
+
 function EconomyService.multiplier(player: Player): number
 	local profile = DataService.get(player)
 	if profile == nil then
@@ -78,6 +119,7 @@ function EconomyService.multiplier(player: Player): number
 		doubleCoins = EconomyService.hasPass(player, "doubleCoins"),
 		boostActive = profile.boostUntil > now,
 		inGroup = inGroup[player] == true,
+		withFriend = EconomyService.hasFriendHere(player),
 		weekend = Formulas.isWeekendUTC(now),
 	})
 end
@@ -223,7 +265,17 @@ function EconomyService.start()
 	Players.PlayerRemoving:Connect(function(player)
 		passOwned[player] = nil
 		inGroup[player] = nil
+		friendsHere[player] = nil
+		for other, set in friendsHere do
+			if set[player] then
+				setFriendLink(other, player, false)
+			end
+		end
 	end)
+	Players.PlayerAdded:Connect(checkFriends)
+	for _, player in Players:GetPlayers() do
+		checkFriends(player)
+	end
 	task.spawn(passiveLoop)
 end
 

@@ -24,6 +24,7 @@ export type SessionInfo = {
 	playtimeClaimed: { [number]: boolean },
 	starterOffer: boolean,
 	serverTime: number,
+	withFriend: boolean?, -- Roblox friend in this server (Config.Income.FriendBonus active)
 }
 
 local function newSignal(): Signal

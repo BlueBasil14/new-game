@@ -35,6 +35,8 @@ near(F.coinMultiplier(base), 1, "mult base")
 near(F.coinMultiplier({ coinBoostLevel = 5, crowns = 2, vip = true, doubleCoins = true, boostActive = true, inGroup = true, weekend = true }),
 	1.5 * 1.5 * 1.2 * 2 * 2 * 1.1 * 2, "mult all")
 near(F.coinMultiplier({ coinBoostLevel = 0, crowns = 4, vip = false, doubleCoins = false, boostActive = false, inGroup = true, weekend = false }), 2.2, "mult crowns+group")
+near(F.coinMultiplier({ coinBoostLevel = 0, crowns = 0, vip = false, doubleCoins = false, boostActive = false, inGroup = true, weekend = false, withFriend = true }), 1.1 * 1.1, "mult group+friend")
+near(F.coinMultiplier({ coinBoostLevel = 0, crowns = 0, vip = false, doubleCoins = false, boostActive = false, inGroup = false, weekend = false, withFriend = false }), 1, "mult friend off")
 
 eq(F.captureCoins(10, 0), 10, "capture small")
 eq(F.captureCoins(100, 0), 110, "capture 100")

@@ -49,6 +49,7 @@ Config.Income = {
 	DoubleCoinsMultiplier = 2,
 	BoostMultiplier = 2,
 	GroupBonus = 0.10,
+	FriendBonus = 0.10, -- G5 co-play: at least one Roblox friend in the server (does not stack per friend)
 	WeekendMultiplier = 2,
 }
 

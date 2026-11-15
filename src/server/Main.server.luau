@@ -84,6 +84,7 @@ local function sessionInfo(player: Player): { [string]: any }
 		playtimeClaimed = RewardService.playtimeClaimed(player),
 		starterOffer = MonetizationService.shouldOfferStarter(player),
 		serverTime = os.time(),
+		withFriend = EconomyService.hasFriendHere(player),
 	}
 end
 
