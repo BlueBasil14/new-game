@@ -208,8 +208,8 @@ Config.Leaderboards = { RefreshSeconds = 120, Size = 50, Boards = { "cells", "ki
 
 -- G8 palette
 Config.Colors = {
-	Ground = "#EEF1F5",
-	GridLine = "#DDE2EA",
+	Ground = "#B4B5B8",
+	GridLine = "#9C9DA2",
 	Wall = "#2B2F3A",
 	UiDark = "#1E2230",
 	UiLight = "#FFFFFF",

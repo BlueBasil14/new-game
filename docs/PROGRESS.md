@@ -232,3 +232,11 @@ Owner brief: capture juice, trail visibility, friend-avatar bots, music without 
 - Output there: DataStores rejected ("Studio access to APIs is not allowed"; in-memory store used); `rbxassetid://81504106` not found (not in `src/`; likely an item on a friend's avatar); `No asset content representation` for economy_star, economy_energy and economy_coin, which are the Arcade Commons images used as particle textures.
 - Not checked there: passes, music by ear, capture effects, two players.
 - The earlier place 122808046982168 still has the build from b91cabc.
+
+## Lead session, 2026-11-15: darker, grey floor (owner request)
+- Owner: "the screen is way too bright, lower the brightness of the white background and make it more greyish". A first try (floor colour only, Brightness 2.5 → 2) still read as near-white because the lighting and haze washed it out; values were then tuned live in Studio.
+- Final values. `Config.Colors`: Ground `#EEF1F5` → `#B4B5B8`, GridLine `#DDE2EA` → `#9C9DA2`. `WorldBuilder.buildLighting`: Brightness 2.5 → 1.2, ExposureCompensation −0.35 (new), Ambient and OutdoorAmbient to neutral greys (they were bluish and tinted the floor blue), bloom 0.4 → 0.2, atmosphere density 0.25 → 0.1, haze 1 → 0, atmosphere colours neutral.
+- Decision (Fable): this departs from the GDD G8 pale board (`#EEF1F5`) on the owner's instruction. The ChatGPT art briefs still describe a pale ground.
+- Checks: 40 files compile, specs, xref 0, headless 13/13, place build.
+- Seen live in the cloud place (placeId 80441552680451) from a fresh start: neutral mid-grey floor with visible grid, red turf and the dark trail with its rim stand out more than before. Saved to Roblox (not published).
+- Not checked: other turf colours against the grey (light pastels may now have less contrast with the floor), the phone view, the wall and props under the lower light.

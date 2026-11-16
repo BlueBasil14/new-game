@@ -1655,8 +1655,8 @@ Config.Leaderboards = { RefreshSeconds = 120, Size = 50, Boards = { "cells", "ki
 
 -- G8 palette
 Config.Colors = {
-	Ground = "#EEF1F5",
-	GridLine = "#DDE2EA",
+	Ground = "#B4B5B8",
+	GridLine = "#9C9DA2",
 	Wall = "#2B2F3A",
 	UiDark = "#1E2230",
 	UiLight = "#FFFFFF",
@@ -3576,9 +3576,11 @@ end
 local function buildLighting()
 	-- Lighting.Technology (Future) is not scriptable; set it in Studio.
 	Lighting.ClockTime = 14
-	Lighting.Brightness = 2.5
-	Lighting.Ambient = Color3.fromHex("#8A93A8")
-	Lighting.OutdoorAmbient = Color3.fromHex("#B8C0D0")
+	-- Toned down on the owner's request: the pale floor under full light was too bright to look at.
+	Lighting.Brightness = 1.2
+	Lighting.ExposureCompensation = -0.35
+	Lighting.Ambient = Color3.fromHex("#8E8E90")
+	Lighting.OutdoorAmbient = Color3.fromHex("#B4B4B6")
 	Lighting.GlobalShadows = true
 
 	local cc = Instance.new("ColorCorrectionEffect")
@@ -3589,18 +3591,18 @@ local function buildLighting()
 
 	local bloom = Instance.new("BloomEffect")
 	bloom.Name = "TurfBloom"
-	bloom.Intensity = 0.4
+	bloom.Intensity = 0.2
 	bloom.Threshold = 1.2
 	bloom.Size = 24
 	bloom.Parent = Lighting
 
 	local atmo = Instance.new("Atmosphere")
 	atmo.Name = "TurfAtmosphere"
-	atmo.Density = 0.25
-	atmo.Color = Color3.fromHex("#CFE3FF")
-	atmo.Decay = Color3.fromHex("#B8D0F0")
+	atmo.Density = 0.1
+	atmo.Color = Color3.fromHex("#D8DADF")
+	atmo.Decay = Color3.fromHex("#C4C7CE")
 	atmo.Glare = 0
-	atmo.Haze = 1
+	atmo.Haze = 0
 	atmo.Parent = Lighting
 end
 
