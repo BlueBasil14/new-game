@@ -252,3 +252,13 @@ Owner brief: capture juice, trail visibility, friend-avatar bots, music without 
 - "TurfLoop Main" (placeId 80441552680451) now holds the scripts from commit b890270 (security fixes, Sky Chest, friend bonus, streak bonuses, passes). `Shared`, `Server` and `Client` replaced from `build/TurfLoop.rbxlx`; `SoundService.RBLXEssentials` was already there and was left alone. Saved to Roblox, **not published**.
 - Checked in solo play there: 8 of 8 R15 bots, a full walked loop with no snap-back (worst miss 2.4 studs), no errors from our scripts. Output noise is the known DataStore, asset and analytics lines; one `Asset is not approved for the requester` (id 13282611376, not in `src/`).
 - Not checked there: purchases, music by ear, the capture effects, the Sky Chest, two players.
+
+## Lead session, 2026-11-16: balance changes that need no owner input (HANDOFF queue item 3)
+Queue item 1 (security fixes + solo Studio pass) was already done; item 2 waits on owner answers in `docs/DECISIONS.md` (none given yet). Applied `docs/BALANCE.md` items 2, 3, 5 and 7:
+- **Rebirth growth** 2 → 1.5: new `Config.Rebirth.Growth`, used by `Formulas.rebirthRequirement` (spec: rebirth 2 = 337,500).
+- **Sky Chest free rate**: `SkyChest.Interval` 300 → 600 s; gem prizes 25 → 15 and 75 → 40 (odds unchanged). These prizes are also what a paid spin gives; the paid spin itself is owner item 1.
+- **Rare price** 5,000 → 12,000 coins (`Config.Prices.rare`).
+- **Playtime rewards per UTC day**: claims and seconds played today live in the profile (`profile.playtime = { day, seconds, claimed bitmask }`), banked every 60 s and on each claim, so rejoining no longer resets them. The server sends `joinedAt` = start of today's play, so the client panel is unchanged.
+- **Gentle bot window** keyed to lifetime `stats.playSeconds` instead of the session: only a player's first 120 s ever are gentle (up to 60 s extra on a rejoin, because playSeconds is banked every 60 s).
+- Checks: 44 files compile, specs pass, xref 0, headless 17/17 (new `p_playtime_daily`: claim, rejoin, already claimed, gentle not restarted, second reward after 300 s across two sessions), place build.
+- Not checked: anything in Studio; the playtime panel countdown on a rejoin by eye; day rollover live.

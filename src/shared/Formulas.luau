@@ -103,7 +103,7 @@ function Formulas.passiveCoins(ownCells: number): number
 end
 
 function Formulas.rebirthRequirement(crowns: number): number
-	return Config.Rebirth.Base * 2 ^ crowns
+	return Config.Rebirth.Base * Config.Rebirth.Growth ^ crowns
 end
 
 function Formulas.dayNumber(unixSeconds: number): number

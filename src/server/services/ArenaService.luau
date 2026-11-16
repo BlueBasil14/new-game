@@ -29,6 +29,7 @@ type Cell = { x: number, y: number }
 type PState = {
 	player: Player,
 	joinClock: number,
+	gentleUntil: number, -- os.clock(); bots stay gentle until then (counts lifetime play, not this session)
 	id: number, -- 0 = no runner
 	character: Model?,
 	hrp: BasePart?,
@@ -174,7 +175,7 @@ end
 function ArenaService.gentleRunnerIds(now: number): { number }
 	local out = {}
 	for id, st in playerById do
-		if now - st.joinClock < Config.Bots.GentleSeconds then
+		if now < st.gentleUntil then
 			table.insert(out, id)
 		end
 	end
@@ -877,9 +878,13 @@ function ArenaService.join(player: Player)
 		return
 	end
 	local now = os.clock()
+	local profile = DataService.get(player)
+	-- ponytail: playSeconds is banked every 60 s, so a rejoin can get up to 60 s of extra gentle time once.
+	local played = if profile ~= nil then profile.stats.playSeconds else 0
 	local st: PState = {
 		player = player,
 		joinClock = now,
+		gentleUntil = now + math.max(0, Config.Bots.GentleSeconds - played),
 		id = 0,
 		character = nil,
 		hrp = nil,

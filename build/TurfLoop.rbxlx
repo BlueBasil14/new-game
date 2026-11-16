@@ -1412,7 +1412,7 @@ function Catalog.nextDailyMilestone(fromDay: number, claimed: { [string]: boolea
 	return nil
 end
 
--- Per-session playtime rewards
+-- Playtime rewards, once per UTC day (seconds played that day, across sessions)
 Catalog.playtime = {
 	{ seconds = 120, currency = "coins", amount = 100 },
 	{ seconds = 300, currency = "coins", amount = 250 },
@@ -1556,12 +1556,12 @@ Config.Upgrades = {
 Config.UpgradeOrder = { "coinBoost", "speed", "shield", "startSize" }
 
 -- G3.4 rebirth: requirement = Base * 2^crowns lifetime coins since last rebirth
-Config.Rebirth = { Base = 150000, GemReward = 50 }
+Config.Rebirth = { Base = 150000, Growth = 1.5, GemReward = 50 } -- requirement = Base * Growth ^ crowns
 
 -- G3.6 cosmetic prices
 Config.Prices = {
 	common = { Currency = "coins", Amount = 500 },
-	rare = { Currency = "coins", Amount = 5000 },
+	rare = { Currency = "coins", Amount = 12000 },
 	epic = { Currency = "gems", Amount = 150 },
 	legendary = { Currency = "gems", Amount = 400 },
 	FeaturedDiscount = 0.20,
@@ -1630,7 +1630,7 @@ Config.Bots = {
 	},
 	ThreatRadius = 8,
 	HuntRadius = 6,
-	GentleSeconds = 120, -- bots near a new player stay slow and never cut them
+	GentleSeconds = 120, -- bots near a new player stay slow and never cut them (first 120 s of lifetime play)
 	GentleSpeedScale = 0.8,
 	-- Friend avatars: bots wear the avatars of joining players' Roblox friends.
 	FriendsPerPlayer = 30, -- max friends fetched per joining player into the avatar pool
@@ -2028,7 +2028,7 @@ function Formulas.passiveCoins(ownCells: number): number
 end
 
 function Formulas.rebirthRequirement(crowns: number): number
-	return Config.Rebirth.Base * 2 ^ crowns
+	return Config.Rebirth.Base * Config.Rebirth.Growth ^ crowns
 end
 
 function Formulas.dayNumber(unixSeconds: number): number
@@ -2506,6 +2506,7 @@ function ProfileTemplate.default(now: number): Profile
 		wheelFree = 0,
 		wheelPaid = 0,
 		speedBoostUntil = 0,
+		playtime = { day = 0, seconds = 0, claimed = 0 },
 		settings = { music = true, sfx = true, shake = true, lowDetail = false },
 		firstJoin = now,
 		lastJoin = now,
@@ -2683,16 +2684,16 @@ return Remotes
 					<ProtectedString name="Source">--!strict
 -- Exact server odds; UI presents these before any paid spin.
 local SkyChest= {
-	Interval = 300,
+	Interval = 600, -- BALANCE.md item 3 (was 300)
 	Lifetime = 120,
 	FallSeconds = 3,
 	SpeedSeconds = 180,
 	ProductId = 3732125306,
 	Prizes = {
 		{ name = "500 coins", kind = "coins", amount = 500, weight = 35, icon = "economy_coin_stack" },
-		{ name = "25 gems", kind = "gems", amount = 25, weight = 25, icon = "economy_gem" },
+		{ name = "15 gems", kind = "gems", amount = 15, weight = 25, icon = "economy_gem" },
 		{ name = "1,500 coins", kind = "coins", amount = 1500, weight = 20, icon = "economy_coin_stack" },
-		{ name = "75 gems", kind = "gems", amount = 75, weight = 10, icon = "economy_gem_cluster" },
+		{ name = "40 gems", kind = "gems", amount = 40, weight = 10, icon = "economy_gem_cluster" },
 		{ name = "2x speed · 3 min", kind = "speed", amount = 180, weight = 8, icon = "gameplay_speed" },
 		{ name = "Sky Blue skin", kind = "skin", skin = "sky_blue", amount = 100, weight = 2, icon = "gameplay_cosmetics" },
 	},
@@ -2925,6 +2926,7 @@ export type Profile = {
 	wheelFree: number,
 	wheelPaid: number,
 	speedBoostUntil: number,
+	playtime: { day: number, seconds: number, claimed: number }, -- today's play; claimed = bitmask of Catalog.playtime indices
 	settings: { music: boolean, sfx: boolean, shake: boolean, lowDetail: boolean },
 	firstJoin: number,
 	lastJoin: number,
@@ -3031,7 +3033,7 @@ local function sessionInfo(player: Player): { [string]: any }
 		multiplier = EconomyService.multiplier(player),
 		passes = passes,
 		featured = Catalog.featured(Formulas.dayNumber(os.time())),
-		joinedAt = joinedAt[player] or os.time(),
+		joinedAt = RewardService.playtimeStart(player), -- start of today's play (playtime rewards are per day)
 		playtimeClaimed = RewardService.playtimeClaimed(player),
 		starterOffer = MonetizationService.shouldOfferStarter(player),
 		serverTime = os.time(),
@@ -3776,6 +3778,7 @@ type Cell = { x: number, y: number }
 type PState = {
 	player: Player,
 	joinClock: number,
+	gentleUntil: number, -- os.clock(); bots stay gentle until then (counts lifetime play, not this session)
 	id: number, -- 0 = no runner
 	character: Model?,
 	hrp: BasePart?,
@@ -3921,7 +3924,7 @@ end
 function ArenaService.gentleRunnerIds(now: number): { number }
 	local out = {}
 	for id, st in playerById do
-		if now - st.joinClock &lt; Config.Bots.GentleSeconds then
+		if now &lt; st.gentleUntil then
 			table.insert(out, id)
 		end
 	end
@@ -4624,9 +4627,13 @@ function ArenaService.join(player: Player)
 		return
 	end
 	local now = os.clock()
+	local profile = DataService.get(player)
+	-- ponytail: playSeconds is banked every 60 s, so a rejoin can get up to 60 s of extra gentle time once.
+	local played = if profile ~= nil then profile.stats.playSeconds else 0
 	local st: PState = {
 		player = player,
 		joinClock = now,
+		gentleUntil = now + math.max(0, Config.Bots.GentleSeconds - played),
 		id = 0,
 		character = nil,
 		hrp = nil,
@@ -6781,8 +6788,7 @@ local RewardService = {}
 local PLAY_TICK = 60
 local MINUTES_PER_TICK = PLAY_TICK / 60
 
-local joinClock: { [Player]: number } = {}
-local claimedPlaytime: { [Player]: { [number]: boolean } } = {}
+local bankClock: { [Player]: number } = {} -- os.clock() of the last time play was banked into profile.playtime
 local started = false
 
 local questDefs: { [string]: EconomyRules.QuestDef } = {}
@@ -6796,6 +6802,21 @@ end
 
 local function today(): number
 	return Formulas.dayNumber(os.time())
+end
+
+-- Call inside an update: rolls profile.playtime over to today and banks the seconds since the last bank.
+-- ponytail: seconds since the last 60 s bank are lost on leave; add a bank on release if that matters.
+local function bankPlaytime(p: Profile, player: Player)
+	local now = os.clock()
+	local since = now - (bankClock[player] or now)
+	bankClock[player] = now
+	local day = today()
+	if p.playtime.day ~= day then
+		p.playtime.day = day
+		p.playtime.seconds = 0
+		p.playtime.claimed = 0
+	end
+	p.playtime.seconds += since
 end
 
 -- Call inside an update.
@@ -6876,23 +6897,25 @@ function RewardService.claimPlaytime(player: Player, index: any): (boolean, any)
 	if not isIndex(index, #Catalog.playtime) then
 		return false, "bad_args"
 	end
-	local joined = joinClock[player]
-	if joined == nil or DataService.get(player) == nil then
+	if bankClock[player] == nil or DataService.get(player) == nil then
 		return false, "no_profile"
 	end
 	local reward = Catalog.playtime[index]
-	local claimed = claimedPlaytime[player]
-	if claimed == nil then
-		claimed = {}
-		claimedPlaytime[player] = claimed
+	local bit = 2 ^ (index - 1)
+	local err: string? = nil
+	DataService.update(player, function(p)
+		bankPlaytime(p, player)
+		if bit32.btest(p.playtime.claimed, bit) then
+			err = "already_claimed"
+		elseif p.playtime.seconds &lt; reward.seconds then
+			err = "too_early"
+		else
+			p.playtime.claimed = bit32.bor(p.playtime.claimed, bit)
+		end
+	end)
+	if err ~= nil then
+		return false, err
 	end
-	if (claimed :: { [number]: boolean })[index] then
-		return false, "already_claimed"
-	end
-	if os.clock() - joined &lt; reward.seconds then
-		return false, "too_early"
-	end
-	(claimed :: { [number]: boolean })[index] = true
 	grant(player, reward, "playtime")
 	return true, { currency = reward.currency, amount = reward.amount }
 end
@@ -6953,18 +6976,28 @@ function RewardService.redeemCode(player: Player, code: any): (boolean, any)
 	return true, { currency = reward.currency, amount = reward.amount }
 end
 
--- Playtime rewards claimed this session as a dense array (sparse tables do not survive remotes).
+-- Playtime rewards claimed today as a dense array (sparse tables do not survive remotes).
 function RewardService.playtimeClaimed(player: Player): { boolean }
 	local out = table.create(#Catalog.playtime, false)
-	local claimed = claimedPlaytime[player]
-	if claimed ~= nil then
-		for i in claimed do
-			if out[i] ~= nil then
-				out[i] = true
-			end
+	local p = DataService.get(player)
+	if p ~= nil and p.playtime.day == today() then
+		for i in out do
+			out[i] = bit32.btest(p.playtime.claimed, 2 ^ (i - 1))
 		end
 	end
 	return out
+end
+
+-- Unix time at which today's play would have started if it were one session; the client counts
+-- playtime rewards from here, so it keeps working unchanged.
+function RewardService.playtimeStart(player: Player): number
+	local p = DataService.get(player)
+	local played = if p ~= nil and p.playtime.day == today() then p.playtime.seconds else 0
+	local clock = bankClock[player]
+	if clock ~= nil then
+		played += os.clock() - clock
+	end
+	return os.time() - math.floor(played)
 end
 
 -- One DataService update per call, however many quests match.
@@ -6984,6 +7017,7 @@ local function playLoop()
 		for _, player in Players:GetPlayers() do
 			DataService.update(player, function(p)
 				p.stats.playSeconds += PLAY_TICK
+				bankPlaytime(p, player)
 				regenerateQuests(p, player.UserId)
 				EconomyRules.applyQuestProgress(p.quests.list, questDefs, "playMinutes", MINUTES_PER_TICK, "add")
 			end)
@@ -6997,9 +7031,10 @@ function RewardService.start()
 	end
 	started = true
 	local function onPlayer(player: Player)
-		joinClock[player] = os.clock()
 		if DataService.load(player) ~= nil then
+			bankClock[player] = os.clock()
 			DataService.update(player, function(p)
+				bankPlaytime(p, player) -- rolls the day over; banks nothing on join
 				regenerateQuests(p, player.UserId)
 			end)
 		end
@@ -7008,8 +7043,7 @@ function RewardService.start()
 		task.spawn(onPlayer, player)
 	end)
 	Players.PlayerRemoving:Connect(function(player)
-		joinClock[player] = nil
-		claimedPlaytime[player] = nil
+		bankClock[player] = nil
 	end)
 	for _, player in Players:GetPlayers() do
 		task.spawn(onPlayer, player)

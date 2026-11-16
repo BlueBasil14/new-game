@@ -109,12 +109,12 @@ Config.Upgrades = {
 Config.UpgradeOrder = { "coinBoost", "speed", "shield", "startSize" }
 
 -- G3.4 rebirth: requirement = Base * 2^crowns lifetime coins since last rebirth
-Config.Rebirth = { Base = 150000, GemReward = 50 }
+Config.Rebirth = { Base = 150000, Growth = 1.5, GemReward = 50 } -- requirement = Base * Growth ^ crowns
 
 -- G3.6 cosmetic prices
 Config.Prices = {
 	common = { Currency = "coins", Amount = 500 },
-	rare = { Currency = "coins", Amount = 5000 },
+	rare = { Currency = "coins", Amount = 12000 },
 	epic = { Currency = "gems", Amount = 150 },
 	legendary = { Currency = "gems", Amount = 400 },
 	FeaturedDiscount = 0.20,
@@ -183,7 +183,7 @@ Config.Bots = {
 	},
 	ThreatRadius = 8,
 	HuntRadius = 6,
-	GentleSeconds = 120, -- bots near a new player stay slow and never cut them
+	GentleSeconds = 120, -- bots near a new player stay slow and never cut them (first 120 s of lifetime play)
 	GentleSpeedScale = 0.8,
 	-- Friend avatars: bots wear the avatars of joining players' Roblox friends.
 	FriendsPerPlayer = 30, -- max friends fetched per joining player into the avatar pool

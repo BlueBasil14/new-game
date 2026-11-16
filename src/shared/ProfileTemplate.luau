@@ -36,6 +36,7 @@ function ProfileTemplate.default(now: number): Profile
 		wheelFree = 0,
 		wheelPaid = 0,
 		speedBoostUntil = 0,
+		playtime = { day = 0, seconds = 0, claimed = 0 },
 		settings = { music = true, sfx = true, shake = true, lowDetail = false },
 		firstJoin = now,
 		lastJoin = now,

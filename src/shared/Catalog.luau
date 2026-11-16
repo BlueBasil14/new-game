@@ -273,7 +273,7 @@ function Catalog.nextDailyMilestone(fromDay: number, claimed: { [string]: boolea
 	return nil
 end
 
--- Per-session playtime rewards
+-- Playtime rewards, once per UTC day (seconds played that day, across sessions)
 Catalog.playtime = {
 	{ seconds = 120, currency = "coins", amount = 100 },
 	{ seconds = 300, currency = "coins", amount = 250 },

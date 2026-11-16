@@ -82,7 +82,7 @@ local function sessionInfo(player: Player): { [string]: any }
 		multiplier = EconomyService.multiplier(player),
 		passes = passes,
 		featured = Catalog.featured(Formulas.dayNumber(os.time())),
-		joinedAt = joinedAt[player] or os.time(),
+		joinedAt = RewardService.playtimeStart(player), -- start of today's play (playtime rewards are per day)
 		playtimeClaimed = RewardService.playtimeClaimed(player),
 		starterOffer = MonetizationService.shouldOfferStarter(player),
 		serverTime = os.time(),

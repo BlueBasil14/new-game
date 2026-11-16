@@ -61,6 +61,7 @@ export type Profile = {
 	wheelFree: number,
 	wheelPaid: number,
 	speedBoostUntil: number,
+	playtime: { day: number, seconds: number, claimed: number }, -- today's play; claimed = bitmask of Catalog.playtime indices
 	settings: { music: boolean, sfx: boolean, shake: boolean, lowDetail: boolean },
 	firstJoin: number,
 	lastJoin: number,

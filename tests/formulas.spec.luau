@@ -1,5 +1,6 @@
 --!strict
 local F = require(script.Parent.Formulas)
+local Config = require(script.Parent.Config)
 
 local function eq(a: any, b: any, msg: string)
 	if a ~= b then
@@ -52,7 +53,7 @@ eq(F.passiveCoins(399), 19, "passive")
 eq(F.passiveCoins(19), 0, "passive none")
 
 eq(F.rebirthRequirement(0), 150000, "rebirth 0")
-eq(F.rebirthRequirement(2), 600000, "rebirth 2")
+eq(F.rebirthRequirement(2), 337500, "rebirth 2 (growth 1.5)")
 
 -- 2024-01-06 00:00:00 UTC was a Saturday: 1704499200
 eq(F.dayNumber(1704499200), 19728, "day number")
@@ -85,7 +86,7 @@ local p = F.itemPrice("common", false) :: { currency: string, amount: number }
 eq(p.currency, "coins", "common cur")
 eq(p.amount, 500, "common amt")
 p = F.itemPrice("rare", true) :: { currency: string, amount: number }
-eq(p.amount, 4000, "rare featured")
+eq(p.amount, Config.Prices.rare.Amount * (1 - Config.Prices.FeaturedDiscount), "rare featured")
 p = F.itemPrice("epic", false) :: { currency: string, amount: number }
 eq(p.currency, "gems", "epic cur")
 eq(p.amount, 150, "epic amt")

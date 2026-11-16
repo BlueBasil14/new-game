@@ -18,8 +18,7 @@ local RewardService = {}
 local PLAY_TICK = 60
 local MINUTES_PER_TICK = PLAY_TICK / 60
 
-local joinClock: { [Player]: number } = {}
-local claimedPlaytime: { [Player]: { [number]: boolean } } = {}
+local bankClock: { [Player]: number } = {} -- os.clock() of the last time play was banked into profile.playtime
 local started = false
 
 local questDefs: { [string]: EconomyRules.QuestDef } = {}
@@ -33,6 +32,21 @@ end
 
 local function today(): number
 	return Formulas.dayNumber(os.time())
+end
+
+-- Call inside an update: rolls profile.playtime over to today and banks the seconds since the last bank.
+-- ponytail: seconds since the last 60 s bank are lost on leave; add a bank on release if that matters.
+local function bankPlaytime(p: Profile, player: Player)
+	local now = os.clock()
+	local since = now - (bankClock[player] or now)
+	bankClock[player] = now
+	local day = today()
+	if p.playtime.day ~= day then
+		p.playtime.day = day
+		p.playtime.seconds = 0
+		p.playtime.claimed = 0
+	end
+	p.playtime.seconds += since
 end
 
 -- Call inside an update.
@@ -113,23 +127,25 @@ function RewardService.claimPlaytime(player: Player, index: any): (boolean, any)
 	if not isIndex(index, #Catalog.playtime) then
 		return false, "bad_args"
 	end
-	local joined = joinClock[player]
-	if joined == nil or DataService.get(player) == nil then
+	if bankClock[player] == nil or DataService.get(player) == nil then
 		return false, "no_profile"
 	end
 	local reward = Catalog.playtime[index]
-	local claimed = claimedPlaytime[player]
-	if claimed == nil then
-		claimed = {}
-		claimedPlaytime[player] = claimed
+	local bit = 2 ^ (index - 1)
+	local err: string? = nil
+	DataService.update(player, function(p)
+		bankPlaytime(p, player)
+		if bit32.btest(p.playtime.claimed, bit) then
+			err = "already_claimed"
+		elseif p.playtime.seconds < reward.seconds then
+			err = "too_early"
+		else
+			p.playtime.claimed = bit32.bor(p.playtime.claimed, bit)
+		end
+	end)
+	if err ~= nil then
+		return false, err
 	end
-	if (claimed :: { [number]: boolean })[index] then
-		return false, "already_claimed"
-	end
-	if os.clock() - joined < reward.seconds then
-		return false, "too_early"
-	end
-	(claimed :: { [number]: boolean })[index] = true
 	grant(player, reward, "playtime")
 	return true, { currency = reward.currency, amount = reward.amount }
 end
@@ -190,18 +206,28 @@ function RewardService.redeemCode(player: Player, code: any): (boolean, any)
 	return true, { currency = reward.currency, amount = reward.amount }
 end
 
--- Playtime rewards claimed this session as a dense array (sparse tables do not survive remotes).
+-- Playtime rewards claimed today as a dense array (sparse tables do not survive remotes).
 function RewardService.playtimeClaimed(player: Player): { boolean }
 	local out = table.create(#Catalog.playtime, false)
-	local claimed = claimedPlaytime[player]
-	if claimed ~= nil then
-		for i in claimed do
-			if out[i] ~= nil then
-				out[i] = true
-			end
+	local p = DataService.get(player)
+	if p ~= nil and p.playtime.day == today() then
+		for i in out do
+			out[i] = bit32.btest(p.playtime.claimed, 2 ^ (i - 1))
 		end
 	end
 	return out
+end
+
+-- Unix time at which today's play would have started if it were one session; the client counts
+-- playtime rewards from here, so it keeps working unchanged.
+function RewardService.playtimeStart(player: Player): number
+	local p = DataService.get(player)
+	local played = if p ~= nil and p.playtime.day == today() then p.playtime.seconds else 0
+	local clock = bankClock[player]
+	if clock ~= nil then
+		played += os.clock() - clock
+	end
+	return os.time() - math.floor(played)
 end
 
 -- One DataService update per call, however many quests match.
@@ -221,6 +247,7 @@ local function playLoop()
 		for _, player in Players:GetPlayers() do
 			DataService.update(player, function(p)
 				p.stats.playSeconds += PLAY_TICK
+				bankPlaytime(p, player)
 				regenerateQuests(p, player.UserId)
 				EconomyRules.applyQuestProgress(p.quests.list, questDefs, "playMinutes", MINUTES_PER_TICK, "add")
 			end)
@@ -234,9 +261,10 @@ function RewardService.start()
 	end
 	started = true
 	local function onPlayer(player: Player)
-		joinClock[player] = os.clock()
 		if DataService.load(player) ~= nil then
+			bankClock[player] = os.clock()
 			DataService.update(player, function(p)
+				bankPlaytime(p, player) -- rolls the day over; banks nothing on join
 				regenerateQuests(p, player.UserId)
 			end)
 		end
@@ -245,8 +273,7 @@ function RewardService.start()
 		task.spawn(onPlayer, player)
 	end)
 	Players.PlayerRemoving:Connect(function(player)
-		joinClock[player] = nil
-		claimedPlaytime[player] = nil
+		bankClock[player] = nil
 	end)
 	for _, player in Players:GetPlayers() do
 		task.spawn(onPlayer, player)
