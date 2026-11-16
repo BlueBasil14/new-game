@@ -10,7 +10,8 @@ A drop-in 16-player Roblox arena. You run out of your coloured turf leaving a tr
 **Built, passes headless tests, not seen in Studio by the lead:** the Sky Chest (another session's work; its own solo test is described in `docs/SKY-CHEST.md`); the security fixes in section 3.
 **Seen with two clients once (2026-11-12):** identical turf on both, a cut across clients. Not repeated since the bots, passes or Sky Chest were added.
 **Never done:** a real purchase; two real accounts that are friends; a real phone; anyone listening to the sounds; a person judging how the effects feel at real speed.
-**Not built:** real Roblox ids (all passes/products zero except the Sky Chest product), badges, group, icon, thumbnails, video, the week-two content, skin patterns (GAP-17), the three empty sounds.
+**Ids:** every pass and product in `Config.Ids` now has a real id, created on the owner's account by another session (not checked by the lead against the dashboard: names and prices there may differ from `Config.Passes`). The creator owns every pass, so the owner's own character always has 2x Speed, VIP and the rest in Studio.
+**Not built:** badges, group, icon, thumbnails, video, the week-two content, skin patterns (GAP-17), the three empty sounds.
 
 ## 3. Security review: read `docs/SECURITY_REVIEW.md`
 Two read-only reviews found **four Critical** problems (free gamepasses by spoofing the purchase-finished signal; three ways to bypass the server's movement checks or get honest players kicked) plus High and Medium items. Fixes were in progress when this was written: the "Fix log" at the bottom of that file says what landed and what was tested. **Do not launch with any Critical or High item still open.** Items left open on purpose: M4/M5 (they trade against each other and need real-device data) and the Low items.

@@ -10,8 +10,8 @@ _Written 2026-11-16. "Owner" steps need your Roblox account. "Lead" steps are fo
 - [ ] **Owner + one friend:** two real accounts in the cloud place via Studio "Server & Clients" or a private test. Check: both see the same turf; a cut works; the friend's bot disappears when the friend joins; the "+10% FRIEND" chip shows; the Invite button opens Roblox's invite prompt.
 - [ ] **Lead:** phone layout pass on the 750x381 emulator view (HUD buttons near the thumbstick, shop cards, daily panel).
 
-## B. Create the things that need ids (Owner, free to create)
-On the Creator Dashboard, for the experience "TurfLoop Main" (universe 10776297454):
+## B. Check the passes and products (Owner)
+**Update 2026-11-16:** another session already created all five passes and the products; their ids are in `Config.Ids`. What is left is to open the Creator Dashboard for "TurfLoop Main" (universe 10776297454) and confirm each one exists, is on sale, and has the name, icon and price you want. Prices in `Config.Passes` are only what the shop displays; the dashboard price is what players pay, and the two must match.
 - [ ] Game passes: VIP (399), 2x Coins (249), Neon Pack (199), Skip Music (9), 2x Speed (79 or as decided).
 - [ ] Developer products: Starter Pack (79), Second Chance (15), 15-minute 2x boost (29), gem packs, Sky Chest Spin (already created: 3732125306, 39) if the paid spin stays.
 - [ ] Badges listed in `src/shared/Catalog.luau` (badge creation may cost Robux beyond a free daily allowance: **check the price shown before confirming**).
