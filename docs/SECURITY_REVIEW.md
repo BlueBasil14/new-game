@@ -22,9 +22,34 @@ Clean: the rest of ProcessReceipt (receipt checked twice, grant and receipt in o
 
 Could not be assessed without a live server: whether the pass spoof still works on current Roblox, how long `UserOwnsGamePassAsync` caches a false after a real purchase, real DataStore throttling, how Roblox schedules receipt retries.
 
-**The Sky Chest paid spin (added after this review) has not been reviewed.**
+**The Sky Chest purchase and save path (added after this review) has not had a money review; its pickup path is covered in Part 2.**
 
-## Part 2: gameplay authority, requests, bots
-Review was cut off by a usage limit and resumed; results are appended below when it finishes.
+## Part 2: gameplay authority, requests, bots (complete)
+
+Line numbers are for commit cc3899f. "Confirmed" means the server code path was confirmed by reading; none was run.
+
+| # | Severity | Finding | Where | Status |
+|---|---|---|---|---|
+| C1 | **Critical** | Free teleport inside the 0.5 s post-teleport exempt window. An exploiter triggers an out-of-bounds teleport home (no strike), appears near the target for one tick, then moves anywhere for the rest of the window with no speed check. The sim then draws a straight trail line to the new cell, cutting every trail it crosses. Repeatable every 0.5 s. The same window opens after every spawn, respawn, revive and snap-back. | `ArenaService` 488-500, 452-472 | See "Fix log" |
+| C2 | **Critical** | Ignoring a snap-back is accepted after 5 retries (about 3 s): the server gives up and takes the client's position, drawing a trail line of any length. | `ArenaService` 501-511 | See "Fix log" |
+| C3 | **Critical** | Players still collide with each other, so a fling exploiter can throw an honest player; the victim's position jumps and the **victim** gets the strikes and the kick, or is pushed across trails. | `BotService` 719-720 (collision groups), `ArenaService` strikes | See "Fix log" |
+| H1 | High | Speed slack is added per tick: the real limit is 1.5 × speed + 20 studs/s, about 53 studs/s for a free player (2.4× base), 86 with 2x Speed. | `ArenaService` 71, 537-538 | See "Fix log" |
+| H2 | High | Going out of bounds is a free, unlimited escape from being cut: the trail is cleared and the player is put home with no strike and no death. | `ArenaService` 452-472, 512-520 | See "Fix log" |
+| H3 | High | A NaN root position passes every comparison, then throws inside the sim every tick, stalling cuts and events for everyone while it lasts. | `ArenaService` 512-550, `ArenaSim` 502-505, `Grid` 165 | See "Fix log" |
+| M1 | Medium | Sky Chest pickup reads the raw root position, and the landing spot is broadcast 3 s early: a teleporter takes every chest. | `SkyChestService` 92-97 | See "Fix log" |
+| M2 | Medium | Pressing Reset skips the 3 s respawn delay, and during the Second Chance hold makes all the victim's turf neutral so the killer gets nothing. No exploit tool needed. | `ArenaService` 381-425 | See "Fix log" |
+| M3 | Medium | Re-equipping the equipped item succeeds and broadcasts the full runner list to every client: one client can cause 10 broadcasts per second. | `ShopService` 137-139 | See "Fix log" |
+| M4 | Medium | Banked time allows a legal blink: stand still 1 s, then move 8 cells in one tick. | `ArenaService` 73, 529-537 | Open (trades against M5) |
+| M5 | Medium | Honest players on poor connections can collect strikes and be kicked after network stalls. Needs real-device testing. | `ArenaService` 537-545, 429-443 | Open |
+| M6 | Medium | A friend's avatar can be R6 or very heavy: an R6 rig sinks into the floor and does not animate; a fallen rig is never recovered. | `BotService` 284, 260, 198 | See "Fix log" |
+| L1 | Low | One failed avatar build marks that user id failed for the whole server lifetime. | `BotService` 287 | Open |
+| L2 | Low | Bots carry a real friend's display name and avatar (policy and owner decision, `docs/DECISIONS.md` item 3). | `BotService` 330, 363 | Owner |
+| L4 | Low | Sky Chest `busy` flag sticks if the handler throws, locking the player out for the session. | `SkyChestService` 29-59 | See "Fix log" |
+| L5 | Low | `TutorialDone` and `StarterOfferSeen` log analytics on every call. | `Main.server` 320-338 | Open |
+| L6–L8 | Low | Server-to-client remotes have no no-op `OnServerEvent`; two small connection leaks per respawn; a deleted root part freezes the runner. | various | Open |
+
+Clean: the request router (allow-list, argument count, string length, no tables, per-player token bucket, handlers in pcall); replication sizes; the Studio-only hooks (`DebugGrantPass`, `DebugDrop`, client `Debug`) cannot exist in a live server; friend fetch off the join path, caches capped, scripts stripped; flood-fill and respawn spam are bounded.
+
+Could not be assessed without running: whether NaN or fling positions replicate on the current engine; the false-kick rate on real mobile networks; R6 and heavy avatars in practice; real bandwidth in a 16-player server.
 
 ## Fix log
