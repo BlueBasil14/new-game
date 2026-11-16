@@ -247,3 +247,8 @@ Owner brief: capture juice, trail visibility, friend-avatar bots, music without 
 - Found on the way: another session added the Sky Chest (free and 39 Robux paid spins) and filled `Config.Ids` with real pass and product ids created on the owner's account. Committed by the lead as its own commit. The creator owns every pass, so in Studio the owner's character always has 2x Speed, VIP and so on.
 - Decision (Fable): no balance change was applied; the two largest (2x Speed strength, paid spin) are the owner's (`docs/DECISIONS.md`), the rest are queued in `docs/HANDOFF.md`.
 - Not done: critic round two on the capture moment; loading this build into the cloud place (Studio had a different project open); a two-client test of the new collision rule.
+
+## Cloud place updated, 2026-11-16 (lead, switched to Sonnet at the end of the session)
+- "TurfLoop Main" (placeId 80441552680451) now holds the scripts from commit b890270 (security fixes, Sky Chest, friend bonus, streak bonuses, passes). `Shared`, `Server` and `Client` replaced from `build/TurfLoop.rbxlx`; `SoundService.RBLXEssentials` was already there and was left alone. Saved to Roblox, **not published**.
+- Checked in solo play there: 8 of 8 R15 bots, a full walked loop with no snap-back (worst miss 2.4 studs), no errors from our scripts. Output noise is the known DataStore, asset and analytics lines; one `Asset is not approved for the requester` (id 13282611376, not in `src/`).
+- Not checked there: purchases, music by ear, the capture effects, the Sky Chest, two players.
