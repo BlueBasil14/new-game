@@ -115,8 +115,14 @@ function ShopService.equip(player: Player, itemId: any): (boolean, any)
 	end
 	local equipped: { skin: string, trail: string, effect: string }? = nil
 	local err = "not_owned"
+	local unchanged = false
 	DataService.update(player, function(profile)
 		if profile.owned[itemId] ~= true then
+			return
+		end
+		local slot = profile.equipped :: any
+		if slot[item.type] == itemId then
+			unchanged = true -- already equipped: nothing to broadcast
 			return
 		end
 		if item.type == "skin" then
@@ -131,6 +137,9 @@ function ShopService.equip(player: Player, itemId: any): (boolean, any)
 		end
 		equipped = profile.equipped
 	end)
+	if unchanged then
+		return true, itemId
+	end
 	if equipped == nil then
 		return false, err
 	end

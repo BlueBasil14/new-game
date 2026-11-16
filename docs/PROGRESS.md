@@ -240,3 +240,10 @@ Owner brief: capture juice, trail visibility, friend-avatar bots, music without 
 - Checks: 40 files compile, specs, xref 0, headless 13/13, place build.
 - Seen live in the cloud place (placeId 80441552680451) from a fresh start: neutral mid-grey floor with visible grid, red turf and the dark trail with its rim stand out more than before. Saved to Roblox (not published).
 - Not checked: other turf colours against the grey (light pastels may now have less contrast with the floor), the phone view, the wall and props under the lower light.
+
+## Lead session, 2026-11-16: pre-launch reviews, security fixes, hand-off
+- Two read-only security reviews and an economy analysis on the strongest model: `docs/SECURITY_REVIEW.md` (four Critical findings), `docs/BALANCE.md`. Fixes for Part 1 findings 1–4 and Part 2 C1–C3, H1–H3, M1–M3, M6, L4 are committed with headless tests (16/16); details and what remains unverified are in the review's fix log.
+- New or rewritten: `CLAUDE.md`, `docs/HANDOFF.md`, `docs/STUDIO.md`, `tools/studio_export.py`, `docs/DECISIONS.md`, `docs/LAUNCH_CHECKLIST.md`.
+- Found on the way: another session added the Sky Chest (free and 39 Robux paid spins) and filled `Config.Ids` with real pass and product ids created on the owner's account. Committed by the lead as its own commit. The creator owns every pass, so in Studio the owner's character always has 2x Speed, VIP and so on.
+- Decision (Fable): no balance change was applied; the two largest (2x Speed strength, paid spin) are the owner's (`docs/DECISIONS.md`), the rest are queued in `docs/HANDOFF.md`.
+- Not done: critic round two on the capture moment; loading this build into the cloud place (Studio had a different project open); a two-client test of the new collision rule.

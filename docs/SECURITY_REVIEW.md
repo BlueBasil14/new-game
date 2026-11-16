@@ -61,3 +61,19 @@ Headless only: 44 files compile, specs pass, xref 0, headless 15/15. Nothing run
 - **3 (save reporting success for a cancelled write):** `write` returns true only when it actually wrote this session's data. Tested in the same scenario.
 - **4 (no retry at join):** each pass is verified separately off the join path; errors retry with growing delays, a clean false stops at once. Test in `g_purchases`.
 - **Needs a live server:** whether the spoof works on current Roblox at all; how long ownership reads false after a real purchase and whether 6 × 5 s is enough (test with the 9 Robux Skip Music pass, `docs/LAUNCH_CHECKLIST.md` B); real DataStore timing on a quick rejoin.
+
+### 2026-11-16: Part 2 findings C1, C2, C3, H1, H2, H3, M1, M2, M3, M6, L4 fixed (Opus subagent, reviewed by the lead)
+Checks: 44 files compile, specs pass, xref 0, headless 16/16 (new `tests/headless/o_movement_authority.luau`; every new assertion fails against the old code except the NaN one, which did not crash in the mock).
+- **C1:** the post-teleport window only skips checks until the client is seen at the target; then bounds and speed checks run at once.
+- **C2:** when settle retries run out the runner is removed (turf neutral, no killer) and the character reloaded; the far position is never accepted. No extra strike, so an honest 3 s freeze costs turf but not a kick.
+- **H2:** out of bounds always gives a strike; with an open trail the runner is eliminated the same way, with no trail it is sent home.
+- **H3:** a NaN or infinite position is dropped for that tick with a strike.
+- **H1:** the flat +1 stud per tick is replaced by a small refilling budget (`Config.Security.SpeedSlack` 2, `SpeedSlackRefill` 2): sustained limit is 1.5 × speed + 2 studs/s (35 for a free player, was 53). The 1 s window is unchanged.
+- **C3:** players no longer collide with each other (they still collide with the floor and walls).
+- **M2:** a reset during the Second Chance hold releases the victim through the sim first, so the killer keeps the 25 %; a reloaded character gets its runner only after the respawn delay.
+- **M1 / L4:** Sky Chest pickup uses the runner's accepted cell from the sim within `Config.Arena.SkyChestPickupCells` (2); the spin handler always clears `busy`.
+- **M3:** re-equipping the equipped item no longer broadcasts.
+- **M6:** bot avatars are always built as R15 from the friend's HumanoidDescription; a rig whose height is off by more than `Config.Bots.RigSnapHeight` (3) is snapped back.
+- **Seen in Studio (solo, local build, 2x speed because the creator owns every pass):** two full loops with sharp turns and, after a server-side reset, another loop: worst miss from a MoveTo target 2.5 studs, no snap-back, no reload, no kick; turf claimed after the reset; no errors from our scripts.
+- **Not verified:** any of the exploits themselves (no executor); players passing through each other (needs two clients); laggy mobile play under the tighter limit; the C2 reload on a real stall; reset during a real Second Chance; R6 friends.
+- Still open by choice: M4, M5, L1, L5–L8, and Part 1 items 5–9.

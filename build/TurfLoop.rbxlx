@@ -1,18 +1,18 @@
 <?xml version='1.0' encoding='utf-8'?>
 <roblox xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://www.roblox.com/roblox.xsd" version="4">
-	<Item class="Workspace" referent="RBX0000000000000000000000000000002F">
+	<Item class="Workspace" referent="RBX00000000000000000000000000000033">
 		<Properties>
 			<string name="Name">Workspace</string>
 			<bool name="FilteringEnabled">true</bool>
 			<bool name="StreamingEnabled">false</bool>
 		</Properties>
 	</Item>
-	<Item class="Lighting" referent="RBX00000000000000000000000000000030">
+	<Item class="Lighting" referent="RBX00000000000000000000000000000034">
 		<Properties>
 			<string name="Name">Lighting</string>
 		</Properties>
 	</Item>
-	<Item class="ReplicatedStorage" referent="RBX00000000000000000000000000000031">
+	<Item class="ReplicatedStorage" referent="RBX00000000000000000000000000000035">
 		<Properties>
 			<string name="Name">ReplicatedStorage</string>
 		</Properties>
@@ -1467,6 +1467,7 @@ Config.Arena = {
 	KingMinShare = 0.03, -- share of map needed to be King
 	FullMapBonus = 5000,
 	TrailDangerRadius = 6, -- cells, client warning
+	SkyChestPickupCells = 2, -- a Sky Chest is picked up by an alive runner within this many cells of its landing cell
 }
 
 -- G6 claim feel (client): flash start is delayed by up to WaveTime, sweeping out from the loop-close point
@@ -1570,15 +1571,16 @@ Config.Prices = {
 -- G4 monetization. Ids are 0 until the owner creates them on Roblox (T-LCH-01).
 Config.Ids = {
 	GroupId = 0,
-	Passes = { vip = 0, doubleCoins = 0, neonPack = 0, skipMusic = 0, doubleSpeed = 0 },
+	Passes = { vip = 2089000422, doubleCoins = 2089708438, neonPack = 2087992464, skipMusic = 2088466350, doubleSpeed = 2088136357 },
 	Products = {
-		starterPack = 0,
-		secondChance = 0,
-		boost15 = 0,
-		gemsS = 0,
-		gemsM = 0,
-		gemsL = 0,
-		gemsXL = 0,
+		wheelSpin = 3732125306,
+		starterPack = 3732085887,
+		secondChance = 3732085948,
+		boost15 = 3731884017,
+		gemsS = 3731883650,
+		gemsM = 3731883784,
+		gemsL = 3731883882,
+		gemsXL = 3731883942,
 	},
 	Badges = {
 		firstLoop = 0,
@@ -1610,6 +1612,10 @@ Config.Passes = {
 	skipMusic = { Robux = 9 },
 	doubleSpeed = { Robux = 79, SpeedMultiplier = 2 },
 }
+-- Server-side pass ownership checks (UserOwnsGamePassAsync). After a purchase prompt finishes the
+-- server re-checks ownership up to Attempts times, RetrySeconds apart (the API can return a cached
+-- false right after a real purchase). At join, only errored checks retry, with doubling delays.
+Config.PassCheck = { Attempts = 6, RetrySeconds = 5 }
 -- Background music (client): pack tracks shuffled under SoundService.RBLXEssentials.SoundSystem.Music.
 -- Volume: multiplier on each track's authored (loudness-matched) Volume, inside the pack's Music SoundGroup (0.2).
 -- SkipKey: Enum.KeyCode name, bound only for skipMusic owners. LoadTimeout: seconds before an unloaded track is skipped.
@@ -1635,6 +1641,7 @@ Config.Bots = {
 	RigLookAheadCells = 1.5, -- Humanoid:MoveTo target is this far ahead of the simulated position
 	RigSpeedScale = 1.1, -- rig WalkSpeed = simulated speed x this, so it keeps up instead of lagging
 	RigSnapDistance = 8, -- studs; a rig further than this from its simulated position is PivotTo'd
+	RigSnapHeight = 3, -- studs; a rig this far above or below its standing height (fallen, sunk) is PivotTo'd
 	RunAnimationId = "rbxassetid://507767714", -- standard R15 run
 	IdleAnimationId = "rbxassetid://507766666", -- standard R15 idle
 	RunAnimationSpeed = 16, -- WalkSpeed at which the run animation plays at 1x
@@ -1644,13 +1651,16 @@ Config.Bots = {
 Config.Security = {
 	SpeedTolerance = 1.5,
 	SpeedStrikeTicks = 3,
+	SpeedSlack = 2, -- studs: rolling jitter budget on top of SpeedTolerance (one late or bunched packet)
+	SpeedSlackRefill = 2, -- studs per second the budget refills; sustained limit = tolerance x speed + this
 	KickStrikes = 5,
 	StrikeWindow = 60,
 	RequestsPerSecond = 10,
 	MaxCodeLength = 24,
 }
 
-Config.Data = { StoreName = "PlayerData_v1", AutosaveSeconds = 60, ReceiptHistory = 50, Version = 1 }
+-- ReleaseWaitSeconds: a rejoin to the same server waits this long for the previous session's final save.
+Config.Data = { StoreName = "PlayerData_v1", AutosaveSeconds = 60, ReceiptHistory = 50, Version = 1, ReleaseWaitSeconds = 30 }
 Config.Leaderboards = { RefreshSeconds = 120, Size = 50, Boards = { "cells", "kills", "bestPct", "crowns" } }
 
 -- G8 palette
@@ -2493,6 +2503,9 @@ function ProfileTemplate.default(now: number): Profile
 		tutorialDone = false,
 		receipts = {},
 		boostUntil = 0,
+		wheelFree = 0,
+		wheelPaid = 0,
+		speedBoostUntil = 0,
 		settings = { music = true, sfx = true, shake = true, lowDetail = false },
 		firstJoin = now,
 		lastJoin = now,
@@ -2569,15 +2582,8 @@ local function reconcileReceipts(value: any): { string }
 			end
 		end
 	end
-	local limit = Config.Data.ReceiptHistory
-	if #all &lt;= limit then
-		return all
-	end
-	local out: { string } = {}
-	for i = #all - limit + 1, #all do
-		table.insert(out, all[i])
-	end
-	return out
+	-- Purchase IDs must survive rejoining so delayed receipt retries cannot grant twice.
+	return all
 end
 
 function ProfileTemplate.reconcile(data: any, now: number): Profile
@@ -2650,6 +2656,7 @@ Remotes.RunnerInfo = "RunnerInfo"
 Remotes.Request = "Request"
 
 Remotes.Requests = {
+	SkyChest = "SkyChest",
 	BuyUpgrade = "BuyUpgrade", -- (upgradeId: string)
 	BuyItem = "BuyItem", -- (itemId: string)
 	Equip = "Equip", -- (itemId: string)
@@ -2671,6 +2678,30 @@ return Remotes
 				</Properties>
 			</Item>
 			<Item class="ModuleScript" referent="RBX0000000000000000000000000000000E">
+				<Properties>
+					<string name="Name">SkyChest</string>
+					<ProtectedString name="Source">--!strict
+-- Exact server odds; UI presents these before any paid spin.
+local SkyChest= {
+	Interval = 300,
+	Lifetime = 120,
+	FallSeconds = 3,
+	SpeedSeconds = 180,
+	ProductId = 3732125306,
+	Prizes = {
+		{ name = "500 coins", kind = "coins", amount = 500, weight = 35, icon = "economy_coin_stack" },
+		{ name = "25 gems", kind = "gems", amount = 25, weight = 25, icon = "economy_gem" },
+		{ name = "1,500 coins", kind = "coins", amount = 1500, weight = 20, icon = "economy_coin_stack" },
+		{ name = "75 gems", kind = "gems", amount = 75, weight = 10, icon = "economy_gem_cluster" },
+		{ name = "2x speed · 3 min", kind = "speed", amount = 180, weight = 8, icon = "gameplay_speed" },
+		{ name = "Sky Blue skin", kind = "skin", skin = "sky_blue", amount = 100, weight = 2, icon = "gameplay_cosmetics" },
+	},
+}
+return SkyChest
+</ProtectedString>
+				</Properties>
+			</Item>
+			<Item class="ModuleScript" referent="RBX0000000000000000000000000000000F">
 				<Properties>
 					<string name="Name">SoundIds</string>
 					<ProtectedString name="Source">--!strict
@@ -2705,7 +2736,7 @@ return SoundIds
 </ProtectedString>
 				</Properties>
 			</Item>
-			<Item class="ModuleScript" referent="RBX0000000000000000000000000000000F">
+			<Item class="ModuleScript" referent="RBX00000000000000000000000000000010">
 				<Properties>
 					<string name="Name">TrailRuns</string>
 					<ProtectedString name="Source">--!strict
@@ -2828,7 +2859,7 @@ return TrailRuns
 </ProtectedString>
 				</Properties>
 			</Item>
-			<Item class="ModuleScript" referent="RBX00000000000000000000000000000010">
+			<Item class="ModuleScript" referent="RBX00000000000000000000000000000011">
 				<Properties>
 					<string name="Name">Types</string>
 					<ProtectedString name="Source">--!strict
@@ -2891,6 +2922,9 @@ export type Profile = {
 	tutorialDone: boolean,
 	receipts: { string },
 	boostUntil: number, -- unix seconds
+	wheelFree: number,
+	wheelPaid: number,
+	speedBoostUntil: number,
 	settings: { music: boolean, sfx: boolean, shake: boolean, lowDetail: boolean },
 	firstJoin: number,
 	lastJoin: number,
@@ -2902,15 +2936,15 @@ return {}
 			</Item>
 		</Item>
 	</Item>
-	<Item class="ServerScriptService" referent="RBX00000000000000000000000000000032">
+	<Item class="ServerScriptService" referent="RBX00000000000000000000000000000036">
 		<Properties>
 			<string name="Name">ServerScriptService</string>
 		</Properties>
-		<Item class="Folder" referent="RBX00000000000000000000000000000011">
+		<Item class="Folder" referent="RBX00000000000000000000000000000012">
 			<Properties>
 				<string name="Name">Server</string>
 			</Properties>
-			<Item class="Script" referent="RBX00000000000000000000000000000012">
+			<Item class="Script" referent="RBX00000000000000000000000000000013">
 				<Properties>
 					<string name="Name">Main</string>
 					<ProtectedString name="Source">--!strict
@@ -2939,6 +2973,7 @@ local MonetizationService = require(Services:WaitForChild("MonetizationService")
 local RewardService = require(Services:WaitForChild("RewardService") :: any)
 local ShopService = require(Services:WaitForChild("ShopService") :: any)
 local UpgradeService = require(Services:WaitForChild("UpgradeService") :: any)
+local SkyChestService = require(Services:WaitForChild("SkyChestService") :: any)
 
 local PROFILE_PERIOD = 0.25 -- 4 Hz ProfileUpdate throttle
 local MAX_ARGS = 4
@@ -2979,6 +3014,7 @@ RewardService.start()
 LeaderboardService.start()
 ArenaService.start()
 BotService.start()
+SkyChestService.start()
 
 -- 3. profile replication ---------------------------------------------------------------------------
 
@@ -3185,6 +3221,9 @@ local handlers: { [string]: Handler } = {
 	ClaimPlaytime = function(player: Player, index: any): (boolean, any)
 		return RewardService.claimPlaytime(player, index)
 	end,
+	SkyChest = function(player: Player, action: any): (boolean, any)
+		return SkyChestService.request(player, action)
+	end,
 	ClaimQuest = function(player: Player, index: any): (boolean, any)
 		local ok, result = RewardService.claimQuest(player, index)
 		if ok then
@@ -3351,7 +3390,7 @@ end)
 </ProtectedString>
 				</Properties>
 			</Item>
-			<Item class="ModuleScript" referent="RBX00000000000000000000000000000013">
+			<Item class="ModuleScript" referent="RBX00000000000000000000000000000014">
 				<Properties>
 					<string name="Name">WorldBuilder</string>
 					<ProtectedString name="Source">--!strict
@@ -3626,11 +3665,11 @@ return WorldBuilder
 </ProtectedString>
 				</Properties>
 			</Item>
-			<Item class="Folder" referent="RBX00000000000000000000000000000014">
+			<Item class="Folder" referent="RBX00000000000000000000000000000015">
 				<Properties>
 					<string name="Name">services</string>
 				</Properties>
-				<Item class="ModuleScript" referent="RBX00000000000000000000000000000015">
+				<Item class="ModuleScript" referent="RBX00000000000000000000000000000016">
 					<Properties>
 						<string name="Name">AnalyticsService</string>
 						<ProtectedString name="Source">--!strict
@@ -3703,7 +3742,7 @@ return Analytics
 </ProtectedString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="RBX00000000000000000000000000000016">
+				<Item class="ModuleScript" referent="RBX00000000000000000000000000000017">
 					<Properties>
 						<string name="Name">ArenaService</string>
 						<ProtectedString name="Source">--!strict
@@ -3748,6 +3787,7 @@ type PState = {
 	speedGraceUntil: number,
 	lastPos: Vector3?,
 	lastTime: number,
+	slack: number, -- rolling speed-slack budget in studs (Config.Security.SpeedSlack)
 	overTicks: number,
 	strikes: { number },
 	exemptUntil: number,
@@ -3776,7 +3816,6 @@ local MAX_CATCHUP_STEPS = 5
 local TELEPORT_EXEMPT = 0.5
 local SETTLE_RADIUS = 2 * CELL
 local SETTLE_RETRIES = 5
-local SPEED_SLACK = 1 -- studs per check, absorbs replication jitter
 local SPEED_DROP_GRACE = 1 -- seconds the old speed stays allowed after WalkSpeed drops (client lag)
 local MAX_SPEED_WINDOW = 1 -- caps the allowance after a long stand-still
 local BELOW_FLOOR = 6
@@ -3947,6 +3986,7 @@ local function teleport(st: PState, target: CFrame, now: number)
 	st.settleTarget = target.Position
 	st.lastPos = nil
 	st.overTicks = 0
+	st.slack = Config.Security.SpeedSlack
 end
 
 local function placeAtCell(st: PState, cx: number, cy: number, now: number)
@@ -4035,7 +4075,8 @@ end
 -- st.walkSpeed, so owners are allowed exactly what they are given.
 local function playerWalkSpeed(player: Player): number
 	local speed = UpgradeService.walkSpeed(player)
-	if EconomyService.hasPass(player, "doubleSpeed") then
+	local profile = DataService.get(player)
+	if EconomyService.hasPass(player, "doubleSpeed") or (profile ~= nil and profile.speedBoostUntil &gt; os.time()) then
 		speed *= Config.Passes.doubleSpeed.SpeedMultiplier
 	end
 	return speed
@@ -4085,9 +4126,37 @@ local function addPlayerRunner(st: PState, now: number)
 	sendSnapshot(player)
 end
 
+-- Character died (Reset, or the server reloaded it). A pending victim is released through the sim
+-- first so the killer keeps the KillerShare; a death while alive starts the respawn delay.
 local function onDied(st: PState)
-	removePlayerRunner(st, os.clock())
+	local now = os.clock()
+	local r = if st.id ~= 0 then sim:runner(st.id) else nil
+	if r ~= nil then
+		if r.pending then
+			st.pendingUntil = nil
+			sim:releaseVictim(st.id)
+		elseif r.alive then
+			st.deathTime = now
+		end
+	end
+	removePlayerRunner(st, now)
 	st.character, st.hrp, st.humanoid = nil, nil, nil
+end
+
+-- Elimination with no killer (failed movement authority): the runner is removed, so its trail is
+-- cleared and all its turf goes neutral, and the character is reloaded. The new character gets a
+-- runner only after RespawnDelay (onCharacter), so this is never faster than a normal death.
+local function eliminate(st: PState, now: number)
+	removePlayerRunner(st, now)
+	st.deathTime = now
+	st.character, st.hrp, st.humanoid = nil, nil, nil
+	local player = st.player
+	task.spawn(function()
+		local ok, err = pcall(player.LoadCharacter, player)
+		if not ok then
+			warn("[ArenaService] LoadCharacter failed:", err)
+		end
+	end)
 end
 
 local function onCharacter(st: PState, char: Model)
@@ -4113,6 +4182,14 @@ local function onCharacter(st: PState, char: Model)
 	task.wait()
 	if player.Character ~= char or states[player] ~= st or char.Parent == nil then
 		return
+	end
+	-- A character reloaded after a death (Reset, elimination) waits out the normal respawn delay.
+	local remaining = st.deathTime + Config.Arena.RespawnDelay - os.clock()
+	if remaining &gt; 0 then
+		task.wait(remaining)
+		if player.Character ~= char or states[player] ~= st or char.Parent == nil then
+			return
+		end
 	end
 	local hum = humanoid :: Humanoid
 	hum.JumpPower = 0
@@ -4154,9 +4231,15 @@ local function snapBack(st: PState, r: Runner, now: number)
 	teleport(st, cellCFrame(st, r.x, r.y), now)
 end
 
--- G11.6: out of bounds sends the runner to the cell of its own turf nearest its last accepted cell
--- (its last cell when it owns nothing) and drops its trail.
+-- G11.6: out of bounds is a strike. With an open trail it is an elimination with no killer (never a
+-- free escape from a cut); otherwise the runner is sent to the cell of its own turf nearest its last
+-- accepted cell (its last cell when it owns nothing).
 local function outOfBounds(st: PState, r: Runner, now: number)
+	addStrike(st, now)
+	if #r.trail &gt; 0 then
+		eliminate(st, now)
+		return
+	end
 	local bx, by, bd = r.x, r.y, math.huge
 	local x0, y0, x1, y1 = sim.grid:bounds(r.id)
 	if x0 and y0 and x1 and y1 then
@@ -4174,7 +4257,6 @@ local function outOfBounds(st: PState, r: Runner, now: number)
 	end
 	-- Move the sim position too, so the next step does not walk a line from the old cell.
 	r.x, r.y = bx, by
-	sim:clearTrail(r.id)
 	snapBack(st, r, now)
 end
 
@@ -4192,29 +4274,31 @@ local function readPlayer(st: PState, r: Runner, now: number, positions: { [numb
 		return
 	end
 	local pos = hrp.Position
-	if now &lt; st.exemptUntil then
-		-- Once the client has been seen at the target the teleport has landed; the player may
-		-- then walk away from it during the window without being pulled back.
-		local t = st.settleTarget
-		if t ~= nil then
-			local tdx, tdz = pos.X - t.X, pos.Z - t.Z
-			if tdx * tdx + tdz * tdz &lt;= SETTLE_RADIUS * SETTLE_RADIUS then
-				st.settleTarget = nil
-			end
-		end
-		st.lastPos, st.lastTime = pos, now
+	-- NaN or inf fails no comparison below and would throw inside the sim: drop the tick.
+	local sum = pos.X + pos.Y + pos.Z
+	if sum ~= sum or sum == math.huge or sum == -math.huge then
+		addStrike(st, now)
 		return
 	end
 	local target = st.settleTarget
 	if target ~= nil then
 		local dx, dz = pos.X - target.X, pos.Z - target.Z
-		if dx * dx + dz * dz &gt; SETTLE_RADIUS * SETTLE_RADIUS and st.settleTries &lt; SETTLE_RETRIES then
+		if dx * dx + dz * dz &lt;= SETTLE_RADIUS * SETTLE_RADIUS then
+			-- The teleport has landed: from here every normal check applies, even inside the window.
+			st.settleTarget = nil
+			st.lastPos, st.lastTime = pos, now
+		elseif now &lt; st.exemptUntil then
+			-- The client still reports its pre-teleport position for a few frames.
+			return
+		elseif st.settleTries &lt; SETTLE_RETRIES then
 			st.settleTries += 1
 			teleport(st, CFrame.new(target), now)
 			return
+		else
+			-- Never accept a position the client refused to leave.
+			eliminate(st, now)
+			return
 		end
-		st.settleTarget = nil
-		st.lastPos, st.lastTime = pos, now
 	end
 	if
 		math.abs(pos.X) &gt; HALF + CELL
@@ -4242,7 +4326,11 @@ local function readPlayer(st: PState, r: Runner, now: number, positions: { [numb
 		return
 	end
 	local elapsed = math.min(now - st.lastTime, MAX_SPEED_WINDOW)
-	local allowed = Config.Security.SpeedTolerance * speedAllowance(st, now) * elapsed + SPEED_SLACK
+	local base = Config.Security.SpeedTolerance * speedAllowance(st, now) * elapsed
+	-- Jitter slack is a small rolling budget (refilled per second), not a per-tick bonus, so the
+	-- sustained limit stays near tolerance x speed. One late or bunched packet fits in the budget.
+	local slack = math.min(st.slack + Config.Security.SpeedSlackRefill * elapsed, Config.Security.SpeedSlack)
+	local allowed = base + slack
 	if distSq &gt; allowed * allowed then
 		st.overTicks += 1
 		if st.overTicks &gt;= Config.Security.SpeedStrikeTicks then
@@ -4251,6 +4339,7 @@ local function readPlayer(st: PState, r: Runner, now: number, positions: { [numb
 		end
 		return
 	end
+	st.slack = slack - math.max(math.sqrt(distSq) - base, 0)
 	st.overTicks = 0
 	st.lastPos, st.lastTime = pos, now
 	local cx, cy = sim.grid:worldToCell(pos.X, pos.Z)
@@ -4549,12 +4638,13 @@ function ArenaService.join(player: Player)
 		speedGraceUntil = 0,
 		lastPos = nil,
 		lastTime = now,
+		slack = Config.Security.SpeedSlack,
 		overTicks = 0,
 		strikes = {},
 		exemptUntil = 0,
 		settleTarget = nil,
 		settleTries = 0,
-		deathTime = now,
+		deathTime = -math.huge, -- no death yet: the first character gets its runner at once
 		lifeStart = now,
 		lifeCoins = 0,
 		lifeKills = 0,
@@ -4774,7 +4864,7 @@ return ArenaService
 </ProtectedString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="RBX00000000000000000000000000000017">
+				<Item class="ModuleScript" referent="RBX00000000000000000000000000000018">
 					<Properties>
 						<string name="Name">BadgeService</string>
 						<ProtectedString name="Source">--!strict
@@ -4820,7 +4910,7 @@ return Badges
 </ProtectedString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="RBX00000000000000000000000000000018">
+				<Item class="ModuleScript" referent="RBX00000000000000000000000000000019">
 					<Properties>
 						<string name="Name">BotService</string>
 						<ProtectedString name="Source">--!strict
@@ -5020,7 +5110,11 @@ local function placeRig(b: Bot, snap: boolean, dx: number, dy: number, speed: nu
 	local ahead = Config.Bots.RigLookAheadCells
 	local tx, tz = grid:cellToWorld(b.px - 0.5 + dx * ahead, b.py - 0.5 + dy * ahead)
 	local rp = root.Position
-	if snap or Vector3.new(rp.X - wx, 0, rp.Z - wz).Magnitude &gt; Config.Bots.RigSnapDistance then
+	if
+		snap
+		or Vector3.new(rp.X - wx, 0, rp.Z - wz).Magnitude &gt; Config.Bots.RigSnapDistance
+		or math.abs(rp.Y - (FLOOR_Y + b.lift)) &gt; Config.Bots.RigSnapHeight
+	then
 		local pos = Vector3.new(wx, FLOOR_Y + b.lift, wz)
 		local look = if dx ~= 0 or dy ~= 0 then Vector3.new(tx - wx, 0, tz - wz) else root.CFrame.LookVector * Vector3.new(1, 0, 1)
 		b.model:PivotTo(if look.Magnitude &gt; 1e-3 then CFrame.new(pos, pos + look) else CFrame.new(pos))
@@ -5106,7 +5200,11 @@ local function requestAvatar(userId: number)
 	end
 	building[userId] = true
 	task.spawn(function()
-		local ok, model = pcall(Players.CreateHumanoidModelFromUserId, Players, userId)
+		-- Always R15, whatever the friend's own rig type (R6 sinks into the floor and does not animate).
+		local ok, model = pcall(function()
+			local desc = Players:GetHumanoidDescriptionFromUserId(userId)
+			return Players:CreateHumanoidModelFromDescription(desc, Enum.HumanoidRigType.R15)
+		end)
 		building[userId] = nil
 		if not ok or typeof(model) ~= "Instance" or not (model :: Instance):IsA("Model") then
 			failed[userId] = true
@@ -5543,6 +5641,8 @@ function BotService.start()
 		end
 		PhysicsService:CollisionGroupSetCollidable(BOT_GROUP, BOT_GROUP, false)
 		PhysicsService:CollisionGroupSetCollidable(BOT_GROUP, PLAYER_GROUP, false)
+		-- Players never touch each other (no flinging); both groups still collide with Default (floor, walls).
+		PhysicsService:CollisionGroupSetCollidable(PLAYER_GROUP, PLAYER_GROUP, false)
 	end)
 	for _, p in Players:GetPlayers() do
 		watchPlayer(p)
@@ -5557,7 +5657,7 @@ return BotService
 </ProtectedString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="RBX00000000000000000000000000000019">
+				<Item class="ModuleScript" referent="RBX0000000000000000000000000000001A">
 					<Properties>
 						<string name="Name">DataService</string>
 						<ProtectedString name="Source">--!strict
@@ -5577,6 +5677,7 @@ type Store = {
 }
 
 type Session = {
+	player: Player,
 	key: string,
 	profile: Profile,
 	dirty: boolean,
@@ -5610,6 +5711,7 @@ local store: Store? = nil
 local sessions: { [Player]: Session } = {}
 local loading: { [Player]: boolean } = {}
 local releasing = 0 -- release writes in flight
+local releasingKeys: { [string]: boolean } = {} -- keys whose release write is in flight; a rejoin here waits for them
 local started = false
 
 local function deepCopy(value: any): any
@@ -5739,12 +5841,18 @@ local function tryLoad(key: string): (string, Profile?)
 end
 
 -- Writes only while we still own the lock, so a lost lock can never clobber another server's data.
+local writing: { [Session]: boolean } = {}
 local function write(session: Session, releaseLock: boolean): boolean
+	while writing[session] do task.wait() end
+	if session.released and not releaseLock then return false end
+	writing[session] = true
 	local snapshot: any = deepCopy(session.profile)
 	local lockLost = false
+	local wrote = false
 	local ok = withRetry(function()
 		return getStore().update(session.key, function(old: any): any
 			lockLost = false
+			wrote = false
 			if not releaseLock and session.released then
 				-- An autosave still in flight when the session was released must not re-take the lock.
 				return nil
@@ -5757,17 +5865,25 @@ local function write(session: Session, releaseLock: boolean): boolean
 			if not releaseLock then
 				out._lock = { jobId = game.JobId, t = os.time() }
 			end
+			wrote = true
 			return out
 		end)
 	end)
+	writing[session] = nil
 	if ok and lockLost then
 		warn("[DataService] Session lock lost for " .. session.key .. "; save skipped.")
+		if not releaseLock and session.player.Parent ~= nil then
+			-- Playing on would only lose progress: every later save is skipped too.
+			session.player:Kick("Your data was opened on another server. Please rejoin.")
+		end
 		return false
 	end
-	if ok then
+	-- True only when this session's data was actually written (not cancelled by a release).
+	if ok and wrote then
 		session.dirty = false
+		return true
 	end
-	return ok
+	return false
 end
 
 function DataService.load(player: Player): Profile?
@@ -5784,8 +5900,13 @@ function DataService.load(player: Player): Profile?
 
 	loading[player] = true
 	local key = keyFor(player)
-	local status, profile = "error", nil
-	for attempt = 0, LOCK_RETRIES do
+	local status, profile = "locked", nil -- stays "locked" if the release wait below times out
+	-- Same-server rejoin: our own JobId's lock never blocks, so wait for the old session's final write.
+	local deadline = os.clock() + Config.Data.ReleaseWaitSeconds
+	while releasingKeys[key] and os.clock() &lt; deadline and player.Parent ~= nil do
+		task.wait(0.1)
+	end
+	for attempt = 0, if releasingKeys[key] then -1 else LOCK_RETRIES do
 		if attempt &gt; 0 then
 			task.wait(LOCK_RETRY_WAIT)
 		end
@@ -5811,7 +5932,7 @@ function DataService.load(player: Player): Profile?
 		return nil
 	end
 
-	local session: Session = { key = key, profile = profile, dirty = false, released = false }
+	local session: Session = { player = player, key = key, profile = profile, dirty = false, released = false }
 	sessions[player] = session
 	if player.Parent == nil then
 		-- Left mid-load: drop the lock we just took.
@@ -5856,7 +5977,9 @@ function DataService.release(player: Player)
 	end
 	session.released = true
 	releasing += 1
-	write(session, true)
+	releasingKeys[session.key] = true
+	pcall(write, session, true) -- pcall so the counters below can never leak
+	releasingKeys[session.key] = nil
 	releasing -= 1
 	if sessions[player] == session then
 		sessions[player] = nil
@@ -5872,9 +5995,6 @@ function DataService.addReceipt(profile: Profile, purchaseId: string)
 		return
 	end
 	table.insert(profile.receipts, purchaseId)
-	while #profile.receipts &gt; Config.Data.ReceiptHistory do
-		table.remove(profile.receipts, 1)
-	end
 end
 
 local function autosaveLoop()
@@ -5932,7 +6052,7 @@ return DataService
 </ProtectedString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="RBX0000000000000000000000000000001A">
+				<Item class="ModuleScript" referent="RBX0000000000000000000000000000001B">
 					<Properties>
 						<string name="Name">EconomyService</string>
 						<ProtectedString name="Source">--!strict
@@ -6220,7 +6340,7 @@ return EconomyService
 </ProtectedString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="RBX0000000000000000000000000000001B">
+				<Item class="ModuleScript" referent="RBX0000000000000000000000000000001C">
 					<Properties>
 						<string name="Name">LeaderboardService</string>
 						<ProtectedString name="Source">--!strict
@@ -6383,7 +6503,7 @@ return LeaderboardService
 </ProtectedString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="RBX0000000000000000000000000000001C">
+				<Item class="ModuleScript" referent="RBX0000000000000000000000000000001D">
 					<Properties>
 						<string name="Name">MonetizationService</string>
 						<ProtectedString name="Source">--!strict
@@ -6445,15 +6565,50 @@ function MonetizationService.debugGrantPass(player: Player, passKey: string): bo
 	return true
 end
 
+-- Grants a pass only when Roblox confirms ownership. Errors always retry; a clean false retries only
+-- after a purchase prompt (retryFalse), where the API can return a cached false. Run off the caller's thread.
+local verifying: { [Player]: { [string]: boolean } } = {} -- purchase checks in flight, so a spammed signal starts one loop
+local function verifyPass(player: Player, key: string, id: number, retryFalse: boolean)
+	if EconomyService.hasPass(player, key) then
+		return
+	end
+	if retryFalse then
+		local set: { [string]: boolean } = verifying[player] or {}
+		if set[key] or player.Parent == nil then
+			return
+		end
+		set[key] = true
+		verifying[player] = set
+	end
+	local cfg = Config.PassCheck
+	for attempt = 1, cfg.Attempts do
+		if player.Parent == nil then
+			break
+		end
+		local ok, owns = pcall(function()
+			return MarketplaceService:UserOwnsGamePassAsync(player.UserId, id)
+		end)
+		if ok and owns == true then
+			if player.Parent ~= nil then
+				markPassOwned(player, key)
+			end
+			break
+		end
+		if (ok and not retryFalse) or attempt == cfg.Attempts then
+			break
+		end
+		task.wait(if retryFalse then cfg.RetrySeconds else cfg.RetrySeconds * 2 ^ (attempt - 1))
+	end
+	local set = verifying[player]
+	if retryFalse and set ~= nil then
+		set[key] = nil
+	end
+end
+
 local function checkPasses(player: Player)
 	for key, id in Config.Ids.Passes do
 		if id ~= 0 then
-			local ok, owns = pcall(function()
-				return MarketplaceService:UserOwnsGamePassAsync(player.UserId, id)
-			end)
-			if ok and owns == true then
-				markPassOwned(player, key)
-			end
+			task.spawn(verifyPass, player, key, id, false)
 		end
 	end
 end
@@ -6539,7 +6694,9 @@ local function processReceipt(info: { [string]: any }): Enum.ProductPurchaseDeci
 			return
 		end
 		DataService.addReceipt(p, purchaseId)
-		if productKey == "boost15" then
+		if productKey == "wheelSpin" then
+			p.wheelPaid += 1
+		elseif productKey == "boost15" then
 			EconomyService.extendBoostInProfile(p, cfg.Seconds)
 		elseif productKey == "starterPack" then
 			EconomyService.creditInProfile(player, p, "gems", cfg.Gems, productKey)
@@ -6578,10 +6735,11 @@ function MonetizationService.start()
 	end
 	started = true
 	MarketplaceService.ProcessReceipt = processReceipt :: any
+	-- The client can fire this signal itself, so it only triggers a server-side ownership check.
 	MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(player: Instance, gamePassId: number, wasPurchased: boolean)
-		local key = passKeyById[gamePassId]
-		if wasPurchased and key ~= nil and player:IsA("Player") then
-			markPassOwned(player :: Player, key)
+		local key = if type(gamePassId) == "number" then passKeyById[gamePassId] else nil
+		if wasPurchased == true and key ~= nil and typeof(player) == "Instance" and player:IsA("Player") then
+			task.spawn(verifyPass, player :: Player, key, gamePassId, true)
 		end
 	end)
 	Players.PlayerAdded:Connect(function(player)
@@ -6589,6 +6747,7 @@ function MonetizationService.start()
 	end)
 	Players.PlayerRemoving:Connect(function(player)
 		joinClock[player] = nil
+		verifying[player] = nil
 	end)
 	for _, player in Players:GetPlayers() do
 		task.spawn(onPlayerAdded, player)
@@ -6599,7 +6758,7 @@ return MonetizationService
 </ProtectedString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="RBX0000000000000000000000000000001D">
+				<Item class="ModuleScript" referent="RBX0000000000000000000000000000001E">
 					<Properties>
 						<string name="Name">RewardService</string>
 						<ProtectedString name="Source">--!strict
@@ -6862,7 +7021,7 @@ return RewardService
 </ProtectedString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="RBX0000000000000000000000000000001E">
+				<Item class="ModuleScript" referent="RBX0000000000000000000000000000001F">
 					<Properties>
 						<string name="Name">ShopService</string>
 						<ProtectedString name="Source">--!strict
@@ -6982,8 +7141,14 @@ function ShopService.equip(player: Player, itemId: any): (boolean, any)
 	end
 	local equipped: { skin: string, trail: string, effect: string }? = nil
 	local err = "not_owned"
+	local unchanged = false
 	DataService.update(player, function(profile)
 		if profile.owned[itemId] ~= true then
+			return
+		end
+		local slot = profile.equipped :: any
+		if slot[item.type] == itemId then
+			unchanged = true -- already equipped: nothing to broadcast
 			return
 		end
 		if item.type == "skin" then
@@ -6998,6 +7163,9 @@ function ShopService.equip(player: Player, itemId: any): (boolean, any)
 		end
 		equipped = profile.equipped
 	end)
+	if unchanged then
+		return true, itemId
+	end
 	if equipped == nil then
 		return false, err
 	end
@@ -7029,7 +7197,144 @@ return ShopService
 </ProtectedString>
 					</Properties>
 				</Item>
-				<Item class="ModuleScript" referent="RBX0000000000000000000000000000001F">
+				<Item class="ModuleScript" referent="RBX00000000000000000000000000000020">
+					<Properties>
+						<string name="Name">SkyChestService</string>
+						<ProtectedString name="Source">--!strict
+local Players = game:GetService("Players")
+local PolicyService = game:GetService("PolicyService")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Shared = ReplicatedStorage.Shared
+local Config = require(Shared.Config)
+local Def = require(Shared.SkyChest)
+local Data = require(script.Parent.DataService)
+local Economy = require(script.Parent.EconomyService)
+local Arena = require(script.Parent.ArenaService)
+local Service = {}
+local remote: RemoteEvent
+local active: Model? = nil
+local busy: {[Player]: boolean} = {}
+local rng = Random.new()
+local started = false
+local policies: {[Player]: any} = {}
+
+local function paidAllowed(player: Player): boolean
+	local cached=policies[player]
+	if cached and os.clock()-cached.at&lt;60 then return cached.allowed end
+	local ok, policy = pcall(function() return PolicyService:GetPolicyInfoForPlayerAsync(player) end)
+	local allowed=ok and policy.ArePaidRandomItemsRestricted == false
+	policies[player]={at=os.clock(),allowed=allowed}
+	return allowed
+end
+
+local function done(ok: boolean, result: any): (boolean, any)
+	return ok, result
+end
+
+local function handle(player: Player, action: any): (boolean, any)
+	local p = Data.get(player)
+	if not p then return done(false, "Profile not ready.") end
+	if action == "status" then
+		return done(true, {free = p.wheelFree, paid = p.wheelPaid, allowed = paidAllowed(player), productId = Def.ProductId})
+	elseif action == "purchase" then
+		if Def.ProductId == 0 or not paidAllowed(player) then return done(false, "Paid spins are unavailable for this account.") end
+		return done(true, Def.ProductId)
+	elseif action ~= "spin" then return done(false, "Invalid action.") end
+	if p.wheelFree &lt;= 0 and (p.wheelPaid &lt;= 0 or not paidAllowed(player)) then return done(false, "No eligible spins available.") end
+	local draw = rng:NextInteger(1, 100)
+	local index = 1
+	for i, prize in Def.Prizes do draw -= prize.weight; if draw &lt;= 0 then index = i; break end end
+	local prize = Def.Prizes[index]
+	local duplicate = false
+	Data.update(player, function(profile)
+		if profile.wheelFree &gt; 0 then profile.wheelFree -= 1 else profile.wheelPaid -= 1 end
+		if prize.kind == "coins" or prize.kind == "gems" then Economy.creditInProfile(player, profile, prize.kind, prize.amount, "skyChest")
+		elseif prize.kind == "skin" then
+			duplicate = profile.owned[prize.skin] == true
+			if duplicate then Economy.creditInProfile(player, profile, "gems", 100, "skyChestDuplicate") else profile.owned[prize.skin] = true end
+		elseif prize.kind == "speed" then profile.speedBoostUntil = math.max(os.time(), profile.speedBoostUntil) + Def.SpeedSeconds end
+	end)
+	Arena.refreshWalkSpeed(player)
+	Data.save(player)
+	return done(true, {index = index, duplicate = duplicate, free = p.wheelFree, paid = p.wheelPaid})
+end
+
+-- busy is always cleared, even when the handler throws.
+function Service.request(player: Player, action: any): (boolean, any)
+	if busy[player] then return false, "Please wait for your spin." end
+	busy[player] = true
+	local ok, good, result = pcall(handle, player, action)
+	busy[player] = nil
+	if not ok then
+		warn("[SkyChestService] request failed:", good)
+		return false, "Spin failed, please try again."
+	end
+	return good, result
+end
+
+local function chest(position: Vector3): Model
+	local model = Instance.new("Model"); model.Name = "SkyChest"
+	local root = Instance.new("Part"); root.Name = "Body"; root.Size = Vector3.new(7,4,5); root.Color = Color3.fromHex("9C7DFF"); root.Anchored = true; root.CanCollide = false; root.Material = Enum.Material.SmoothPlastic; root.CFrame = CFrame.new(position); root.Parent = model
+	model.PrimaryPart = root
+	local function part(name: string, size: Vector3, offset: Vector3, color: string)
+		local p = Instance.new("Part"); p.Name = name; p.Size = size; p.Color = Color3.fromHex(color); p.Material = Enum.Material.SmoothPlastic; p.CanCollide = false; p.Massless = true; p.CFrame = root.CFrame + offset; p.Parent = model
+		local weld = Instance.new("WeldConstraint"); weld.Part0 = root; weld.Part1 = p; weld.Parent = p
+	end
+	part("Lid",Vector3.new(7.4,1.5,5.4),Vector3.new(0,2.6,0),"C9B7FF")
+	for _,x in {-2.4,2.4} do part("GoldBand",Vector3.new(0.6,5.2,5.6),Vector3.new(x,0.65,0),"FFC94A") end
+	part("BaseTrim",Vector3.new(7.5,0.5,5.5),Vector3.new(0,-2,0),"202840")
+	part("Latch",Vector3.new(1.1,1.6,0.6),Vector3.new(0,1,-2.9),"FFC94A")
+	local light = Instance.new("PointLight"); light.Color = Color3.fromHex("FFC94A"); light.Brightness = 3; light.Range = 25; light.Parent = root
+	local gui=Instance.new("BillboardGui"); gui.Size=UDim2.fromOffset(230,65);gui.StudsOffset=Vector3.new(0,6,0);gui.AlwaysOnTop=true;gui.Parent=root
+	local label=Instance.new("TextLabel");label.Size=UDim2.fromScale(1,1);label.BackgroundTransparency=1;label.Text="SKY CHEST\nRun into it for a free spin!";label.Font=Enum.Font.GothamBold;label.TextScaled=true;label.TextColor3=Color3.fromHex("FFC94A");label.TextStrokeTransparency=0;label.Parent=gui
+	return model
+end
+
+function Service.drop(at: Vector3?)
+	local TweenService = game:GetService("TweenService")
+	if active then return end
+	local half = Config.Arena.GridSize * Config.Arena.CellSize * 0.36
+	local landing = at or Vector3.new(rng:NextNumber(-half,half), Config.Arena.FloorY+3, rng:NextNumber(-half,half))
+	local model=chest(landing+Vector3.new(0,110,0));active=model;model.Parent=workspace
+	remote:FireAllClients({kind="fall",position=landing})
+	local root=model.PrimaryPart :: BasePart
+	local fall=TweenService:Create(root,TweenInfo.new(Def.FallSeconds,Enum.EasingStyle.Quad,Enum.EasingDirection.In),{CFrame=CFrame.new(landing)});fall:Play();fall.Completed:Wait()
+	remote:FireAllClients({kind="land",position=landing})
+	local expires=os.clock()+Def.Lifetime
+	while active==model and os.clock()&lt;expires do
+		-- Pickup uses the arena's accepted runner cell (speed-checked), never the raw root position.
+		local lx,ly=Arena.sim.grid:worldToCell(landing.X,landing.Z)
+		local reach=Config.Arena.SkyChestPickupCells
+		for _,player in Players:GetPlayers() do
+			local r=Arena.sim:runner(Arena.runnerIdOf(player))
+			if r and r.alive and (r.x-lx)^2+(r.y-ly)^2&lt;=reach*reach and Data.get(player) then
+				active=nil;model:Destroy()
+				Data.update(player,function(p) p.wheelFree+=1 end);Data.save(player)
+				remote:FireClient(player,{kind="claimed"});return
+			end
+		end
+		task.wait(0.15)
+	end
+	if active==model then active=nil end;model:Destroy()
+end
+
+function Service.start()
+	if started then return end;started=true
+	remote=Instance.new("RemoteEvent");remote.Name="SkyChestEvent";remote.Parent=ReplicatedStorage:WaitForChild("Remotes")
+	Players.PlayerRemoving:Connect(function(player) busy[player]=nil;policies[player]=nil end)
+	task.spawn(function() task.wait(Def.Interval);while true do task.spawn(Service.drop);task.wait(Def.Interval) end end)
+	if game:GetService("RunService"):IsStudio() then
+		local debugDrop=Instance.new("BindableEvent");debugDrop.Name="DebugDrop";debugDrop.Parent=script
+		debugDrop.Event:Connect(function(position: Vector3?) task.spawn(Service.drop,position) end)
+	end
+	-- One refresh per second expires temporary speed without multiplying the permanent pass.
+	task.spawn(function() while true do task.wait(1);for _,player in Players:GetPlayers() do if Data.get(player) then Arena.refreshWalkSpeed(player) end end end end)
+end
+return Service
+</ProtectedString>
+					</Properties>
+				</Item>
+				<Item class="ModuleScript" referent="RBX00000000000000000000000000000021">
 					<Properties>
 						<string name="Name">UpgradeService</string>
 						<ProtectedString name="Source">--!strict
@@ -7135,34 +7440,34 @@ return UpgradeService
 			</Item>
 		</Item>
 	</Item>
-	<Item class="ServerStorage" referent="RBX00000000000000000000000000000036">
+	<Item class="ServerStorage" referent="RBX0000000000000000000000000000003A">
 		<Properties>
 			<string name="Name">ServerStorage</string>
 		</Properties>
 	</Item>
-	<Item class="StarterGui" referent="RBX00000000000000000000000000000037">
+	<Item class="StarterGui" referent="RBX0000000000000000000000000000003B">
 		<Properties>
 			<string name="Name">StarterGui</string>
 		</Properties>
 	</Item>
-	<Item class="StarterPack" referent="RBX00000000000000000000000000000038">
+	<Item class="StarterPack" referent="RBX0000000000000000000000000000003C">
 		<Properties>
 			<string name="Name">StarterPack</string>
 		</Properties>
 	</Item>
-	<Item class="StarterPlayer" referent="RBX00000000000000000000000000000033">
+	<Item class="StarterPlayer" referent="RBX00000000000000000000000000000037">
 		<Properties>
 			<string name="Name">StarterPlayer</string>
 		</Properties>
-		<Item class="StarterPlayerScripts" referent="RBX00000000000000000000000000000034">
+		<Item class="StarterPlayerScripts" referent="RBX00000000000000000000000000000038">
 			<Properties>
 				<string name="Name">StarterPlayerScripts</string>
 			</Properties>
-			<Item class="Folder" referent="RBX00000000000000000000000000000020">
+			<Item class="Folder" referent="RBX00000000000000000000000000000022">
 				<Properties>
 					<string name="Name">Client</string>
 				</Properties>
-				<Item class="ModuleScript" referent="RBX00000000000000000000000000000021">
+				<Item class="ModuleScript" referent="RBX00000000000000000000000000000023">
 					<Properties>
 						<string name="Name">ClientState</string>
 						<ProtectedString name="Source">--!strict
@@ -7407,7 +7712,7 @@ return ClientState
 </ProtectedString>
 					</Properties>
 				</Item>
-				<Item class="LocalScript" referent="RBX00000000000000000000000000000022">
+				<Item class="LocalScript" referent="RBX00000000000000000000000000000024">
 					<Properties>
 						<string name="Name">Main</string>
 						<ProtectedString name="Source">--!strict
@@ -7486,6 +7791,7 @@ boot("Hud", HudController.start)
 boot("Panels", PanelController.start)
 boot("Tutorial", TutorialController.start)
 boot("Music", MusicController.start)
+boot("SkyChest", function() require(controllers:WaitForChild("SkyChestController")).start() end)
 
 -- Studio-only test hook: automated playtests cannot click UI reliably under the device emulator.
 -- script.Debug:Fire("open", "Shop") / ("close") / ("cut") / ("capture", "7.5") / ("waveTime", "4")
@@ -7530,11 +7836,11 @@ end
 </ProtectedString>
 					</Properties>
 				</Item>
-				<Item class="Folder" referent="RBX00000000000000000000000000000023">
+				<Item class="Folder" referent="RBX00000000000000000000000000000025">
 					<Properties>
 						<string name="Name">controllers</string>
 					</Properties>
-					<Item class="ModuleScript" referent="RBX00000000000000000000000000000024">
+					<Item class="ModuleScript" referent="RBX00000000000000000000000000000026">
 						<Properties>
 							<string name="Name">ArenaClient</string>
 							<ProtectedString name="Source">--!strict
@@ -7793,7 +8099,7 @@ return ArenaClient
 </ProtectedString>
 						</Properties>
 					</Item>
-					<Item class="ModuleScript" referent="RBX00000000000000000000000000000025">
+					<Item class="ModuleScript" referent="RBX00000000000000000000000000000027">
 						<Properties>
 							<string name="Name">CameraController</string>
 							<ProtectedString name="Source">--!strict
@@ -7931,7 +8237,7 @@ return CameraController
 </ProtectedString>
 						</Properties>
 					</Item>
-					<Item class="ModuleScript" referent="RBX00000000000000000000000000000026">
+					<Item class="ModuleScript" referent="RBX00000000000000000000000000000028">
 						<Properties>
 							<string name="Name">FeedbackController</string>
 							<ProtectedString name="Source">--!strict
@@ -9313,7 +9619,7 @@ return FeedbackController
 </ProtectedString>
 						</Properties>
 					</Item>
-					<Item class="ModuleScript" referent="RBX00000000000000000000000000000027">
+					<Item class="ModuleScript" referent="RBX00000000000000000000000000000029">
 						<Properties>
 							<string name="Name">HudController</string>
 							<ProtectedString name="Source">--!strict
@@ -10191,137 +10497,7 @@ local function buildPassButtons(gui: ScreenGui): (() -&gt; ())
 end
 
 local function buildPlaytime(gui: ScreenGui): (() -&gt; ())
-	local count = #Catalog.playtime
-	local function nodeX(i: number): number
-		return (i - 0.5) / count
-	end
-
-	local bar = UiKit.frame({
-		Name = "Playtime",
-		BackgroundColor3 = PANEL_BG,
-		AnchorPoint = Vector2.new(0.5, 1),
-		Position = UDim2.fromScale(0.5, 0.985),
-		Size = UDim2.fromScale(0.4, 0.12),
-		parent = gui,
-	})
-	UiKit.corner(bar, 14)
-	UiKit.stroke(bar, INK, 3)
-	UiKit.padding(bar, 0.08)
-	local track = UiKit.frame({
-		Name = "Track",
-		AnchorPoint = Vector2.new(0, 0.5),
-		Position = UDim2.fromScale(0, 0.31),
-		Size = UDim2.fromScale(1, 0.1),
-		BackgroundColor3 = PANEL_BG,
-		BackgroundTransparency = 0.2,
-		parent = bar,
-	})
-	UiKit.corner(track, 100)
-	local fill = UiKit.frame({
-		Name = "Fill",
-		Size = UDim2.fromScale(0, 1),
-		BackgroundColor3 = theme.Yellow,
-		parent = track,
-	})
-	UiKit.corner(fill, 100)
-
-	local nodes: { Node } = {}
-	local busy = false
-	for i, def in Catalog.playtime do
-		local wrap = UiKit.frame({
-			Name = "Node" .. i,
-			AnchorPoint = Vector2.new(0.5, 0),
-			Position = UDim2.fromScale(nodeX(i), 0),
-			Size = UDim2.fromScale(0.1, 0.62),
-			BackgroundTransparency = 1,
-			parent = bar,
-		})
-		UiKit.aspect(wrap, 1)
-		local button = UiKit.button({
-			text = "",
-			color = PANEL_BG,
-			size = UDim2.fromScale(1, 1),
-			parent = wrap,
-			onClick = function()
-				local session = ClientState.session
-				local sec = ClientState.serverNow() - session.joinedAt
-				if busy or session.playtimeClaimed[i] == true or sec &lt; def.seconds then
-					return
-				end
-				busy = true
-				local ok, result = ClientState.request(Remotes.Requests.ClaimPlaytime, i)
-				busy = false
-				if ok then
-					PanelController.sound("reward")
-					UiKit.toast(PanelController.rewardText(result, S.rewardClaimed), theme.Success)
-				else
-					PanelController.sound("error")
-					UiKit.toast(PanelController.errorText(result), theme.Danger)
-				end
-			end,
-		})
-		local corner = button:FindFirstChildOfClass("UICorner")
-		if corner then
-			corner.CornerRadius = UDim.new(0.5, 0)
-		end
-		local stroke = UiKit.stroke(button, currencyColor(def.currency), 3)
-		local time = UiKit.label({
-			Name = "Time",
-			Text = formatTime(def.seconds),
-			AnchorPoint = Vector2.new(0.5, 0),
-			Position = UDim2.fromScale(nodeX(i), 0.7),
-			Size = UDim2.fromScale(0.14, 0.28),
-			TextTransparency = 0.2,
-			parent = bar,
-		})
-		nodes[i] = { wrap = wrap, button = button, stroke = stroke, time = time }
-	end
-
-	local function fillFraction(sec: number): number
-		local prevSec, prevX = 0, 0
-		for i, def in Catalog.playtime do
-			if sec &lt; def.seconds then
-				return prevX + (nodeX(i) - prevX) * (sec - prevSec) / (def.seconds - prevSec)
-			end
-			prevSec, prevX = def.seconds, nodeX(i)
-		end
-		return nodeX(count)
-	end
-
-	return function()
-		local session = ClientState.session
-		local sec = ClientState.serverNow() - session.joinedAt
-		fill.Size = UDim2.fromScale(fillFraction(math.max(0, sec)), 1)
-		for i, def in Catalog.playtime do
-			local node = nodes[i]
-			local claimed = session.playtimeClaimed[i] == true
-			local ready = not claimed and sec &gt;= def.seconds
-			if claimed then
-				node.button.Text = S.claimed
-				node.button.BackgroundColor3 = theme.Success
-				node.button.TextColor3 = theme.UiDark
-				node.stroke.Enabled = false
-			elseif ready then
-				node.button.Text = UiKit.formatNumber(def.amount)
-				node.button.BackgroundColor3 = currencyColor(def.currency)
-				node.button.TextColor3 = theme.UiDark
-				node.stroke.Enabled = true
-				node.stroke.Color = INK
-			else
-				node.button.Text = UiKit.formatNumber(def.amount)
-				node.button.BackgroundColor3 = PANEL_BG
-				node.button.TextColor3 = INK
-				node.stroke.Enabled = true
-				node.stroke.Color = currencyColor(def.currency)
-			end
-			if ready then
-				UiKit.pulse(node.wrap)
-			else
-				UiKit.stopPulse(node.wrap)
-			end
-			node.time.Text = formatTime(def.seconds)
-		end
-	end
+return require(script.Parent.Parent.ui.PlaytimeRewards).build(gui)
 end
 
 local HudController = {}
@@ -10368,10 +10544,11 @@ function HudController.start()
 end
 
 return HudController
+
 </ProtectedString>
 						</Properties>
 					</Item>
-					<Item class="ModuleScript" referent="RBX00000000000000000000000000000028">
+					<Item class="ModuleScript" referent="RBX0000000000000000000000000000002A">
 						<Properties>
 							<string name="Name">InputController</string>
 							<ProtectedString name="Source">--!strict
@@ -10404,7 +10581,7 @@ return InputController
 </ProtectedString>
 						</Properties>
 					</Item>
-					<Item class="ModuleScript" referent="RBX00000000000000000000000000000029">
+					<Item class="ModuleScript" referent="RBX0000000000000000000000000000002B">
 						<Properties>
 							<string name="Name">MusicController</string>
 							<ProtectedString name="Source">--!strict
@@ -10538,7 +10715,7 @@ return MusicController
 </ProtectedString>
 						</Properties>
 					</Item>
-					<Item class="ModuleScript" referent="RBX0000000000000000000000000000002A">
+					<Item class="ModuleScript" referent="RBX0000000000000000000000000000002C">
 						<Properties>
 							<string name="Name">PanelController</string>
 							<ProtectedString name="Source">--!strict
@@ -12537,7 +12714,94 @@ return PanelController
 </ProtectedString>
 						</Properties>
 					</Item>
-					<Item class="ModuleScript" referent="RBX0000000000000000000000000000002B">
+					<Item class="ModuleScript" referent="RBX0000000000000000000000000000002D">
+						<Properties>
+							<string name="Name">SkyChestController</string>
+							<ProtectedString name="Source">--!strict
+local Players=game:GetService("Players")
+local TweenService=game:GetService("TweenService")
+local MarketplaceService=game:GetService("MarketplaceService")
+local Debris=game:GetService("Debris")
+local Shared=game:GetService("ReplicatedStorage").Shared
+local Def=require(Shared.SkyChest)
+local UiKit=require(script.Parent.Parent.ui.UiKit)
+local State=require(script.Parent.Parent.ClientState)
+local Feedback=require(script.Parent.FeedbackController)
+local Celebration=require(script.Parent.Parent.ui.PlaytimeRewards)
+local Controller={}
+local started=false
+function Controller.start()
+	if started then return end;started=true
+	local panel=UiKit.panel({title="Sky Chest",size=UDim2.fromScale(0.78,0.8)})
+	local body=panel.body
+	local disk=UiKit.frame({Name="PrizeWheel",Position=UDim2.fromScale(0.04,0.07),Size=UDim2.fromScale(0.53,0.78),BackgroundColor3=Color3.fromHex("C9B7FF"),parent=body})
+	UiKit.aspect(disk,1);UiKit.corner(disk,1000);UiKit.stroke(disk,UiKit.theme.UiDark,4)
+	for i,p in Def.Prizes do
+		local angle=math.rad((i-1)*60-90)
+		local slot=UiKit.frame({Name="Prize"..i,AnchorPoint=Vector2.new(0.5,0.5),Position=UDim2.fromScale(0.5+math.cos(angle)*0.32,0.5+math.sin(angle)*0.32),Size=UDim2.fromScale(0.3,0.24),BackgroundColor3=if i%2==0 then UiKit.theme.Paper else Color3.fromHex("FFF0B3"),parent=disk})
+		UiKit.corner(slot,12)
+		UiKit.icon(p.icon,{Position=UDim2.fromScale(0.27,0),Size=UDim2.fromScale(0.46,0.64),parent=slot})
+		UiKit.label({Text=p.name,Position=UDim2.fromScale(0.02,0.68),Size=UDim2.fromScale(0.96,0.25),parent=slot})
+	end
+	local hub=UiKit.frame({AnchorPoint=Vector2.new(0.5,0.5),Position=UDim2.fromScale(0.5,0.5),Size=UDim2.fromScale(0.2,0.2),BackgroundColor3=UiKit.theme.Yellow,parent=disk});UiKit.corner(hub,100);UiKit.stroke(hub)
+	UiKit.icon("economy_star",{Size=UDim2.fromScale(1,1),parent=hub})
+	UiKit.label({Name="Pointer",Text="▼",Position=UDim2.fromScale(0.24,0),Size=UDim2.fromScale(0.12,0.13),TextColor3=UiKit.theme.Pink,ZIndex=5,parent=body})
+	local result=UiKit.label({Text="Your sky-high surprise",Position=UDim2.fromScale(0.6,0.02),Size=UDim2.fromScale(0.37,0.1),parent=body})
+	local odds={}
+	for _,p in Def.Prizes do table.insert(odds,p.name.." — "..p.weight.."%") end
+	UiKit.label({Text=table.concat(odds,"\n").."\n\nOwned skin → 100 gems.\nSpeed lasts 3 min; does not stack\nwith the permanent 2x pass.",TextWrapped=true,TextXAlignment=Enum.TextXAlignment.Left,Position=UDim2.fromScale(0.61,0.15),Size=UDim2.fromScale(0.36,0.48),parent=body})
+	local spins={free=0,paid=0,allowed=false,productId=0}
+	local rolling=false
+	local purchase:TextButton
+	local spin:TextButton
+	local function refresh()
+		local ok,status=State.request("SkyChest","status")
+		if ok then spins=status end
+		spin.Text="Spin ("..tostring(spins.free+spins.paid)..")"
+		purchase.Visible=spins.allowed and spins.productId&gt;0 and spins.free==0 and not rolling
+	end
+	spin=UiKit.button({text="Spin",color=UiKit.theme.Yellow,position=UDim2.fromScale(0.61,0.66),size=UDim2.fromScale(0.35,0.12),parent=body,onClick=function()
+		if rolling then return end;rolling=true;purchase.Visible=false;spin.Text="Spinning…"
+		local ok,reward=State.request("SkyChest","spin")
+		if not ok then rolling=false;result.Text=tostring(reward);refresh();return end
+		local rotation=disk.Rotation
+		local final=rotation+(360-rotation%360)%360+360*5-(reward.index-1)*60
+		local t=TweenService:Create(disk,TweenInfo.new(4.4,Enum.EasingStyle.Quint,Enum.EasingDirection.Out),{Rotation=final});t:Play()
+		task.spawn(function() for i=1,20 do if not rolling then break end;Feedback.play("uiClick");task.wait(0.07+i*0.012) end end)
+		t.Completed:Wait()
+		local prize=Def.Prizes[reward.index]
+		result.Text=if reward.duplicate then "Duplicate → 100 gems!" else "You won "..prize.name.."!"
+		Feedback.play("questComplete")
+		Celebration.celebrate(spin,if reward.duplicate then 100 else prize.amount,if reward.duplicate then "gems" else prize.kind,if prize.kind=="skin" and not reward.duplicate then "Sky Blue unlocked!" elseif prize.kind=="speed" then "2x speed · 3 min!" else nil)
+		rolling=false;refresh()
+	end})
+	purchase=UiKit.button({text="Another spin · 39 Robux",color=UiKit.theme.Gem,position=UDim2.fromScale(0.61,0.82),size=UDim2.fromScale(0.35,0.1),parent=body,onClick=function()
+		if rolling then return end
+		local ok,id=State.request("SkyChest","purchase")
+		if ok then MarketplaceService:PromptProductPurchase(Players.LocalPlayer,id) else result.Text=tostring(id) end
+	end});purchase.Visible=false
+	local gui=UiKit.screenGui("SkyChestShortcut",11)
+	UiKit.button({text="Sky Chest",color=UiKit.theme.Yellow,position=UDim2.fromScale(0.015,0.7),size=UDim2.fromScale(0.12,0.065),parent=gui,onClick=function() panel.show();refresh() end})
+	local remote=game:GetService("ReplicatedStorage"):WaitForChild("Remotes"):WaitForChild("SkyChestEvent") :: RemoteEvent
+	remote.OnClientEvent:Connect(function(event)
+		if event.kind=="claimed" then Feedback.play("rewardClaim");panel.show();result.Text="You found a free spin!";refresh()
+		elseif event.kind=="fall" then UiKit.toast("A sky chest is falling!",UiKit.theme.Yellow)
+		elseif event.kind=="land" then
+			Feedback.play("bigClaim")
+			local low=State.profile and State.profile.settings.lowDetail
+			for i=1,if low then 6 else 22 do
+				local spark=Instance.new("Part");spark.Shape=Enum.PartType.Ball;spark.Material=Enum.Material.Neon;spark.Color=if i%2==0 then UiKit.theme.Yellow else UiKit.theme.Gem;spark.Size=Vector3.new(0.5,0.5,0.5);spark.Anchored=true;spark.CanCollide=false;spark.CanTouch=false;spark.Position=event.position;spark.Parent=workspace
+				local a=i*2.399;TweenService:Create(spark,TweenInfo.new(0.8,Enum.EasingStyle.Quad,Enum.EasingDirection.Out),{Position=event.position+Vector3.new(math.cos(a)*14,3+i%5,math.sin(a)*14),Transparency=1,Size=Vector3.new(0.1,0.1,0.1)}):Play();Debris:AddItem(spark,1)
+			end
+		end
+	end)
+	State.profileChanged:Connect(function() if panel.isOpen() and not rolling then refresh() end end)
+end
+return Controller
+</ProtectedString>
+						</Properties>
+					</Item>
+					<Item class="ModuleScript" referent="RBX0000000000000000000000000000002E">
 						<Properties>
 							<string name="Name">TurfRenderer</string>
 							<ProtectedString name="Source">--!strict
@@ -13251,7 +13515,7 @@ return TurfRenderer
 </ProtectedString>
 						</Properties>
 					</Item>
-					<Item class="ModuleScript" referent="RBX0000000000000000000000000000002C">
+					<Item class="ModuleScript" referent="RBX0000000000000000000000000000002F">
 						<Properties>
 							<string name="Name">TutorialController</string>
 							<ProtectedString name="Source">--!strict
@@ -13540,11 +13804,133 @@ return TutorialController
 						</Properties>
 					</Item>
 				</Item>
-				<Item class="Folder" referent="RBX0000000000000000000000000000002D">
+				<Item class="Folder" referent="RBX00000000000000000000000000000030">
 					<Properties>
 						<string name="Name">ui</string>
 					</Properties>
-					<Item class="ModuleScript" referent="RBX0000000000000000000000000000002E">
+					<Item class="ModuleScript" referent="RBX00000000000000000000000000000031">
+						<Properties>
+							<string name="Name">PlaytimeRewards</string>
+							<ProtectedString name="Source">--!strict
+local TweenService = game:GetService("TweenService")
+local Debris = game:GetService("Debris")
+local Shared = game:GetService("ReplicatedStorage"):WaitForChild("Shared")
+local Catalog = require(Shared.Catalog)
+local Remotes = require(Shared.Remotes)
+local UiKit = require(script.Parent.UiKit)
+local ClientState = require(script.Parent.Parent.ClientState)
+local PanelController = require(script.Parent.Parent.controllers.PanelController)
+local Rewards = {}
+local INK = Color3.fromHex("202840")
+local PAPER = Color3.fromHex("FFF9EE")
+local GOLD = Color3.fromHex("FFC94A")
+local MINT = Color3.fromHex("6DE0A5")
+local CYAN = Color3.fromHex("43D8E8")
+local function timeText(n: number): string
+	n = math.max(0, math.ceil(n))
+	return string.format("%d:%02d", n // 60, n % 60)
+end
+local function animate(object: Instance, duration: number, goal: any, style: Enum.EasingStyle?)
+	TweenService:Create(object, TweenInfo.new(duration, style or Enum.EasingStyle.Quad, Enum.EasingDirection.Out), goal):Play()
+end
+
+function Rewards.celebrate(source: GuiObject, amount: number, currency: string, title: string?)
+	local gui = UiKit.screenGui("RewardCelebration", 90)
+	local origin = source.AbsolutePosition + source.AbsoluteSize / 2
+	local icon = if currency == "gems" then "economy_gem" elseif currency == "speed" then "gameplay_speed" elseif currency == "skin" then "gameplay_cosmetics" else "economy_coin"
+	local low = ClientState.profile ~= nil and ClientState.profile.settings.lowDetail
+	local layer = UiKit.frame({Name = "ClaimBurst", Size = UDim2.fromScale(1, 1), BackgroundTransparency = 1, parent = gui})
+	Debris:AddItem(layer, 3)
+	local card = UiKit.frame({Name = "RewardPopup", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.68), Size = UDim2.fromOffset(280, 88), BackgroundColor3 = PAPER, parent = layer})
+	UiKit.corner(card, 20); UiKit.stroke(card, INK, 3)
+	UiKit.icon(icon, {Position = UDim2.fromOffset(12, 10), Size = UDim2.fromOffset(64, 64), parent = card})
+	UiKit.label({Text = title or ("+" .. UiKit.formatNumber(amount) .. " " .. currency), Position = UDim2.fromScale(0.29, 0.12), Size = UDim2.fromScale(0.67, 0.45), parent = card})
+	UiKit.label({Text = "Reward collected!", TextColor3 = Color3.fromHex("55746B"), Position = UDim2.fromScale(0.29, 0.58), Size = UDim2.fromScale(0.67, 0.23), parent = card})
+	local scale = Instance.new("UIScale"); scale.Scale = 0.3; scale.Parent = card
+	animate(scale, 0.4, {Scale = 1}, Enum.EasingStyle.Back)
+	if not low then
+		local ring = UiKit.frame({Name = "RewardRipple", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromOffset(origin.X, origin.Y), Size = UDim2.fromOffset(20, 20), BackgroundTransparency = 1, parent = layer})
+		UiKit.corner(ring, 100); local stroke = UiKit.stroke(ring, GOLD, 5)
+		animate(ring, 0.65, {Size = UDim2.fromOffset(240, 240)}); animate(stroke, 0.65, {Transparency = 1})
+	end
+	for i = 1, if low then 6 else 28 do
+		local angle = i * 2.399
+		local distance = if low then 45 else 65 + (i % 5) * 24
+		local particle = UiKit.icon(if i % 4 == 0 then "economy_star" else icon, {Name = "RewardParticle", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromOffset(origin.X, origin.Y), Size = UDim2.fromOffset(24 + i % 3 * 6, 24 + i % 3 * 6), parent = layer})
+		animate(particle, 0.3, {Position = UDim2.fromOffset(origin.X + math.cos(angle) * distance, origin.Y + math.sin(angle) * distance - 70), Rotation = (i % 2 * 2 - 1) * 70}, Enum.EasingStyle.Back)
+		task.delay(0.32 + i * 0.012, function()
+			if not particle.Parent then return end
+			-- Fly currency into the wallet, rather than leaving screen-wide debris.
+			local wallet = game:GetService("Players").LocalPlayer.PlayerGui:FindFirstChild("Hud")
+			local row = wallet and wallet:FindFirstChild("Wallet")
+			local target = if row and row:IsA("GuiObject") then row.AbsolutePosition + Vector2.new(55, 25) else Vector2.new(80, 70)
+			animate(particle, 0.55, {Position = UDim2.fromOffset(target.X, target.Y), Size = UDim2.fromOffset(8, 8), ImageTransparency = 1})
+		end)
+	end
+	task.delay(1.7, function()
+		if card.Parent then animate(card, 0.3, {Position = UDim2.fromScale(0.5, 0.63), BackgroundTransparency = 1}); animate(scale, 0.3, {Scale = 0}) end
+	end)
+end
+
+function Rewards.build(gui: ScreenGui): () -&gt; ()
+	local bar = UiKit.frame({Name = "Playtime", AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -14), Size = UDim2.fromScale(0.53, 0.19), BackgroundColor3 = PAPER, parent = gui})
+	UiKit.corner(bar, 20); UiKit.stroke(bar, INK, 3)
+	local limit = Instance.new("UISizeConstraint"); limit.MaxSize = Vector2.new(780, 150); limit.Parent = bar
+	UiKit.icon("core_gift", {Position = UDim2.fromScale(0.025, 0.045), Size = UDim2.fromScale(0.065, 0.2), parent = bar})
+	UiKit.label({Text = "Play &amp; collect", TextXAlignment = Enum.TextXAlignment.Left, Position = UDim2.fromScale(0.1, 0.04), Size = UDim2.fromScale(0.37, 0.18), parent = bar})
+	local nextLabel = UiKit.label({Name = "NextReward", Text = "", TextXAlignment = Enum.TextXAlignment.Right, Position = UDim2.fromScale(0.48, 0.04), Size = UDim2.fromScale(0.49, 0.18), parent = bar})
+	local track = UiKit.frame({Name = "ProgressTrack", Position = UDim2.fromScale(0.035, 0.265), Size = UDim2.fromScale(0.93, 0.045), BackgroundColor3 = Color3.fromHex("DDD8CD"), parent = bar})
+	UiKit.corner(track, 20)
+	local fill = UiKit.frame({Name = "Progress", Size = UDim2.fromScale(0, 1), BackgroundColor3 = CYAN, parent = track}); UiKit.corner(fill, 20)
+	local nodes: {any} = {}
+	local busy = false
+	for i, def in Catalog.playtime do
+		local b: TextButton
+		b = UiKit.button({text = "", color = PAPER, position = UDim2.fromScale(0.025 + (i - 1) * 0.193, 0.37), size = UDim2.fromScale(0.18, 0.56), parent = bar, onClick = function()
+			local session = ClientState.session
+			if busy or session.playtimeClaimed[i] or ClientState.serverNow() - session.joinedAt &lt; def.seconds then return end
+			busy = true
+			local ok, result = ClientState.request(Remotes.Requests.ClaimPlaytime, i)
+			busy = false
+			if ok then
+				PanelController.sound("reward")
+				Rewards.celebrate(b, def.amount, def.currency)
+			else PanelController.sound("error"); UiKit.toast(PanelController.errorText(result), UiKit.theme.Danger) end
+		end})
+		b.Name = "Reward" .. i
+		local art = UiKit.icon(if def.currency == "gems" then "economy_gem" else "economy_coin_stack", {Position = UDim2.fromScale(0.04, 0.08), Size = UDim2.fromScale(0.36, 0.5), parent = b})
+		UiKit.label({Text = UiKit.formatNumber(def.amount), Position = UDim2.fromScale(0.4, 0.1), Size = UDim2.fromScale(0.55, 0.38), parent = b})
+		local state = UiKit.label({Name = "State", Text = timeText(def.seconds), Position = UDim2.fromScale(0.05, 0.64), Size = UDim2.fromScale(0.9, 0.23), parent = b})
+		nodes[i] = {button = b, state = state, art = art, last = ""}
+	end
+	return function()
+		local session = ClientState.session
+		local sec = math.max(0, ClientState.serverNow() - session.joinedAt)
+		local nextTime: number? = nil
+		local readyCount = 0
+		for i, def in Catalog.playtime do
+			local node = nodes[i]
+			local claimed = session.playtimeClaimed[i] == true
+			local ready = not claimed and sec &gt;= def.seconds
+			local state = if claimed then "claimed" elseif ready then "ready" else "locked"
+			if ready then readyCount += 1 elseif not claimed and nextTime == nil then nextTime = math.max(0, def.seconds - sec) end
+			node.state.Text = if claimed then "Collected!" elseif ready then "CLAIM!" else timeText(def.seconds - sec)
+			if state ~= node.last then
+				node.last = state
+				node.button.BackgroundColor3 = if claimed then MINT elseif ready then GOLD else PAPER
+				node.art.ImageTransparency = if claimed then 0.35 else 0
+				if ready and not (ClientState.profile and ClientState.profile.settings.lowDetail) then UiKit.pulse(node.button) else UiKit.stopPulse(node.button) end
+			end
+		end
+		nextLabel.Text = if readyCount &gt; 0 then tostring(readyCount) .. " ready to claim!" elseif nextTime then "Next in " .. timeText(nextTime) else "All rewards collected!"
+		animate(fill, 0.45, {Size = UDim2.fromScale(math.clamp(sec / Catalog.playtime[#Catalog.playtime].seconds, 0, 1), 1)})
+	end
+end
+return Rewards
+</ProtectedString>
+						</Properties>
+					</Item>
+					<Item class="ModuleScript" referent="RBX00000000000000000000000000000032">
 						<Properties>
 							<string name="Name">UiKit</string>
 							<ProtectedString name="Source">--!strict
@@ -14054,13 +14440,13 @@ return UiKit
 				</Item>
 			</Item>
 		</Item>
-		<Item class="StarterCharacterScripts" referent="RBX00000000000000000000000000000035">
+		<Item class="StarterCharacterScripts" referent="RBX00000000000000000000000000000039">
 			<Properties>
 				<string name="Name">StarterCharacterScripts</string>
 			</Properties>
 		</Item>
 	</Item>
-	<Item class="SoundService" referent="RBX00000000000000000000000000000039">
+	<Item class="SoundService" referent="RBX0000000000000000000000000000003D">
 		<Properties>
 			<string name="Name">SoundService</string>
 		</Properties>
@@ -15761,7 +16147,7 @@ return UiKit
         </Item>
       </Item>
     </Item></Item>
-	<Item class="Players" referent="RBX0000000000000000000000000000003A">
+	<Item class="Players" referent="RBX0000000000000000000000000000003E">
 		<Properties>
 			<string name="Name">Players</string>
 			<bool name="CharacterAutoLoads">true</bool>

@@ -195,7 +195,11 @@ local function placeRig(b: Bot, snap: boolean, dx: number, dy: number, speed: nu
 	local ahead = Config.Bots.RigLookAheadCells
 	local tx, tz = grid:cellToWorld(b.px - 0.5 + dx * ahead, b.py - 0.5 + dy * ahead)
 	local rp = root.Position
-	if snap or Vector3.new(rp.X - wx, 0, rp.Z - wz).Magnitude > Config.Bots.RigSnapDistance then
+	if
+		snap
+		or Vector3.new(rp.X - wx, 0, rp.Z - wz).Magnitude > Config.Bots.RigSnapDistance
+		or math.abs(rp.Y - (FLOOR_Y + b.lift)) > Config.Bots.RigSnapHeight
+	then
 		local pos = Vector3.new(wx, FLOOR_Y + b.lift, wz)
 		local look = if dx ~= 0 or dy ~= 0 then Vector3.new(tx - wx, 0, tz - wz) else root.CFrame.LookVector * Vector3.new(1, 0, 1)
 		b.model:PivotTo(if look.Magnitude > 1e-3 then CFrame.new(pos, pos + look) else CFrame.new(pos))
@@ -281,7 +285,11 @@ local function requestAvatar(userId: number)
 	end
 	building[userId] = true
 	task.spawn(function()
-		local ok, model = pcall(Players.CreateHumanoidModelFromUserId, Players, userId)
+		-- Always R15, whatever the friend's own rig type (R6 sinks into the floor and does not animate).
+		local ok, model = pcall(function()
+			local desc = Players:GetHumanoidDescriptionFromUserId(userId)
+			return Players:CreateHumanoidModelFromDescription(desc, Enum.HumanoidRigType.R15)
+		end)
 		building[userId] = nil
 		if not ok or typeof(model) ~= "Instance" or not (model :: Instance):IsA("Model") then
 			failed[userId] = true
@@ -718,6 +726,8 @@ function BotService.start()
 		end
 		PhysicsService:CollisionGroupSetCollidable(BOT_GROUP, BOT_GROUP, false)
 		PhysicsService:CollisionGroupSetCollidable(BOT_GROUP, PLAYER_GROUP, false)
+		-- Players never touch each other (no flinging); both groups still collide with Default (floor, walls).
+		PhysicsService:CollisionGroupSetCollidable(PLAYER_GROUP, PLAYER_GROUP, false)
 	end)
 	for _, p in Players:GetPlayers() do
 		watchPlayer(p)

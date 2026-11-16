@@ -40,6 +40,7 @@ type PState = {
 	speedGraceUntil: number,
 	lastPos: Vector3?,
 	lastTime: number,
+	slack: number, -- rolling speed-slack budget in studs (Config.Security.SpeedSlack)
 	overTicks: number,
 	strikes: { number },
 	exemptUntil: number,
@@ -68,7 +69,6 @@ local MAX_CATCHUP_STEPS = 5
 local TELEPORT_EXEMPT = 0.5
 local SETTLE_RADIUS = 2 * CELL
 local SETTLE_RETRIES = 5
-local SPEED_SLACK = 1 -- studs per check, absorbs replication jitter
 local SPEED_DROP_GRACE = 1 -- seconds the old speed stays allowed after WalkSpeed drops (client lag)
 local MAX_SPEED_WINDOW = 1 -- caps the allowance after a long stand-still
 local BELOW_FLOOR = 6
@@ -239,6 +239,7 @@ local function teleport(st: PState, target: CFrame, now: number)
 	st.settleTarget = target.Position
 	st.lastPos = nil
 	st.overTicks = 0
+	st.slack = Config.Security.SpeedSlack
 end
 
 local function placeAtCell(st: PState, cx: number, cy: number, now: number)
@@ -378,9 +379,37 @@ local function addPlayerRunner(st: PState, now: number)
 	sendSnapshot(player)
 end
 
+-- Character died (Reset, or the server reloaded it). A pending victim is released through the sim
+-- first so the killer keeps the KillerShare; a death while alive starts the respawn delay.
 local function onDied(st: PState)
-	removePlayerRunner(st, os.clock())
+	local now = os.clock()
+	local r = if st.id ~= 0 then sim:runner(st.id) else nil
+	if r ~= nil then
+		if r.pending then
+			st.pendingUntil = nil
+			sim:releaseVictim(st.id)
+		elseif r.alive then
+			st.deathTime = now
+		end
+	end
+	removePlayerRunner(st, now)
 	st.character, st.hrp, st.humanoid = nil, nil, nil
+end
+
+-- Elimination with no killer (failed movement authority): the runner is removed, so its trail is
+-- cleared and all its turf goes neutral, and the character is reloaded. The new character gets a
+-- runner only after RespawnDelay (onCharacter), so this is never faster than a normal death.
+local function eliminate(st: PState, now: number)
+	removePlayerRunner(st, now)
+	st.deathTime = now
+	st.character, st.hrp, st.humanoid = nil, nil, nil
+	local player = st.player
+	task.spawn(function()
+		local ok, err = pcall(player.LoadCharacter, player)
+		if not ok then
+			warn("[ArenaService] LoadCharacter failed:", err)
+		end
+	end)
 end
 
 local function onCharacter(st: PState, char: Model)
@@ -406,6 +435,14 @@ local function onCharacter(st: PState, char: Model)
 	task.wait()
 	if player.Character ~= char or states[player] ~= st or char.Parent == nil then
 		return
+	end
+	-- A character reloaded after a death (Reset, elimination) waits out the normal respawn delay.
+	local remaining = st.deathTime + Config.Arena.RespawnDelay - os.clock()
+	if remaining > 0 then
+		task.wait(remaining)
+		if player.Character ~= char or states[player] ~= st or char.Parent == nil then
+			return
+		end
 	end
 	local hum = humanoid :: Humanoid
 	hum.JumpPower = 0
@@ -447,9 +484,15 @@ local function snapBack(st: PState, r: Runner, now: number)
 	teleport(st, cellCFrame(st, r.x, r.y), now)
 end
 
--- G11.6: out of bounds sends the runner to the cell of its own turf nearest its last accepted cell
--- (its last cell when it owns nothing) and drops its trail.
+-- G11.6: out of bounds is a strike. With an open trail it is an elimination with no killer (never a
+-- free escape from a cut); otherwise the runner is sent to the cell of its own turf nearest its last
+-- accepted cell (its last cell when it owns nothing).
 local function outOfBounds(st: PState, r: Runner, now: number)
+	addStrike(st, now)
+	if #r.trail > 0 then
+		eliminate(st, now)
+		return
+	end
 	local bx, by, bd = r.x, r.y, math.huge
 	local x0, y0, x1, y1 = sim.grid:bounds(r.id)
 	if x0 and y0 and x1 and y1 then
@@ -467,7 +510,6 @@ local function outOfBounds(st: PState, r: Runner, now: number)
 	end
 	-- Move the sim position too, so the next step does not walk a line from the old cell.
 	r.x, r.y = bx, by
-	sim:clearTrail(r.id)
 	snapBack(st, r, now)
 end
 
@@ -485,29 +527,31 @@ local function readPlayer(st: PState, r: Runner, now: number, positions: { [numb
 		return
 	end
 	local pos = hrp.Position
-	if now < st.exemptUntil then
-		-- Once the client has been seen at the target the teleport has landed; the player may
-		-- then walk away from it during the window without being pulled back.
-		local t = st.settleTarget
-		if t ~= nil then
-			local tdx, tdz = pos.X - t.X, pos.Z - t.Z
-			if tdx * tdx + tdz * tdz <= SETTLE_RADIUS * SETTLE_RADIUS then
-				st.settleTarget = nil
-			end
-		end
-		st.lastPos, st.lastTime = pos, now
+	-- NaN or inf fails no comparison below and would throw inside the sim: drop the tick.
+	local sum = pos.X + pos.Y + pos.Z
+	if sum ~= sum or sum == math.huge or sum == -math.huge then
+		addStrike(st, now)
 		return
 	end
 	local target = st.settleTarget
 	if target ~= nil then
 		local dx, dz = pos.X - target.X, pos.Z - target.Z
-		if dx * dx + dz * dz > SETTLE_RADIUS * SETTLE_RADIUS and st.settleTries < SETTLE_RETRIES then
+		if dx * dx + dz * dz <= SETTLE_RADIUS * SETTLE_RADIUS then
+			-- The teleport has landed: from here every normal check applies, even inside the window.
+			st.settleTarget = nil
+			st.lastPos, st.lastTime = pos, now
+		elseif now < st.exemptUntil then
+			-- The client still reports its pre-teleport position for a few frames.
+			return
+		elseif st.settleTries < SETTLE_RETRIES then
 			st.settleTries += 1
 			teleport(st, CFrame.new(target), now)
 			return
+		else
+			-- Never accept a position the client refused to leave.
+			eliminate(st, now)
+			return
 		end
-		st.settleTarget = nil
-		st.lastPos, st.lastTime = pos, now
 	end
 	if
 		math.abs(pos.X) > HALF + CELL
@@ -535,7 +579,11 @@ local function readPlayer(st: PState, r: Runner, now: number, positions: { [numb
 		return
 	end
 	local elapsed = math.min(now - st.lastTime, MAX_SPEED_WINDOW)
-	local allowed = Config.Security.SpeedTolerance * speedAllowance(st, now) * elapsed + SPEED_SLACK
+	local base = Config.Security.SpeedTolerance * speedAllowance(st, now) * elapsed
+	-- Jitter slack is a small rolling budget (refilled per second), not a per-tick bonus, so the
+	-- sustained limit stays near tolerance x speed. One late or bunched packet fits in the budget.
+	local slack = math.min(st.slack + Config.Security.SpeedSlackRefill * elapsed, Config.Security.SpeedSlack)
+	local allowed = base + slack
 	if distSq > allowed * allowed then
 		st.overTicks += 1
 		if st.overTicks >= Config.Security.SpeedStrikeTicks then
@@ -544,6 +592,7 @@ local function readPlayer(st: PState, r: Runner, now: number, positions: { [numb
 		end
 		return
 	end
+	st.slack = slack - math.max(math.sqrt(distSq) - base, 0)
 	st.overTicks = 0
 	st.lastPos, st.lastTime = pos, now
 	local cx, cy = sim.grid:worldToCell(pos.X, pos.Z)
@@ -842,12 +891,13 @@ function ArenaService.join(player: Player)
 		speedGraceUntil = 0,
 		lastPos = nil,
 		lastTime = now,
+		slack = Config.Security.SpeedSlack,
 		overTicks = 0,
 		strikes = {},
 		exemptUntil = 0,
 		settleTarget = nil,
 		settleTries = 0,
-		deathTime = now,
+		deathTime = -math.huge, -- no death yet: the first character gets its runner at once
 		lifeStart = now,
 		lifeCoins = 0,
 		lifeKills = 0,

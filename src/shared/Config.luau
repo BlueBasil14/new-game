@@ -20,6 +20,7 @@ Config.Arena = {
 	KingMinShare = 0.03, -- share of map needed to be King
 	FullMapBonus = 5000,
 	TrailDangerRadius = 6, -- cells, client warning
+	SkyChestPickupCells = 2, -- a Sky Chest is picked up by an alive runner within this many cells of its landing cell
 }
 
 -- G6 claim feel (client): flash start is delayed by up to WaveTime, sweeping out from the loop-close point
@@ -193,6 +194,7 @@ Config.Bots = {
 	RigLookAheadCells = 1.5, -- Humanoid:MoveTo target is this far ahead of the simulated position
 	RigSpeedScale = 1.1, -- rig WalkSpeed = simulated speed x this, so it keeps up instead of lagging
 	RigSnapDistance = 8, -- studs; a rig further than this from its simulated position is PivotTo'd
+	RigSnapHeight = 3, -- studs; a rig this far above or below its standing height (fallen, sunk) is PivotTo'd
 	RunAnimationId = "rbxassetid://507767714", -- standard R15 run
 	IdleAnimationId = "rbxassetid://507766666", -- standard R15 idle
 	RunAnimationSpeed = 16, -- WalkSpeed at which the run animation plays at 1x
@@ -202,6 +204,8 @@ Config.Bots = {
 Config.Security = {
 	SpeedTolerance = 1.5,
 	SpeedStrikeTicks = 3,
+	SpeedSlack = 2, -- studs: rolling jitter budget on top of SpeedTolerance (one late or bunched packet)
+	SpeedSlackRefill = 2, -- studs per second the budget refills; sustained limit = tolerance x speed + this
 	KickStrikes = 5,
 	StrikeWindow = 60,
 	RequestsPerSecond = 10,

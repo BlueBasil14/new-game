@@ -1202,6 +1202,7 @@ defclass("DataStorePages", "Instance", { notCreatable = true, props = { IsFinish
 -- bot avatars (BotService): friend pages, animation, collision groups
 defclass("FriendPages", "Instance", { notCreatable = true, props = { IsFinished = RO("boolean", true) } })
 defclass("Animator", "Instance", {})
+defclass("HumanoidDescription", "Instance", {})
 defclass("Animation", "Instance", { props = { AnimationId = P("string", "") } })
 defclass("AnimationTrack", "Instance", {
 	notCreatable = true,
@@ -2089,6 +2090,30 @@ Classes.Players.methods = {
 		animate.Name = "Animate"
 		animate.Parent = m
 		m.PrimaryPart = hrp
+		return m
+	end,
+	GetHumanoidDescriptionFromUserId = function(self, uid)
+		local d = instData(self, "GetHumanoidDescriptionFromUserId", 2)
+		needNum(uid, "GetHumanoidDescriptionFromUserId", 2)
+		d.S.sleep(0.05)
+		if uid <= 0 then
+			error("Players:GetHumanoidDescriptionFromUserId() failed because HTTP 400 (Bad Request)", 2)
+		end
+		local desc = newInstance(d.S, "HumanoidDescription", true)
+		DATA[desc].userId = uid
+		return desc
+	end,
+	-- Same minimal rig as CreateHumanoidModelFromUserId, with Humanoid.RigType set to rigType.
+	CreateHumanoidModelFromDescription = function(self, desc, rigType)
+		instData(self, "CreateHumanoidModelFromDescription", 2)
+		if TYPE[desc] ~= "Instance" or DATA[desc].className ~= "HumanoidDescription" then
+			misuse("CreateHumanoidModelFromDescription: HumanoidDescription expected", 2)
+		end
+		if rigType ~= Enum.HumanoidRigType.R15 and rigType ~= Enum.HumanoidRigType.R6 then
+			misuse("CreateHumanoidModelFromDescription: Enum.HumanoidRigType expected", 2)
+		end
+		local m = Classes.Players.methods.CreateHumanoidModelFromUserId(self, DATA[desc].userId)
+		m:FindFirstChildOfClass("Humanoid").RigType = rigType
 		return m
 	end,
 }

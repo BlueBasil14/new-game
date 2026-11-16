@@ -25,13 +25,11 @@ local function paidAllowed(player: Player): boolean
 	return allowed
 end
 
-function Service.request(player: Player, action: any): (boolean, any)
-	if busy[player] then return false, "Please wait for your spin." end
-	busy[player] = true
-	local function done(ok: boolean, result: any): (boolean, any)
-		busy[player] = nil
-		return ok, result
-	end
+local function done(ok: boolean, result: any): (boolean, any)
+	return ok, result
+end
+
+local function handle(player: Player, action: any): (boolean, any)
 	local p = Data.get(player)
 	if not p then return done(false, "Profile not ready.") end
 	if action == "status" then
@@ -57,6 +55,19 @@ function Service.request(player: Player, action: any): (boolean, any)
 	Arena.refreshWalkSpeed(player)
 	Data.save(player)
 	return done(true, {index = index, duplicate = duplicate, free = p.wheelFree, paid = p.wheelPaid})
+end
+
+-- busy is always cleared, even when the handler throws.
+function Service.request(player: Player, action: any): (boolean, any)
+	if busy[player] then return false, "Please wait for your spin." end
+	busy[player] = true
+	local ok, good, result = pcall(handle, player, action)
+	busy[player] = nil
+	if not ok then
+		warn("[SkyChestService] request failed:", good)
+		return false, "Spin failed, please try again."
+	end
+	return good, result
 end
 
 local function chest(position: Vector3): Model
@@ -89,9 +100,12 @@ function Service.drop(at: Vector3?)
 	remote:FireAllClients({kind="land",position=landing})
 	local expires=os.clock()+Def.Lifetime
 	while active==model and os.clock()<expires do
+		-- Pickup uses the arena's accepted runner cell (speed-checked), never the raw root position.
+		local lx,ly=Arena.sim.grid:worldToCell(landing.X,landing.Z)
+		local reach=Config.Arena.SkyChestPickupCells
 		for _,player in Players:GetPlayers() do
-			local char=player.Character;local hrp=char and char:FindFirstChild("HumanoidRootPart");local hum=char and char:FindFirstChildOfClass("Humanoid")
-			if hrp and hrp:IsA("BasePart") and hum and hum.Health>0 and (hrp.Position-landing).Magnitude<8 and Data.get(player) then
+			local r=Arena.sim:runner(Arena.runnerIdOf(player))
+			if r and r.alive and (r.x-lx)^2+(r.y-ly)^2<=reach*reach and Data.get(player) then
 				active=nil;model:Destroy()
 				Data.update(player,function(p) p.wheelFree+=1 end);Data.save(player)
 				remote:FireClient(player,{kind="claimed"});return
