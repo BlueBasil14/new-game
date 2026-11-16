@@ -24,6 +24,7 @@ M.dsBacking = { stores = {}, ordered = {} } -- persists across server restarts w
 M.dsDown = false -- false | "requests" | "all"
 M.dsLatency = 0.05
 M.passes = {} -- [userId] = { [passId] = true }
+M.passErrors = {} -- [passId] = n: the next n UserOwnsGamePassAsync calls for that pass error (web failure)
 M.groups = {} -- [userId] = { [groupId] = true }
 M.friends = {} -- [userId] = { [otherUserId] = true }; IsFriendsWith checks both directions
 M.badges = {} -- list of { userId, badgeId }
@@ -2395,6 +2396,11 @@ Classes.MarketplaceService.methods = {
 			error("UserOwnsGamePassAsync: invalid game pass id " .. passId, 2)
 		end
 		d.S.sleep(0.05)
+		local fails = M.passErrors[passId]
+		if fails ~= nil and fails > 0 then
+			M.passErrors[passId] = fails - 1
+			error("HTTP 500 (Internal Server Error)", 2)
+		end
 		local owned = M.passes[userId]
 		return owned ~= nil and owned[passId] == true
 	end,

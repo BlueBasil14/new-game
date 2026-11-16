@@ -15,6 +15,7 @@ type Store = {
 }
 
 type Session = {
+	player: Player,
 	key: string,
 	profile: Profile,
 	dirty: boolean,
@@ -48,6 +49,7 @@ local store: Store? = nil
 local sessions: { [Player]: Session } = {}
 local loading: { [Player]: boolean } = {}
 local releasing = 0 -- release writes in flight
+local releasingKeys: { [string]: boolean } = {} -- keys whose release write is in flight; a rejoin here waits for them
 local started = false
 
 local function deepCopy(value: any): any
@@ -184,9 +186,11 @@ local function write(session: Session, releaseLock: boolean): boolean
 	writing[session] = true
 	local snapshot: any = deepCopy(session.profile)
 	local lockLost = false
+	local wrote = false
 	local ok = withRetry(function()
 		return getStore().update(session.key, function(old: any): any
 			lockLost = false
+			wrote = false
 			if not releaseLock and session.released then
 				-- An autosave still in flight when the session was released must not re-take the lock.
 				return nil
@@ -199,19 +203,25 @@ local function write(session: Session, releaseLock: boolean): boolean
 			if not releaseLock then
 				out._lock = { jobId = game.JobId, t = os.time() }
 			end
+			wrote = true
 			return out
 		end)
 	end)
+	writing[session] = nil
 	if ok and lockLost then
-		writing[session] = nil
 		warn("[DataService] Session lock lost for " .. session.key .. "; save skipped.")
+		if not releaseLock and session.player.Parent ~= nil then
+			-- Playing on would only lose progress: every later save is skipped too.
+			session.player:Kick("Your data was opened on another server. Please rejoin.")
+		end
 		return false
 	end
-	if ok then
+	-- True only when this session's data was actually written (not cancelled by a release).
+	if ok and wrote then
 		session.dirty = false
+		return true
 	end
-	writing[session] = nil
-	return ok
+	return false
 end
 
 function DataService.load(player: Player): Profile?
@@ -228,8 +238,13 @@ function DataService.load(player: Player): Profile?
 
 	loading[player] = true
 	local key = keyFor(player)
-	local status, profile = "error", nil
-	for attempt = 0, LOCK_RETRIES do
+	local status, profile = "locked", nil -- stays "locked" if the release wait below times out
+	-- Same-server rejoin: our own JobId's lock never blocks, so wait for the old session's final write.
+	local deadline = os.clock() + Config.Data.ReleaseWaitSeconds
+	while releasingKeys[key] and os.clock() < deadline and player.Parent ~= nil do
+		task.wait(0.1)
+	end
+	for attempt = 0, if releasingKeys[key] then -1 else LOCK_RETRIES do
 		if attempt > 0 then
 			task.wait(LOCK_RETRY_WAIT)
 		end
@@ -255,7 +270,7 @@ function DataService.load(player: Player): Profile?
 		return nil
 	end
 
-	local session: Session = { key = key, profile = profile, dirty = false, released = false }
+	local session: Session = { player = player, key = key, profile = profile, dirty = false, released = false }
 	sessions[player] = session
 	if player.Parent == nil then
 		-- Left mid-load: drop the lock we just took.
@@ -300,7 +315,9 @@ function DataService.release(player: Player)
 	end
 	session.released = true
 	releasing += 1
-	write(session, true)
+	releasingKeys[session.key] = true
+	pcall(write, session, true) -- pcall so the counters below can never leak
+	releasingKeys[session.key] = nil
 	releasing -= 1
 	if sessions[player] == session then
 		sessions[player] = nil

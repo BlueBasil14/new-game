@@ -164,6 +164,10 @@ Config.Passes = {
 	skipMusic = { Robux = 9 },
 	doubleSpeed = { Robux = 79, SpeedMultiplier = 2 },
 }
+-- Server-side pass ownership checks (UserOwnsGamePassAsync). After a purchase prompt finishes the
+-- server re-checks ownership up to Attempts times, RetrySeconds apart (the API can return a cached
+-- false right after a real purchase). At join, only errored checks retry, with doubling delays.
+Config.PassCheck = { Attempts = 6, RetrySeconds = 5 }
 -- Background music (client): pack tracks shuffled under SoundService.RBLXEssentials.SoundSystem.Music.
 -- Volume: multiplier on each track's authored (loudness-matched) Volume, inside the pack's Music SoundGroup (0.2).
 -- SkipKey: Enum.KeyCode name, bound only for skipMusic owners. LoadTimeout: seconds before an unloaded track is skipped.
@@ -204,7 +208,8 @@ Config.Security = {
 	MaxCodeLength = 24,
 }
 
-Config.Data = { StoreName = "PlayerData_v1", AutosaveSeconds = 60, ReceiptHistory = 50, Version = 1 }
+-- ReleaseWaitSeconds: a rejoin to the same server waits this long for the previous session's final save.
+Config.Data = { StoreName = "PlayerData_v1", AutosaveSeconds = 60, ReceiptHistory = 50, Version = 1, ReleaseWaitSeconds = 30 }
 Config.Leaderboards = { RefreshSeconds = 120, Size = 50, Boards = { "cells", "kills", "bestPct", "crowns" } }
 
 -- G8 palette

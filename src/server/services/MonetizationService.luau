@@ -57,15 +57,50 @@ function MonetizationService.debugGrantPass(player: Player, passKey: string): bo
 	return true
 end
 
+-- Grants a pass only when Roblox confirms ownership. Errors always retry; a clean false retries only
+-- after a purchase prompt (retryFalse), where the API can return a cached false. Run off the caller's thread.
+local verifying: { [Player]: { [string]: boolean } } = {} -- purchase checks in flight, so a spammed signal starts one loop
+local function verifyPass(player: Player, key: string, id: number, retryFalse: boolean)
+	if EconomyService.hasPass(player, key) then
+		return
+	end
+	if retryFalse then
+		local set: { [string]: boolean } = verifying[player] or {}
+		if set[key] or player.Parent == nil then
+			return
+		end
+		set[key] = true
+		verifying[player] = set
+	end
+	local cfg = Config.PassCheck
+	for attempt = 1, cfg.Attempts do
+		if player.Parent == nil then
+			break
+		end
+		local ok, owns = pcall(function()
+			return MarketplaceService:UserOwnsGamePassAsync(player.UserId, id)
+		end)
+		if ok and owns == true then
+			if player.Parent ~= nil then
+				markPassOwned(player, key)
+			end
+			break
+		end
+		if (ok and not retryFalse) or attempt == cfg.Attempts then
+			break
+		end
+		task.wait(if retryFalse then cfg.RetrySeconds else cfg.RetrySeconds * 2 ^ (attempt - 1))
+	end
+	local set = verifying[player]
+	if retryFalse and set ~= nil then
+		set[key] = nil
+	end
+end
+
 local function checkPasses(player: Player)
 	for key, id in Config.Ids.Passes do
 		if id ~= 0 then
-			local ok, owns = pcall(function()
-				return MarketplaceService:UserOwnsGamePassAsync(player.UserId, id)
-			end)
-			if ok and owns == true then
-				markPassOwned(player, key)
-			end
+			task.spawn(verifyPass, player, key, id, false)
 		end
 	end
 end
@@ -192,10 +227,11 @@ function MonetizationService.start()
 	end
 	started = true
 	MarketplaceService.ProcessReceipt = processReceipt :: any
+	-- The client can fire this signal itself, so it only triggers a server-side ownership check.
 	MarketplaceService.PromptGamePassPurchaseFinished:Connect(function(player: Instance, gamePassId: number, wasPurchased: boolean)
-		local key = passKeyById[gamePassId]
-		if wasPurchased and key ~= nil and player:IsA("Player") then
-			markPassOwned(player :: Player, key)
+		local key = if type(gamePassId) == "number" then passKeyById[gamePassId] else nil
+		if wasPurchased == true and key ~= nil and typeof(player) == "Instance" and player:IsA("Player") then
+			task.spawn(verifyPass, player :: Player, key, gamePassId, true)
 		end
 	end)
 	Players.PlayerAdded:Connect(function(player)
@@ -203,6 +239,7 @@ function MonetizationService.start()
 	end)
 	Players.PlayerRemoving:Connect(function(player)
 		joinClock[player] = nil
+		verifying[player] = nil
 	end)
 	for _, player in Players:GetPlayers() do
 		task.spawn(onPlayerAdded, player)

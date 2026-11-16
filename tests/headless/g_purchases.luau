@@ -9,6 +9,7 @@ H.boot({
 			Config.Ids.Products[key] = 1000 + n
 			ids[key] = 1000 + n
 		end
+		Config.Ids.Passes.doubleCoins = 2002
 		Config.Ids.Passes.doubleSpeed = 2001 -- skipMusic stays 0: granted through the Studio debug hook below
 	end,
 })
@@ -87,9 +88,37 @@ H.check(base > 0, "player walking")
 H.firePassPurchase(p, 2001, false)
 H.run(0.2)
 H.check(not Econ.hasPass(p, "doubleSpeed"), "declined purchase granted the pass")
+-- Spoofed signal (finding 1): wasPurchased=true but Roblox says not owned -> nothing, through every retry.
+local function countOwned()
+	local n = 0
+	for _ in Data.get(p).owned do n += 1 end
+	return n
+end
+local owned0 = countOwned()
+H.clearSent(p)
+for _ = 1, 3 do H.firePassPurchase(p, 2001, true) end -- spam starts one check loop
+H.firePassPurchase(p, 999999, true) -- unknown id ignored
+H.run(Config.PassCheck.Attempts * Config.PassCheck.RetrySeconds + 2)
+H.check(not Econ.hasPass(p, "doubleSpeed"), "spoofed purchase granted the pass")
+H.eq(H.humanoid(p).WalkSpeed, base, "spoofed purchase changed speed")
+H.eq(countOwned(), owned0, "spoofed purchase granted items")
+for _, m in H.sent(p, "ProfileUpdate") do
+	local sp = m.args[1].session
+	H.check(sp == nil or sp.passes == nil or sp.passes.doubleSpeed ~= true, "spoofed purchase in session.passes")
+end
+-- Ownership already visible: granted on the first check.
+H.M.passes[88] = { [2001] = true }
 H.firePassPurchase(p, 2001, true)
 H.run(0.5)
 H.check(Econ.hasPass(p, "doubleSpeed"), "doubleSpeed not owned after purchase")
+-- Cached false right after a real purchase: granted on a later attempt; an errored attempt never grants.
+H.M.passErrors[2002] = 1
+H.firePassPurchase(p, 2002, true)
+H.run(Config.PassCheck.RetrySeconds + 1)
+H.check(not Econ.hasPass(p, "doubleCoins"), "doubleCoins granted before ownership was confirmed")
+H.M.passes[88][2002] = true
+H.run(Config.PassCheck.RetrySeconds + 1)
+H.check(Econ.hasPass(p, "doubleCoins"), "doubleCoins not granted when ownership turned true")
 H.eq(H.humanoid(p).WalkSpeed, base * Config.Passes.doubleSpeed.SpeedMultiplier, "doubled WalkSpeed")
 -- owner walks at the doubled speed without strikes or snap-backs
 local cx0, cy0 = H.cellOf(p)
@@ -112,3 +141,11 @@ H.check(upd ~= nil, "no ProfileUpdate after pass grant")
 local passes = upd.args[1].session.passes
 H.eq(passes.skipMusic, true, "session.passes.skipMusic")
 H.eq(passes.doubleSpeed, true, "session.passes.doubleSpeed")
+-- Join check (finding 4): two errored UserOwnsGamePassAsync calls, then success -> pass applied by retry.
+H.M.passes[90] = { [2001] = true }
+H.M.passErrors[2001] = 2
+local owner = H.addPlayer({ userId = 90, name = "Owner" })
+H.runUntil(function() return Data.get(owner) ~= nil end, 10, "owner loaded")
+H.run(1)
+H.check(not Econ.hasPass(owner, "doubleSpeed"), "pass applied despite errored check")
+H.runUntil(function() return Econ.hasPass(owner, "doubleSpeed") end, Config.PassCheck.RetrySeconds * 3 + 2, "join retry applied the pass")

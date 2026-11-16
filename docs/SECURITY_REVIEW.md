@@ -53,3 +53,11 @@ Clean: the request router (allow-list, argument count, string length, no tables,
 Could not be assessed without running: whether NaN or fling positions replicate on the current engine; the false-kick rate on real mobile networks; R6 and heavy avatars in practice; real bandwidth in a 16-player server.
 
 ## Fix log
+
+### 2026-11-16: Part 1 findings 1–4 fixed (Opus subagent, reviewed by the lead)
+Headless only: 44 files compile, specs pass, xref 0, headless 15/15. Nothing run in Studio or on a live server.
+- **1 (pass spoof):** the purchase-finished handler no longer grants. It maps the id to a known non-zero pass, then `verifyPass` grants through `markPassOwned` only when `UserOwnsGamePassAsync` returns true, retrying `Config.PassCheck.Attempts` (6) times `RetrySeconds` (5) apart, never on error or false, stopping if the player leaves; repeated signals start one loop. Test in `g_purchases`: a spoofed signal with ownership false grants nothing; ownership true grants; ownership turning true on a later attempt grants then. The Studio-only debug grant is unchanged.
+- **2 (same-server rejoin):** `release` marks the key in `releasingKeys` around its final write (cleared even on error); `load` waits up to `Config.Data.ReleaseWaitSeconds` (30) and otherwise fails like a held foreign lock. An ordinary save that finds the lock lost now kicks the player instead of letting them play unsaved. Test: new `tests/headless/n_quick_rejoin.luau` (fails without the fix).
+- **3 (save reporting success for a cancelled write):** `write` returns true only when it actually wrote this session's data. Tested in the same scenario.
+- **4 (no retry at join):** each pass is verified separately off the join path; errors retry with growing delays, a clean false stops at once. Test in `g_purchases`.
+- **Needs a live server:** whether the spoof works on current Roblox at all; how long ownership reads false after a real purchase and whether 6 × 5 s is enough (test with the 9 Robux Skip Music pass, `docs/LAUNCH_CHECKLIST.md` B); real DataStore timing on a quick rejoin.
