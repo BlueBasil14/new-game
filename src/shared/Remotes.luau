@@ -26,6 +26,7 @@ Remotes.RunnerInfo = "RunnerInfo"
 Remotes.Request = "Request"
 
 Remotes.Requests = {
+	SkyChest = "SkyChest",
 	BuyUpgrade = "BuyUpgrade", -- (upgradeId: string)
 	BuyItem = "BuyItem", -- (itemId: string)
 	Equip = "Equip", -- (itemId: string)

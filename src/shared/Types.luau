@@ -58,6 +58,9 @@ export type Profile = {
 	tutorialDone: boolean,
 	receipts: { string },
 	boostUntil: number, -- unix seconds
+	wheelFree: number,
+	wheelPaid: number,
+	speedBoostUntil: number,
 	settings: { music: boolean, sfx: boolean, shake: boolean, lowDetail: boolean },
 	firstJoin: number,
 	lastJoin: number,

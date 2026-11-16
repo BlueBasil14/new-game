@@ -123,15 +123,16 @@ Config.Prices = {
 -- G4 monetization. Ids are 0 until the owner creates them on Roblox (T-LCH-01).
 Config.Ids = {
 	GroupId = 0,
-	Passes = { vip = 0, doubleCoins = 0, neonPack = 0, skipMusic = 0, doubleSpeed = 0 },
+	Passes = { vip = 2089000422, doubleCoins = 2089708438, neonPack = 2087992464, skipMusic = 2088466350, doubleSpeed = 2088136357 },
 	Products = {
-		starterPack = 0,
-		secondChance = 0,
-		boost15 = 0,
-		gemsS = 0,
-		gemsM = 0,
-		gemsL = 0,
-		gemsXL = 0,
+		wheelSpin = 3732125306,
+		starterPack = 3732085887,
+		secondChance = 3732085948,
+		boost15 = 3731884017,
+		gemsS = 3731883650,
+		gemsM = 3731883784,
+		gemsL = 3731883882,
+		gemsXL = 3731883942,
 	},
 	Badges = {
 		firstLoop = 0,

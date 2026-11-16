@@ -1,0 +1,52 @@
+H.boot()
+H.run(1)
+local Arena=H.svc("ArenaService")
+local Data=H.svc("DataService")
+local p=H.addPlayer({userId=404,name="ChestTester"})
+H.runUntil(function() return Arena.runnerIdOf(p)~=0 end,10,"runner")
+local function request(action)
+	H.run(0.15)
+	return H.invoke(p,"SkyChest",action)
+end
+local ok,status=request("status")
+H.check(ok and status.allowed==false,"restricted players cannot buy spins")
+H.eq(request("purchase"),false,"restricted purchase rejected")
+H.eq(request("spin"),false,"spin without credit rejected")
+Data.update(p,function(profile) profile.wheelFree=20;profile.wheelPaid=1 end)
+for i=1,20 do
+	local good,reward=request("spin")
+	H.check(good and reward.index>=1 and reward.index<=6,"valid server-selected prize")
+end
+H.eq(Data.get(p).wheelFree,0,"free credits consumed once")
+H.eq(Data.get(p).wheelPaid,1,"free spins do not consume paid credits")
+H.eq(request("spin"),false,"restricted player cannot use paid credit")
+local Config=H.shared("Config")
+local receipt={PlayerId=404,ProductId=Config.Ids.Products.wheelSpin,PurchaseId="WHEEL_ONCE",CurrencySpent=39}
+H.eq(H.processReceipt(receipt),H.Enum.ProductPurchaseDecision.PurchaseGranted,"paid spin credit persisted")
+H.eq(H.processReceipt(receipt),H.Enum.ProductPurchaseDecision.PurchaseGranted,"duplicate receipt acknowledged")
+H.eq(Data.get(p).wheelPaid,2,"one credit per unique receipt")
+local eligible=H.addPlayer({userId=405,name="Eligible"})
+eligible:SetAttribute("PaidRestricted",false)
+H.runUntil(function() return Arena.runnerIdOf(eligible)~=0 end,10,"eligible runner")
+Data.update(eligible,function(profile) profile.wheelPaid=1 end)
+local Def=H.shared("SkyChest")
+local weights={}
+for i,prize in Def.Prizes do weights[i]=prize.weight;prize.weight=if i==5 then 100 else 0 end
+local base=Arena.runnerIdOf(eligible)
+H.run(0.2)
+local good,reward=H.invoke(eligible,"SkyChest","spin")
+H.check(good and reward.index==5,"eligible paid speed spin")
+H.eq(Data.get(eligible).wheelPaid,0,"paid credit consumed once")
+H.check(Data.get(eligible).speedBoostUntil>=H.S.env.os.time()+179,"three minute speed granted")
+H.eq(eligible.Character:FindFirstChildOfClass("Humanoid").WalkSpeed,Config.Arena.BaseWalkSpeed*2,"temporary speed applies to runner")
+Data.update(eligible,function(profile) profile.speedBoostUntil=H.S.env.os.time()-1 end)
+Arena.refreshWalkSpeed(eligible)
+H.eq(eligible.Character:FindFirstChildOfClass("Humanoid").WalkSpeed,Config.Arena.BaseWalkSpeed,"expired temporary speed removed")
+for i,prize in Def.Prizes do prize.weight=if i==6 then 100 else 0 end
+Data.update(eligible,function(profile) profile.wheelFree=1;profile.owned.sky_blue=true end)
+local gems=Data.get(eligible).gems
+H.run(0.2)
+local skinOk,skin=H.invoke(eligible,"SkyChest","spin")
+H.check(skinOk and skin.duplicate,"duplicate skin detected")
+H.eq(Data.get(eligible).gems-gems,100,"duplicate skin converts to gems")
+for i,prize in Def.Prizes do prize.weight=weights[i] end

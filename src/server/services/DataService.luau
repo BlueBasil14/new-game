@@ -177,7 +177,11 @@ local function tryLoad(key: string): (string, Profile?)
 end
 
 -- Writes only while we still own the lock, so a lost lock can never clobber another server's data.
+local writing: { [Session]: boolean } = {}
 local function write(session: Session, releaseLock: boolean): boolean
+	while writing[session] do task.wait() end
+	if session.released and not releaseLock then return false end
+	writing[session] = true
 	local snapshot: any = deepCopy(session.profile)
 	local lockLost = false
 	local ok = withRetry(function()
@@ -199,12 +203,14 @@ local function write(session: Session, releaseLock: boolean): boolean
 		end)
 	end)
 	if ok and lockLost then
+		writing[session] = nil
 		warn("[DataService] Session lock lost for " .. session.key .. "; save skipped.")
 		return false
 	end
 	if ok then
 		session.dirty = false
 	end
+	writing[session] = nil
 	return ok
 end
 
@@ -310,9 +316,6 @@ function DataService.addReceipt(profile: Profile, purchaseId: string)
 		return
 	end
 	table.insert(profile.receipts, purchaseId)
-	while #profile.receipts > Config.Data.ReceiptHistory do
-		table.remove(profile.receipts, 1)
-	end
 end
 
 local function autosaveLoop()

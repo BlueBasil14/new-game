@@ -151,7 +151,9 @@ local function processReceipt(info: { [string]: any }): Enum.ProductPurchaseDeci
 			return
 		end
 		DataService.addReceipt(p, purchaseId)
-		if productKey == "boost15" then
+		if productKey == "wheelSpin" then
+			p.wheelPaid += 1
+		elseif productKey == "boost15" then
 			EconomyService.extendBoostInProfile(p, cfg.Seconds)
 		elseif productKey == "starterPack" then
 			EconomyService.creditInProfile(player, p, "gems", cfg.Gems, productKey)

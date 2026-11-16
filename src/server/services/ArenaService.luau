@@ -327,7 +327,8 @@ end
 -- st.walkSpeed, so owners are allowed exactly what they are given.
 local function playerWalkSpeed(player: Player): number
 	local speed = UpgradeService.walkSpeed(player)
-	if EconomyService.hasPass(player, "doubleSpeed") then
+	local profile = DataService.get(player)
+	if EconomyService.hasPass(player, "doubleSpeed") or (profile ~= nil and profile.speedBoostUntil > os.time()) then
 		speed *= Config.Passes.doubleSpeed.SpeedMultiplier
 	end
 	return speed

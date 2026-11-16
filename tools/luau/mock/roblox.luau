@@ -1189,6 +1189,7 @@ defclass("StarterPlayerScripts", "Instance", { notCreatable = true })
 defclass("StarterCharacterScripts", "Instance", { notCreatable = true })
 service("RunService", { events = { "Heartbeat", "Stepped", "PostSimulation", "PreSimulation", "PreAnimation", "PreRender" } })
 service("DataStoreService", {})
+service("PolicyService", {})
 service("MarketplaceService", { callbacks = { ProcessReceipt = true }, events = { "PromptGamePassPurchaseFinished", "PromptProductPurchaseFinished", "PromptPurchaseFinished" } })
 service("BadgeService", {})
 service("AnalyticsService", {})
@@ -2379,6 +2380,12 @@ Classes.DataStoreService.methods = {
 }
 
 -- marketplace / badges / analytics ----------------------------------------------------------------
+Classes.PolicyService.methods = {
+	GetPolicyInfoForPlayerAsync = function(self, player)
+		instData(self, "GetPolicyInfoForPlayerAsync", 2)
+		return { ArePaidRandomItemsRestricted = player:GetAttribute("PaidRestricted") ~= false }
+	end,
+}
 Classes.MarketplaceService.methods = {
 	UserOwnsGamePassAsync = function(self, userId, passId)
 		local d = instData(self, "UserOwnsGamePassAsync", 2)

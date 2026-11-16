@@ -24,6 +24,7 @@ local MonetizationService = require(Services:WaitForChild("MonetizationService")
 local RewardService = require(Services:WaitForChild("RewardService") :: any)
 local ShopService = require(Services:WaitForChild("ShopService") :: any)
 local UpgradeService = require(Services:WaitForChild("UpgradeService") :: any)
+local SkyChestService = require(Services:WaitForChild("SkyChestService") :: any)
 
 local PROFILE_PERIOD = 0.25 -- 4 Hz ProfileUpdate throttle
 local MAX_ARGS = 4
@@ -64,6 +65,7 @@ RewardService.start()
 LeaderboardService.start()
 ArenaService.start()
 BotService.start()
+SkyChestService.start()
 
 -- 3. profile replication ---------------------------------------------------------------------------
 
@@ -269,6 +271,9 @@ local handlers: { [string]: Handler } = {
 	end,
 	ClaimPlaytime = function(player: Player, index: any): (boolean, any)
 		return RewardService.claimPlaytime(player, index)
+	end,
+	SkyChest = function(player: Player, action: any): (boolean, any)
+		return SkyChestService.request(player, action)
 	end,
 	ClaimQuest = function(player: Player, index: any): (boolean, any)
 		local ok, result = RewardService.claimQuest(player, index)

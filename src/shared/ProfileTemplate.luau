@@ -33,6 +33,9 @@ function ProfileTemplate.default(now: number): Profile
 		tutorialDone = false,
 		receipts = {},
 		boostUntil = 0,
+		wheelFree = 0,
+		wheelPaid = 0,
+		speedBoostUntil = 0,
 		settings = { music = true, sfx = true, shake = true, lowDetail = false },
 		firstJoin = now,
 		lastJoin = now,
@@ -109,15 +112,8 @@ local function reconcileReceipts(value: any): { string }
 			end
 		end
 	end
-	local limit = Config.Data.ReceiptHistory
-	if #all <= limit then
-		return all
-	end
-	local out: { string } = {}
-	for i = #all - limit + 1, #all do
-		table.insert(out, all[i])
-	end
-	return out
+	-- Purchase IDs must survive rejoining so delayed receipt retries cannot grant twice.
+	return all
 end
 
 function ProfileTemplate.reconcile(data: any, now: number): Profile

@@ -74,6 +74,7 @@ boot("Hud", HudController.start)
 boot("Panels", PanelController.start)
 boot("Tutorial", TutorialController.start)
 boot("Music", MusicController.start)
+boot("SkyChest", function() require(controllers:WaitForChild("SkyChestController")).start() end)
 
 -- Studio-only test hook: automated playtests cannot click UI reliably under the device emulator.
 -- script.Debug:Fire("open", "Shop") / ("close") / ("cut") / ("capture", "7.5") / ("waveTime", "4")
