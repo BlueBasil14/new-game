@@ -11,8 +11,9 @@ export type Item = {
 	colorB: string?,
 	pattern: string, -- "solid" | "stripes" | "dots" | "checker" | "waves" | "stars" | "hex"
 	crownsRequired: number?,
-	source: string?, -- "vip" | "neonPack" | "starterPack" | "group" | "daily7" | "daily28"
+	source: string?, -- "vip" | "neonPack" | "starterPack" | "group" | "daily7" | "daily28" | "crownRush"
 	default: boolean?,
+	release: string?, -- "weekTwo": hidden until Config.WeekTwo.Start
 }
 
 export type Reward = { currency: string, amount: number }
@@ -31,7 +32,7 @@ local function add(
 	colorA: string,
 	colorB: string?,
 	pattern: string?,
-	extra: { crownsRequired: number?, source: string?, default: boolean? }?
+	extra: { crownsRequired: number?, source: string?, default: boolean?, release: string? }?
 )
 	assert(itemsById[id] == nil, "duplicate item id " .. id)
 	local item: Item = {
@@ -47,6 +48,7 @@ local function add(
 		item.crownsRequired = extra.crownsRequired
 		item.source = extra.source
 		item.default = extra.default
+		item.release = extra.release
 	end
 	table.insert(items, item)
 	itemsById[id] = item
@@ -151,24 +153,46 @@ add("skin", "exclusive", "team", "Team Colours", "#4F8BFF", "#FFFFFF", "stripes"
 add("skin", "exclusive", "streak_week", "Week Streak", "#FF5CD6", "#FFE88A", "stars", { source = "daily7" })
 add("skin", "exclusive", "streak_month", "Month Streak", "#3DDCFF", "#FFC83D", "hex", { source = "daily28" })
 
+-- Week-two update: hidden until Config.WeekTwo.Start (Crown Rush trail is won, never sold)
+local WEEK_TWO = { release = "weekTwo" }
+add("skin", "epic", "tide_pool", "Tide Pool", "#2DD4BF", "#3DDCFF", "waves", WEEK_TWO)
+add("skin", "rare", "sunset_grid", "Sunset Grid", "#FF8A3D", "#FF4F8B", "checker", WEEK_TWO)
+add("trail", "epic", "trail_comet", "Comet Tail", "#FFFFFF", "#7C5CFF", "stars", WEEK_TWO)
+add("trail", "exclusive", "crown_rush_trail", "Crown Rush Trail", "#FFC83D", "#2B2F3A", "stars", { source = "crownRush", release = "weekTwo" })
+
 Catalog.items = items
+
+-- True when a release tag (nil = always out) is open at unix time `now`.
+function Catalog.isReleaseOpen(release: string?, now: number): boolean
+	if release == nil then
+		return true
+	end
+	local start = Config.WeekTwo.Start
+	return start > 0 and now >= start
+end
 
 function Catalog.byId(id: string): Item?
 	return itemsById[id]
 end
 
+-- Released items of one type (shop lists, bot outfits). Catalog.byId still finds unreleased ones.
 function Catalog.ofType(itemType: string): { Item }
+	local now = os.time()
 	local out = {}
 	for _, item in items do
-		if item.type == itemType then
+		if item.type == itemType and Catalog.isReleaseOpen(item.release, now) then
 			table.insert(out, item)
 		end
 	end
 	return out
 end
 
-local function isPurchasable(item: Item): boolean
+local function sellable(item: Item): boolean
 	return item.default ~= true and item.source == nil and item.crownsRequired == nil and Config.Prices[item.rarity :: any] ~= nil
+end
+
+local function isPurchasable(item: Item, now: number?): boolean
+	return sellable(item) and Catalog.isReleaseOpen(item.release, now or os.time())
 end
 Catalog.isPurchasable = isPurchasable
 
@@ -191,17 +215,25 @@ local function shuffle<T>(list: { T }, rng: (number) -> number): { T }
 end
 
 function Catalog.featured(dayNumber: number): { string }
+	local dayStart = dayNumber * 86400
 	local ids = {}
+	local out = {}
+	-- The week-two items lead the row for their first FeaturedDays.
+	local start = Config.WeekTwo.Start
+	local fresh = start > 0 and dayStart + 86399 >= start and dayNumber < start // 86400 + Config.WeekTwo.FeaturedDays
 	for _, item in items do
-		if isPurchasable(item) then
-			table.insert(ids, item.id)
+		if isPurchasable(item, dayStart + 86399) then
+			if fresh and item.release == "weekTwo" and #out < Config.Prices.FeaturedCount then
+				table.insert(out, item.id)
+			else
+				table.insert(ids, item.id)
+			end
 		end
 	end
 	local rng = makeRng(dayNumber * 7919 + 13)
 	local shuffled = shuffle(ids, rng)
-	local out = {}
-	for i = 1, Config.Prices.FeaturedCount do
-		out[i] = shuffled[i]
+	for i = 1, Config.Prices.FeaturedCount - #out do
+		table.insert(out, shuffled[i])
 	end
 	return out
 end
@@ -286,7 +318,10 @@ Catalog.playtime = {
 Catalog.codes = {
 	RELEASE = { currency = "coins", amount = 1000 },
 	TURF = { currency = "gems", amount = 25 },
+	CROWNRUSH = { currency = "gems", amount = 50 }, -- week-two code, works from Config.WeekTwo.Start
 }
+-- Codes that only work once their release is open (Catalog.isReleaseOpen).
+Catalog.codeRelease = { CROWNRUSH = "weekTwo" } :: { [string]: string }
 
 Catalog.badges = {
 	{ key = "firstLoop", name = "First Loop" },

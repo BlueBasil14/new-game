@@ -21,8 +21,8 @@ Paid Sky Chest spin, strength of 2x Speed, bot tag, Starter Pack repeats, week-t
 
 ## 5. Queue, in order
 1. Finish and verify the security fixes (section 3). Then one solo Studio pass on the local build: walk, claim, get cut, respawn, press Reset during a death, try to stand outside the wall. Honest play must produce no snap-backs.
-2. Apply the owner's answers from `docs/DECISIONS.md`.
-3. Balance changes from `docs/BALANCE.md` that need no owner input: rebirth growth 2 → 1.5 through a new `Config.Rebirth.Growth`; playtime rewards and the gentle-bot window keyed to the profile instead of the session; Sky Chest free rate; rare price. Each is a Config value or a small server change with a spec line.
+2. ~~Apply the owner's answers from `docs/DECISIONS.md`.~~ Done 2026-11-16 (see `docs/PROGRESS.md`).
+3. Done 2026-11-16 (commit 4ccf764). Balance changes from `docs/BALANCE.md` that need no owner input: rebirth growth 2 → 1.5 through a new `Config.Rebirth.Growth`; playtime rewards and the gentle-bot window keyed to the profile instead of the session; Sky Chest free rate; rare price. Each is a Config value or a small server change with a spec line.
 4. Two-player test again (`docs/STUDIO.md` explains how to start it), now covering: friend bot removed when the friend joins, friend chip, Sky Chest pickup race, players no longer colliding.
 5. Phone layout pass on the 750x381 view: HUD buttons near the thumbstick, shop cards, daily panel, capture banner.
 6. Capture moment, critic round two: the first round said "not yet better than Paper.io 2" and its fixes were applied but never re-judged. Fresh screenshots on the grey floor, then a critic subagent, then tune `Config.CaptureFx` / `Config.TurfFx`. Also still open from round one: the HUD does not react to a capture (pulse the territory percent and the coin chip).

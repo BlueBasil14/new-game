@@ -16,6 +16,7 @@ export type CoinContext = {
 	inGroup: boolean,
 	withFriend: boolean?, -- a Roblox friend is in the same server
 	weekend: boolean,
+	crownRushKing: boolean?, -- this player is King during Crown Rush
 }
 
 local SECONDS_PER_DAY = 86400
@@ -72,6 +73,9 @@ function Formulas.coinMultiplier(ctx: CoinContext): number
 	if ctx.weekend then
 		m *= inc.WeekendMultiplier
 	end
+	if ctx.crownRushKing then
+		m *= Config.CrownRush.KingMultiplier
+	end
 	return m
 end
 
@@ -108,6 +112,11 @@ end
 
 function Formulas.dayNumber(unixSeconds: number): number
 	return math.floor(unixSeconds / SECONDS_PER_DAY)
+end
+
+function Formulas.isCrownRush(unixSeconds: number): boolean
+	local cr = Config.CrownRush
+	return cr.Start > 0 and unixSeconds >= cr.Start and unixSeconds < cr.End
 end
 
 function Formulas.isWeekendUTC(unixSeconds: number): boolean

@@ -27,6 +27,7 @@ local S = {
 	percent = "%.1f%%",
 	boost = "%dx %s",
 	weekend = "%dx WEEKEND",
+	crownRush = "CROWN RUSH: KING %dx",
 	friend = "+%d%% FRIEND",
 	inviteIcon = "core_friends",
 	speedIcon = "economy_energy",
@@ -293,7 +294,12 @@ local function buildTopCentre(gui: ScreenGui)
 		else
 			boostChip.Visible = false
 		end
-		weekendChip.Visible = Formulas.isWeekendUTC(now)
+		-- The weekend chip doubles as the Crown Rush chip while that event runs.
+		local rush = Formulas.isCrownRush(now)
+		weekendChip.Visible = rush or Formulas.isWeekendUTC(now)
+		weekendMain.Text = if rush
+			then string.format(S.crownRush, Config.CrownRush.KingMultiplier)
+			else string.format(S.weekend, Config.Income.WeekendMultiplier)
 		friendChip.Visible = ClientState.session.withFriend == true
 	end
 	return updateTimers, updateMap

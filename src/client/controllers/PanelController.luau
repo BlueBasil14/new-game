@@ -75,6 +75,7 @@ local S = {
 		group = "Group reward",
 		daily7 = "7-day streak",
 		daily28 = "28-day streak",
+		crownRush = "Crown Rush event",
 	},
 	rarity = {
 		common = "Common",
@@ -441,6 +442,10 @@ local function promptProduct(key: string)
 	local id = (Config.Ids.Products :: any)[key]
 	if type(id) ~= "number" or id == 0 then
 		UiKit.toast(S.comingSoon)
+		return
+	end
+	-- Starter Pack is once per account (owner decision 4): a still-open offer panel must not sell it twice.
+	if key == "starterPack" and ClientState.profile ~= nil and ClientState.profile.starterPackBought then
 		return
 	end
 	MarketplaceService:PromptProductPurchase(Players.LocalPlayer, id)

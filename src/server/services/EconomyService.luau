@@ -31,6 +31,7 @@ EconomyService.cellsProvider = nil :: ((Player) -> number)?
 
 local passOwned: { [Player]: { [string]: boolean } } = {}
 local inGroup: { [Player]: boolean } = {}
+local kingPlayer: Player? = nil -- set by ArenaService every tick (Crown Rush multiplier)
 local friendsHere: { [Player]: { [Player]: boolean } } = {} -- Roblox friends currently in this server
 local started = false
 
@@ -121,7 +122,13 @@ function EconomyService.multiplier(player: Player): number
 		inGroup = inGroup[player] == true,
 		withFriend = EconomyService.hasFriendHere(player),
 		weekend = Formulas.isWeekendUTC(now),
+		crownRushKing = kingPlayer == player and Formulas.isCrownRush(now),
 	})
+end
+
+-- ArenaService reports the current King (a real player, or nil) every tick.
+function EconomyService.setKing(player: Player?)
+	kingPlayer = player
 end
 
 -- Returns coins actually added (after multiplier, rounded). 0 when the profile is not loaded.

@@ -22,10 +22,10 @@ for _, item in Catalog.items do
 	end
 end
 local expect = {
-	["skin:common"] = 12, ["skin:rare"] = 8, ["skin:epic"] = 6, ["skin:legendary"] = 3, ["skin:crown"] = 4,
-	["trail:common"] = 2, ["trail:rare"] = 3, ["trail:epic"] = 2, ["trail:legendary"] = 1,
+	["skin:common"] = 12, ["skin:rare"] = 9, ["skin:epic"] = 7, ["skin:legendary"] = 3, ["skin:crown"] = 4,
+	["trail:common"] = 2, ["trail:rare"] = 3, ["trail:epic"] = 3, ["trail:legendary"] = 1,
 	["effect:rare"] = 2, ["effect:epic"] = 1, ["effect:legendary"] = 1,
-	["skin:exclusive"] = 10, ["trail:exclusive"] = 2, -- skin +streak_month (T-RET-02, departs from GDD G3.6)
+	["skin:exclusive"] = 10, ["trail:exclusive"] = 3, -- skin +streak_month (T-RET-02, departs from GDD G3.6)
 }
 for k, v in expect do
 	eq(counts[k], v, "count " .. k)
@@ -61,7 +61,7 @@ for _, item in Catalog.items do
 			eq(price, nil, "no price " .. item.id)
 		else
 			eq(price ~= nil, true, "price " .. item.id)
-			eq(Catalog.isPurchasable(item), true, "purchasable " .. item.id)
+			eq(Catalog.isPurchasable(item), item.release == nil, "purchasable " .. item.id)
 		end
 	end
 end
@@ -127,4 +127,35 @@ eq(#Catalog.badges, 8, "badges")
 for _, bd in Catalog.badges do
 	eq((Config.Ids.Badges :: any)[bd.key] ~= nil, true, "badge key " .. bd.key)
 end
-return "catalog ok"
+
+-- Week-two update: hidden while Config.WeekTwo.Start = 0, sold and featured from Start.
+do
+	local tide = Catalog.byId("tide_pool") :: Catalog.Item
+	local NOW = 1800000000 -- a Friday, 00:00 UTC is not required for this check
+	eq(Catalog.isPurchasable(tide, NOW), false, "week-two item for sale before Start")
+	for _, item in Catalog.ofType("skin") do
+		eq(item.release, nil, "unreleased item listed")
+	end
+	eq(Catalog.isReleaseOpen(Catalog.codeRelease.CROWNRUSH, NOW), false, "CROWNRUSH open before Start")
+	local day = NOW // 86400
+	Config.WeekTwo.Start = day * 86400
+	eq(Catalog.isPurchasable(tide, NOW), true, "week-two item not for sale after Start")
+	local f = Catalog.featured(day)
+	eq(#f, Config.Prices.FeaturedCount, "featured count in week two")
+	eq(table.find(f, "tide_pool") ~= nil and table.find(f, "trail_comet") ~= nil, true, "week-two items not featured")
+	eq(table.find(f, "crown_rush_trail"), nil, "won trail featured")
+	eq(table.find(Catalog.featured(day + Config.WeekTwo.FeaturedDays), "tide_pool") == 1, false, "still forced after FeaturedDays")
+	eq(Catalog.isPurchasable(Catalog.byId("crown_rush_trail") :: Catalog.Item, NOW), false, "won trail for sale")
+	Config.WeekTwo.Start = 0
+	-- Crown Rush window and King multiplier
+	eq(Formulas.isCrownRush(NOW), false, "rush with Start 0")
+	Config.CrownRush.Start, Config.CrownRush.End = NOW, NOW + 3600
+	eq(Formulas.isCrownRush(NOW + 10), true, "rush inside window")
+	eq(Formulas.isCrownRush(NOW + 3600), false, "rush at End")
+	local base = { coinBoostLevel = 0, crowns = 0, vip = false, doubleCoins = false, boostActive = false, inGroup = false, weekend = false }
+	local king = table.clone(base) :: any
+	king.crownRushKing = true
+	eq(Formulas.coinMultiplier(king), Formulas.coinMultiplier(base) * Config.CrownRush.KingMultiplier, "king multiplier")
+	Config.CrownRush.Start, Config.CrownRush.End = 0, 0
+end
+return "catalog ok (incl. week two)"

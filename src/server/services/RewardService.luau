@@ -189,7 +189,7 @@ function RewardService.redeemCode(player: Player, code: any): (boolean, any)
 	end
 	local key = string.upper(code)
 	local reward = (Catalog.codes :: { [string]: Catalog.Reward })[key]
-	if reward == nil then
+	if reward == nil or not Catalog.isReleaseOpen(Catalog.codeRelease[key], os.time()) then
 		return false, "invalid_code"
 	end
 	local profile = DataService.get(player)

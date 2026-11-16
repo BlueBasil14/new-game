@@ -109,6 +109,13 @@ Config.Upgrades = {
 Config.UpgradeOrder = { "coinBoost", "speed", "shield", "startSize" }
 
 -- G3.4 rebirth: requirement = Base * 2^crowns lifetime coins since last rebirth
+-- Week-two update (owner decision 5, 2026-11-16). Start is a unix time at 00:00 UTC; 0 = not scheduled, so the new
+-- items and the CROWNRUSH code stay hidden. Set it to day 8-10 after launch. From Start the new items are
+-- for sale and fill the Featured row for FeaturedDays.
+Config.WeekTwo = { Start = 0, FeaturedDays = 7 }
+-- Crown Rush weekend: between Start and End (unix, 0 = off) the King earns KingMultiplier x coins, and holding
+-- the crown for PrizeSeconds in total during the event wins the limited Trail.
+Config.CrownRush = { Start = 0, End = 0, KingMultiplier = 2, PrizeSeconds = 300, Trail = "crown_rush_trail" }
 Config.Rebirth = { Base = 150000, Growth = 1.5, GemReward = 50 } -- requirement = Base * Growth ^ crowns
 
 -- G3.6 cosmetic prices
@@ -163,7 +170,7 @@ Config.Passes = {
 	doubleCoins = { Robux = 249 },
 	neonPack = { Robux = 199 },
 	skipMusic = { Robux = 9 },
-	doubleSpeed = { Robux = 79, SpeedMultiplier = 2 },
+	doubleSpeed = { Robux = 399, SpeedMultiplier = 2 }, -- owner decision 2 (2026-11-16): keep 2x, price as VIP
 }
 -- Server-side pass ownership checks (UserOwnsGamePassAsync). After a purchase prompt finishes the
 -- server re-checks ownership up to Attempts times, RetrySeconds apart (the API can return a cached

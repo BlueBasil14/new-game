@@ -262,3 +262,13 @@ Queue item 1 (security fixes + solo Studio pass) was already done; item 2 waits 
 - **Gentle bot window** keyed to lifetime `stats.playSeconds` instead of the session: only a player's first 120 s ever are gentle (up to 60 s extra on a rejoin, because playSeconds is banked every 60 s).
 - Checks: 44 files compile, specs pass, xref 0, headless 17/17 (new `p_playtime_daily`: claim, rejoin, already claimed, gentle not restarted, second reward after 300 s across two sessions), place build.
 - Not checked: anything in Studio; the playtime panel countdown on a rejoin by eye; day rollover live.
+
+## Lead session, 2026-11-16: owner decisions applied
+Owner answers in chat (all seven in `docs/DECISIONS.md`): keep the paid Sky Chest spin; keep 2x Speed at 2x but 399 Robux; no BOT tag; Starter Pack once per account; build the week-two update; keep "Turf Loop"; redo the art briefs for the grey floor.
+- **2x Speed price:** `Config.Passes.doubleSpeed.Robux` 79 → 399 (what the shop shows). **The price on the Roblox dashboard is still 79 until the owner changes it** (added to `docs/LAUNCH_CHECKLIST.md` B).
+- **Starter Pack once:** the shop card and offer already hid after purchase; the client now also refuses to prompt it once bought (a stale offer panel could sell it twice). A forced repeat purchase still grants the gems because the player paid; it never grants the coins and skin twice.
+- **Art briefs:** every ChatGPT prompt in `docs/CHATGPT_TASKS.md` now says neutral mid-grey ground `#B4B5B8`, grid `#9C9DA2`, dim neutral light, no blue haze.
+- **Week-two update, built and switched off:** `Config.WeekTwo.Start` (0 = hidden) releases two skins (Tide Pool epic, Sunset Grid rare) and a trail (Comet Tail epic), puts them first in the Featured row for 7 days and opens the code CROWNRUSH (50 gems). `Config.CrownRush` Start/End: the King earns 2x coins, holding the crown for 300 s in total during the event wins the exclusive Crown Rush Trail (toast when won), and the HUD weekend chip reads "CROWN RUSH: KING 2x". Hidden items are kept out of the shop lists and bot outfits by `Catalog.ofType`; the server refuses to sell them (`isPurchasable`) or redeem the code early.
+- Not built from the plan: the in-game day-5 announcement with countdown (needs a launch date).
+- Checks: 44 files compile, specs pass (new week-two block in `catalog.spec`: hidden before Start, sold and featured after, won trail never sold, Crown Rush window, King multiplier), xref 0, headless 17/17, place build.
+- Not checked: anything in Studio; the Crown Rush prize path runs only in the headless build with the event off (no scenario makes a player King during an event); the new items' look in the shop.

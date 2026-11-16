@@ -191,6 +191,8 @@ local function processReceipt(info: { [string]: any }): Enum.ProductPurchaseDeci
 		elseif productKey == "boost15" then
 			EconomyService.extendBoostInProfile(p, cfg.Seconds)
 		elseif productKey == "starterPack" then
+			-- Once per account (owner decision 4): the client never offers it again. A repeat can only come
+			-- from a stale or forced prompt; the player has paid, so they still get the gems.
 			EconomyService.creditInProfile(player, p, "gems", cfg.Gems, productKey)
 			if not p.starterPackBought then
 				p.starterPackBought = true

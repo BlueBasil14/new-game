@@ -1150,8 +1150,9 @@ export type Item = {
 	colorB: string?,
 	pattern: string, -- "solid" | "stripes" | "dots" | "checker" | "waves" | "stars" | "hex"
 	crownsRequired: number?,
-	source: string?, -- "vip" | "neonPack" | "starterPack" | "group" | "daily7" | "daily28"
+	source: string?, -- "vip" | "neonPack" | "starterPack" | "group" | "daily7" | "daily28" | "crownRush"
 	default: boolean?,
+	release: string?, -- "weekTwo": hidden until Config.WeekTwo.Start
 }
 
 export type Reward = { currency: string, amount: number }
@@ -1170,7 +1171,7 @@ local function add(
 	colorA: string,
 	colorB: string?,
 	pattern: string?,
-	extra: { crownsRequired: number?, source: string?, default: boolean? }?
+	extra: { crownsRequired: number?, source: string?, default: boolean?, release: string? }?
 )
 	assert(itemsById[id] == nil, "duplicate item id " .. id)
 	local item: Item = {
@@ -1186,6 +1187,7 @@ local function add(
 		item.crownsRequired = extra.crownsRequired
 		item.source = extra.source
 		item.default = extra.default
+		item.release = extra.release
 	end
 	table.insert(items, item)
 	itemsById[id] = item
@@ -1290,24 +1292,46 @@ add("skin", "exclusive", "team", "Team Colours", "#4F8BFF", "#FFFFFF", "stripes"
 add("skin", "exclusive", "streak_week", "Week Streak", "#FF5CD6", "#FFE88A", "stars", { source = "daily7" })
 add("skin", "exclusive", "streak_month", "Month Streak", "#3DDCFF", "#FFC83D", "hex", { source = "daily28" })
 
+-- Week-two update: hidden until Config.WeekTwo.Start (Crown Rush trail is won, never sold)
+local WEEK_TWO = { release = "weekTwo" }
+add("skin", "epic", "tide_pool", "Tide Pool", "#2DD4BF", "#3DDCFF", "waves", WEEK_TWO)
+add("skin", "rare", "sunset_grid", "Sunset Grid", "#FF8A3D", "#FF4F8B", "checker", WEEK_TWO)
+add("trail", "epic", "trail_comet", "Comet Tail", "#FFFFFF", "#7C5CFF", "stars", WEEK_TWO)
+add("trail", "exclusive", "crown_rush_trail", "Crown Rush Trail", "#FFC83D", "#2B2F3A", "stars", { source = "crownRush", release = "weekTwo" })
+
 Catalog.items = items
+
+-- True when a release tag (nil = always out) is open at unix time `now`.
+function Catalog.isReleaseOpen(release: string?, now: number): boolean
+	if release == nil then
+		return true
+	end
+	local start = Config.WeekTwo.Start
+	return start &gt; 0 and now &gt;= start
+end
 
 function Catalog.byId(id: string): Item?
 	return itemsById[id]
 end
 
+-- Released items of one type (shop lists, bot outfits). Catalog.byId still finds unreleased ones.
 function Catalog.ofType(itemType: string): { Item }
+	local now = os.time()
 	local out = {}
 	for _, item in items do
-		if item.type == itemType then
+		if item.type == itemType and Catalog.isReleaseOpen(item.release, now) then
 			table.insert(out, item)
 		end
 	end
 	return out
 end
 
-local function isPurchasable(item: Item): boolean
+local function sellable(item: Item): boolean
 	return item.default ~= true and item.source == nil and item.crownsRequired == nil and Config.Prices[item.rarity :: any] ~= nil
+end
+
+local function isPurchasable(item: Item, now: number?): boolean
+	return sellable(item) and Catalog.isReleaseOpen(item.release, now or os.time())
 end
 Catalog.isPurchasable = isPurchasable
 
@@ -1330,17 +1354,25 @@ local function shuffle&lt;T&gt;(list: { T }, rng: (number) -&gt; number): { T }
 end
 
 function Catalog.featured(dayNumber: number): { string }
+	local dayStart = dayNumber * 86400
 	local ids = {}
+	local out = {}
+	-- The week-two items lead the row for their first FeaturedDays.
+	local start = Config.WeekTwo.Start
+	local fresh = start &gt; 0 and dayStart + 86399 &gt;= start and dayNumber &lt; start // 86400 + Config.WeekTwo.FeaturedDays
 	for _, item in items do
-		if isPurchasable(item) then
-			table.insert(ids, item.id)
+		if isPurchasable(item, dayStart + 86399) then
+			if fresh and item.release == "weekTwo" and #out &lt; Config.Prices.FeaturedCount then
+				table.insert(out, item.id)
+			else
+				table.insert(ids, item.id)
+			end
 		end
 	end
 	local rng = makeRng(dayNumber * 7919 + 13)
 	local shuffled = shuffle(ids, rng)
-	local out = {}
-	for i = 1, Config.Prices.FeaturedCount do
-		out[i] = shuffled[i]
+	for i = 1, Config.Prices.FeaturedCount - #out do
+		table.insert(out, shuffled[i])
 	end
 	return out
 end
@@ -1425,7 +1457,10 @@ Catalog.playtime = {
 Catalog.codes = {
 	RELEASE = { currency = "coins", amount = 1000 },
 	TURF = { currency = "gems", amount = 25 },
+	CROWNRUSH = { currency = "gems", amount = 50 }, -- week-two code, works from Config.WeekTwo.Start
 }
+-- Codes that only work once their release is open (Catalog.isReleaseOpen).
+Catalog.codeRelease = { CROWNRUSH = "weekTwo" } :: { [string]: string }
 
 Catalog.badges = {
 	{ key = "firstLoop", name = "First Loop" },
@@ -1556,6 +1591,13 @@ Config.Upgrades = {
 Config.UpgradeOrder = { "coinBoost", "speed", "shield", "startSize" }
 
 -- G3.4 rebirth: requirement = Base * 2^crowns lifetime coins since last rebirth
+-- Week-two update (owner decision 5, 2026-11-16). Start is a unix time at 00:00 UTC; 0 = not scheduled, so the new
+-- items and the CROWNRUSH code stay hidden. Set it to day 8-10 after launch. From Start the new items are
+-- for sale and fill the Featured row for FeaturedDays.
+Config.WeekTwo = { Start = 0, FeaturedDays = 7 }
+-- Crown Rush weekend: between Start and End (unix, 0 = off) the King earns KingMultiplier x coins, and holding
+-- the crown for PrizeSeconds in total during the event wins the limited Trail.
+Config.CrownRush = { Start = 0, End = 0, KingMultiplier = 2, PrizeSeconds = 300, Trail = "crown_rush_trail" }
 Config.Rebirth = { Base = 150000, Growth = 1.5, GemReward = 50 } -- requirement = Base * Growth ^ crowns
 
 -- G3.6 cosmetic prices
@@ -1610,7 +1652,7 @@ Config.Passes = {
 	doubleCoins = { Robux = 249 },
 	neonPack = { Robux = 199 },
 	skipMusic = { Robux = 9 },
-	doubleSpeed = { Robux = 79, SpeedMultiplier = 2 },
+	doubleSpeed = { Robux = 399, SpeedMultiplier = 2 }, -- owner decision 2 (2026-11-16): keep 2x, price as VIP
 }
 -- Server-side pass ownership checks (UserOwnsGamePassAsync). After a purchase prompt finishes the
 -- server re-checks ownership up to Attempts times, RetrySeconds apart (the API can return a cached
@@ -1941,6 +1983,7 @@ export type CoinContext = {
 	inGroup: boolean,
 	withFriend: boolean?, -- a Roblox friend is in the same server
 	weekend: boolean,
+	crownRushKing: boolean?, -- this player is King during Crown Rush
 }
 
 local SECONDS_PER_DAY = 86400
@@ -1997,6 +2040,9 @@ function Formulas.coinMultiplier(ctx: CoinContext): number
 	if ctx.weekend then
 		m *= inc.WeekendMultiplier
 	end
+	if ctx.crownRushKing then
+		m *= Config.CrownRush.KingMultiplier
+	end
 	return m
 end
 
@@ -2033,6 +2079,11 @@ end
 
 function Formulas.dayNumber(unixSeconds: number): number
 	return math.floor(unixSeconds / SECONDS_PER_DAY)
+end
+
+function Formulas.isCrownRush(unixSeconds: number): boolean
+	local cr = Config.CrownRush
+	return cr.Start &gt; 0 and unixSeconds &gt;= cr.Start and unixSeconds &lt; cr.End
 end
 
 function Formulas.isWeekendUTC(unixSeconds: number): boolean
@@ -2507,6 +2558,7 @@ function ProfileTemplate.default(now: number): Profile
 		wheelPaid = 0,
 		speedBoostUntil = 0,
 		playtime = { day = 0, seconds = 0, claimed = 0 },
+		crownRush = { event = 0, seconds = 0 },
 		settings = { music = true, sfx = true, shake = true, lowDetail = false },
 		firstJoin = now,
 		lastJoin = now,
@@ -2926,7 +2978,8 @@ export type Profile = {
 	wheelFree: number,
 	wheelPaid: number,
 	speedBoostUntil: number,
-	playtime: { day: number, seconds: number, claimed: number }, -- today's play; claimed = bitmask of Catalog.playtime indices
+	playtime: { day: number, seconds: number, claimed: number },
+	crownRush: { event: number, seconds: number }, -- event = Config.CrownRush.Start it counts for -- today's play; claimed = bitmask of Catalog.playtime indices
 	settings: { music: boolean, sfx: boolean, shake: boolean, lowDetail: boolean },
 	firstJoin: number,
 	lastJoin: number,
@@ -3757,6 +3810,7 @@ local RunService = game:GetService("RunService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local ArenaSim = require(Shared.ArenaSim)
 local Config = require(Shared.Config)
+local Formulas = require(Shared.Formulas)
 local Remotes = require(Shared.Remotes)
 local Types = require(Shared.Types)
 
@@ -3769,6 +3823,10 @@ local MonetizationService = require(script.Parent.MonetizationService)
 local RewardService = require(script.Parent.RewardService)
 local ShopService = require(script.Parent.ShopService)
 local UpgradeService = require(script.Parent.UpgradeService)
+
+local S = {
+	crownRushWon = "You won the Crown Rush Trail! Equip it in the Shop.",
+}
 
 type RunnerInfo = Types.RunnerInfo
 type ArenaEvent = Types.ArenaEvent
@@ -4520,14 +4578,32 @@ end
 
 local function housekeeping(now: number)
 	local kingSt = playerById[sim:kingId()]
+	EconomyService.setKing(if kingSt ~= nil then kingSt.player else nil)
 	if kingSt ~= nil then
 		kingSt.kingAccum += STEP
 		if kingSt.kingAccum &gt;= 1 then
 			kingSt.kingAccum -= 1
 			RewardService.progress(kingSt.player, "kingSeconds", 1, "add")
+			local rush = Formulas.isCrownRush(os.time())
+			local won = false
 			DataService.update(kingSt.player, function(p)
 				p.stats.kingSeconds += 1
+				if rush then
+					local cr = Config.CrownRush
+					if p.crownRush.event ~= cr.Start then
+						p.crownRush.event = cr.Start
+						p.crownRush.seconds = 0
+					end
+					p.crownRush.seconds += 1
+					if p.crownRush.seconds &gt;= cr.PrizeSeconds and not p.owned[cr.Trail] then
+						p.owned[cr.Trail] = true
+						won = true
+					end
+				end
 			end)
+			if won then
+				remote(Remotes.Toast):FireClient(kingSt.player, S.crownRushWon, "good")
+			end
 		end
 	end
 
@@ -6095,6 +6171,7 @@ EconomyService.cellsProvider = nil :: ((Player) -&gt; number)?
 
 local passOwned: { [Player]: { [string]: boolean } } = {}
 local inGroup: { [Player]: boolean } = {}
+local kingPlayer: Player? = nil -- set by ArenaService every tick (Crown Rush multiplier)
 local friendsHere: { [Player]: { [Player]: boolean } } = {} -- Roblox friends currently in this server
 local started = false
 
@@ -6185,7 +6262,13 @@ function EconomyService.multiplier(player: Player): number
 		inGroup = inGroup[player] == true,
 		withFriend = EconomyService.hasFriendHere(player),
 		weekend = Formulas.isWeekendUTC(now),
+		crownRushKing = kingPlayer == player and Formulas.isCrownRush(now),
 	})
+end
+
+-- ArenaService reports the current King (a real player, or nil) every tick.
+function EconomyService.setKing(player: Player?)
+	kingPlayer = player
 end
 
 -- Returns coins actually added (after multiplier, rounded). 0 when the profile is not loaded.
@@ -6706,6 +6789,8 @@ local function processReceipt(info: { [string]: any }): Enum.ProductPurchaseDeci
 		elseif productKey == "boost15" then
 			EconomyService.extendBoostInProfile(p, cfg.Seconds)
 		elseif productKey == "starterPack" then
+			-- Once per account (owner decision 4): the client never offers it again. A repeat can only come
+			-- from a stale or forced prompt; the player has paid, so they still get the gems.
 			EconomyService.creditInProfile(player, p, "gems", cfg.Gems, productKey)
 			if not p.starterPackBought then
 				p.starterPackBought = true
@@ -6959,7 +7044,7 @@ function RewardService.redeemCode(player: Player, code: any): (boolean, any)
 	end
 	local key = string.upper(code)
 	local reward = (Catalog.codes :: { [string]: Catalog.Reward })[key]
-	if reward == nil then
+	if reward == nil or not Catalog.isReleaseOpen(Catalog.codeRelease[key], os.time()) then
 		return false, "invalid_code"
 	end
 	local profile = DataService.get(player)
@@ -9685,6 +9770,7 @@ local S = {
 	percent = "%.1f%%",
 	boost = "%dx %s",
 	weekend = "%dx WEEKEND",
+	crownRush = "CROWN RUSH: KING %dx",
 	friend = "+%d%% FRIEND",
 	inviteIcon = "core_friends",
 	speedIcon = "economy_energy",
@@ -9951,7 +10037,12 @@ local function buildTopCentre(gui: ScreenGui)
 		else
 			boostChip.Visible = false
 		end
-		weekendChip.Visible = Formulas.isWeekendUTC(now)
+		-- The weekend chip doubles as the Crown Rush chip while that event runs.
+		local rush = Formulas.isCrownRush(now)
+		weekendChip.Visible = rush or Formulas.isWeekendUTC(now)
+		weekendMain.Text = if rush
+			then string.format(S.crownRush, Config.CrownRush.KingMultiplier)
+			else string.format(S.weekend, Config.Income.WeekendMultiplier)
 		friendChip.Visible = ClientState.session.withFriend == true
 	end
 	return updateTimers, updateMap
@@ -10829,6 +10920,7 @@ local S = {
 		group = "Group reward",
 		daily7 = "7-day streak",
 		daily28 = "28-day streak",
+		crownRush = "Crown Rush event",
 	},
 	rarity = {
 		common = "Common",
@@ -11195,6 +11287,10 @@ local function promptProduct(key: string)
 	local id = (Config.Ids.Products :: any)[key]
 	if type(id) ~= "number" or id == 0 then
 		UiKit.toast(S.comingSoon)
+		return
+	end
+	-- Starter Pack is once per account (owner decision 4): a still-open offer panel must not sell it twice.
+	if key == "starterPack" and ClientState.profile ~= nil and ClientState.profile.starterPackBought then
 		return
 	end
 	MarketplaceService:PromptProductPurchase(Players.LocalPlayer, id)

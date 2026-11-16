@@ -1,5 +1,16 @@
 # Decisions waiting on the owner
 
+## Answered 2026-11-16 (owner, in chat)
+1. Sky Chest paid spin: **keep**. The Maturity & Compliance questionnaire must declare paid random items before publishing.
+2. 2x Speed: **keep 2x, price 399 Robux** (`Config.Passes.doubleSpeed.Robux`). The price on the Roblox dashboard must be changed to match.
+3. Friend-avatar bots: **no BOT tag**.
+4. Starter Pack: **once per account**.
+5. Week-two update: **yes**; built, off until dates are set (`Config.WeekTwo`, `Config.CrownRush`).
+6. Title: **Turf Loop** stays.
+7. Art briefs: **redo for the grey floor**; done in `docs/CHATGPT_TASKS.md`.
+
+The sections below are kept for the reasoning.
+
 _Written 2026-11-16 by the lead. Each item has what is built now, the risk, and a recommendation. Answer in chat with the number and your choice; the lead logs it in `docs/PROGRESS.md` and changes the code._
 
 ## 1. Sky Chest paid spin (39 Robux): keep, or make it free-only?

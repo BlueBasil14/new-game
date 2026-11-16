@@ -8,6 +8,7 @@ local RunService = game:GetService("RunService")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local ArenaSim = require(Shared.ArenaSim)
 local Config = require(Shared.Config)
+local Formulas = require(Shared.Formulas)
 local Remotes = require(Shared.Remotes)
 local Types = require(Shared.Types)
 
@@ -20,6 +21,10 @@ local MonetizationService = require(script.Parent.MonetizationService)
 local RewardService = require(script.Parent.RewardService)
 local ShopService = require(script.Parent.ShopService)
 local UpgradeService = require(script.Parent.UpgradeService)
+
+local S = {
+	crownRushWon = "You won the Crown Rush Trail! Equip it in the Shop.",
+}
 
 type RunnerInfo = Types.RunnerInfo
 type ArenaEvent = Types.ArenaEvent
@@ -771,14 +776,32 @@ end
 
 local function housekeeping(now: number)
 	local kingSt = playerById[sim:kingId()]
+	EconomyService.setKing(if kingSt ~= nil then kingSt.player else nil)
 	if kingSt ~= nil then
 		kingSt.kingAccum += STEP
 		if kingSt.kingAccum >= 1 then
 			kingSt.kingAccum -= 1
 			RewardService.progress(kingSt.player, "kingSeconds", 1, "add")
+			local rush = Formulas.isCrownRush(os.time())
+			local won = false
 			DataService.update(kingSt.player, function(p)
 				p.stats.kingSeconds += 1
+				if rush then
+					local cr = Config.CrownRush
+					if p.crownRush.event ~= cr.Start then
+						p.crownRush.event = cr.Start
+						p.crownRush.seconds = 0
+					end
+					p.crownRush.seconds += 1
+					if p.crownRush.seconds >= cr.PrizeSeconds and not p.owned[cr.Trail] then
+						p.owned[cr.Trail] = true
+						won = true
+					end
+				end
 			end)
+			if won then
+				remote(Remotes.Toast):FireClient(kingSt.player, S.crownRushWon, "good")
+			end
 		end
 	end
 
