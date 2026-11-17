@@ -249,10 +249,22 @@ Config.Biomes = {
 	MaxProps = 600, -- client cap across all biome owners
 	GrowTime = 0.55, -- seconds per part to grow in
 	StageDelay = 0.18, -- trunks first, then lower leaves, then tops
-	WaveDelay = 0.04, -- extra delay per cell from the block's first change, so a capture grows outward
 	ShrinkTime = 0.35,
 	RebuildBudget = 24, -- blocks re-evaluated per frame
-	Assets = {} :: { [string]: number },
+	ImportScale = 0.01, -- Blender FBX imports in centimetres; 1 Blender unit = 1 stud
+	Assets = {
+		wood_rock_a = 113616341709599,
+		wood_rock_b = 72824790691565,
+		wood_rock_c = 134126909078552,
+		wood_log_a = 74174393112334,
+		wood_log_b = 116419290587214,
+		wood_bush_a = 128199485990104,
+		wood_bush_b = 78220863884806,
+		wood_tree_round = 129594677158427,
+		wood_tree_pine = 85531218981816,
+		wood_tree_tall = 123632714300785,
+		wood_mushrooms = 109415043888671,
+	} :: { [string]: number },
 }
 
 return Config

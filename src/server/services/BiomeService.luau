@@ -23,6 +23,9 @@ function BiomeService.start()
 				if ok then
 					local model = res:FindFirstChildWhichIsA("Model") or res
 					model.Name = name
+					if model:IsA("Model") then
+						model:ScaleTo(model:GetScale() * Config.Biomes.ImportScale)
+					end
 					model.Parent = folder
 				else
 					warn("BiomeService: prop " .. name .. " failed to load: " .. tostring(res))

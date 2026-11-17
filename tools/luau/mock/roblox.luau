@@ -1193,6 +1193,7 @@ service("DataStoreService", {})
 service("PolicyService", {})
 service("MarketplaceService", { callbacks = { ProcessReceipt = true }, events = { "PromptGamePassPurchaseFinished", "PromptProductPurchaseFinished", "PromptPurchaseFinished" } })
 service("BadgeService", {})
+service("InsertService", {})
 service("AnalyticsService", {})
 service("HttpService", { props = { HttpEnabled = RO("boolean", false) } })
 defclass("GlobalDataStore", "Instance", { notCreatable = true })
@@ -2446,6 +2447,15 @@ Classes.MarketplaceService.methods = {
 	GetProductInfo = function(self, id)
 		instData(self, "GetProductInfo", 2)
 		return { Name = "Product " .. tostring(id), PriceInRobux = 0 }
+	end,
+}
+-- ponytail: no asset store in the mock; LoadAsset returns an empty container (no Model inside)
+Classes.InsertService.methods = {
+	LoadAsset = function(self, id)
+		local d = instData(self, "LoadAsset", 2)
+		needNum(id, "LoadAsset assetId", 2)
+		d.S.sleep(0.05)
+		return newInstance(d.S, "Folder", true)
 	end,
 }
 Classes.BadgeService.methods = {

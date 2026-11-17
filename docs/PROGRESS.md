@@ -286,3 +286,11 @@ Owner direction in chat: captured land itself becomes the cosmetic; 3D biome ski
   - No `biome_woodland` item in the shop yet: `Catalog.luau`, `PanelController.luau` and `TurfRenderer.luau` hold another session's uncommitted animated-cosmetics work. It needs one `add("skin", "biome", "biome_woodland", "Living Woodland", "#A3CF62", "#8CBF52", "solid")` and a "biome" rarity label and colour in the shop.
   - Phone performance, the real meshes' look in Roblox, and low-detail mode (scenery is not reduced yet) are untested.
 - Checks: 49 files compile, specs pass (new biomes spec), xref 0, headless 17/17.
+
+## Lead session, 2026-11-16: Woodland props uploaded
+- Owner approved `assets/biomes/woodland/fbx` for uploads. All 11 props uploaded as Model assets to the owner's account (Open Cloud), all moderation-approved; ids in `Config.Biomes.Assets`.
+- Imported FBX comes in at 100x (centimetres). `Config.Biomes.ImportScale = 0.01`; `BiomeService` calls `Model:ScaleTo` after `LoadAsset`. Part names arrive as `<prop>__<key>`, upright. Removed unused `WaveDelay`.
+- Headless mock: added `InsertService` with `LoadAsset` returning an empty Folder (no asset store in the mock), so the server boots with real ids.
+- **Seen in Studio** (cloud place, temporary gallery, removed after): all 11 load, scale to brief sizes (round tree 9.7, pine 12.1, tall 12.8, log 5.0 studs), palette colours apply, they sit on the grass. Picture: `assets/biomes/woodland/renders/_studio_gallery.jpg`. Rocks take a slight blue tint from the sky light.
+- Not checked: the full grow-in with real meshes in a playtest (BiomeService + BiomeRenderer together), phone performance, the shop item (still blocked on the other session's Catalog work).
+- Checks: 49 compile, specs pass, xref 0, headless 17/17.
