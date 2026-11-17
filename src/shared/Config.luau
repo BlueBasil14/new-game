@@ -124,6 +124,7 @@ Config.Prices = {
 	rare = { Currency = "coins", Amount = 12000 },
 	epic = { Currency = "gems", Amount = 150 },
 	legendary = { Currency = "gems", Amount = 400 },
+	biome = { Currency = "gems", Amount = 2000 }, -- owner 2026-11-16: 3D biome skins are the top tier
 	FeaturedDiscount = 0.20,
 	FeaturedCount = 6,
 }
@@ -239,6 +240,19 @@ Config.Colors = {
 		"#FF4D4D", "#FF8A3D", "#FFC83D", "#B6E33B", "#4ADE80", "#2DD4BF", "#3DDCFF", "#4F8BFF",
 		"#7C5CFF", "#C45CFF", "#FF5CD6", "#FF4F8B", "#A0704A", "#6B7A99", "#F5F5F5", "#2B2F3A",
 	},
+}
+
+-- Biome skins (owner direction 2026-11-16, placement in Biomes.luau). Assets = prop name -> uploaded
+-- Model asset id (0 = not uploaded yet; that prop is skipped). Biome skins cost BiomePrice.
+Config.Biomes = {
+	BlockCells = 3, -- one prop slot per 3x3 cells
+	MaxProps = 600, -- client cap across all biome owners
+	GrowTime = 0.55, -- seconds per part to grow in
+	StageDelay = 0.18, -- trunks first, then lower leaves, then tops
+	WaveDelay = 0.04, -- extra delay per cell from the block's first change, so a capture grows outward
+	ShrinkTime = 0.35,
+	RebuildBudget = 24, -- blocks re-evaluated per frame
+	Assets = {} :: { [string]: number },
 }
 
 return Config

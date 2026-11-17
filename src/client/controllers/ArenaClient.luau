@@ -11,6 +11,7 @@ local Remotes = require(Shared.Remotes)
 local Types = require(Shared.Types)
 local ClientState = require(script.Parent.Parent.ClientState)
 local TurfRenderer = require(script.Parent.TurfRenderer)
+local BiomeRenderer = require(script.Parent.BiomeRenderer)
 local CameraController = require(script.Parent.CameraController)
 
 local ArenaClient = {}
@@ -111,6 +112,7 @@ local function applyDelta(cells: buffer, trailDeltas: { Types.TrailDelta })
 		local changed = g:applyDelta(cells)
 		if #changed > 0 then
 			TurfRenderer.cellsChanged(changed)
+			BiomeRenderer.cellsChanged(changed)
 			markChanged()
 		end
 	end
@@ -142,8 +144,10 @@ local function handleEvent(ev: Types.ArenaEvent)
 			arena.alive = true
 		end
 		TurfRenderer.runnerChanged(id)
+		BiomeRenderer.runnerChanged(id)
 	elseif ev.kind == "despawn" then
 		local id = ev.id
+		BiomeRenderer.runnerChanged(id) -- before the runner info goes, while its cells are known
 		arena.runners[id] = nil
 		arena.cells[id] = nil
 		alive[id] = nil
@@ -194,6 +198,7 @@ local function applySnapshot(rle: buffer, runners: { Types.RunnerInfo }, yourRun
 	end
 	arena.totalCells = g.total
 	TurfRenderer.applySnapshot(g)
+	BiomeRenderer.applySnapshot(g)
 
 	-- Deltas/events that overtook the snapshot. Delta owners are final values, so replaying is safe.
 	local deltas = table.clone(pendingDeltas)

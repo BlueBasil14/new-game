@@ -16,6 +16,7 @@ local WorldBuilder = require(Server:WaitForChild("WorldBuilder") :: any)
 local AnalyticsService = require(Services:WaitForChild("AnalyticsService") :: any)
 local ArenaService = require(Services:WaitForChild("ArenaService") :: any)
 local BadgeService = require(Services:WaitForChild("BadgeService") :: any)
+local BiomeService = require(Services:WaitForChild("BiomeService") :: any)
 local BotService = require(Services:WaitForChild("BotService") :: any)
 local DataService = require(Services:WaitForChild("DataService") :: any)
 local EconomyService = require(Services:WaitForChild("EconomyService") :: any)
@@ -66,6 +67,7 @@ LeaderboardService.start()
 ArenaService.start()
 BotService.start()
 SkyChestService.start()
+BiomeService.start()
 
 -- 3. profile replication ---------------------------------------------------------------------------
 

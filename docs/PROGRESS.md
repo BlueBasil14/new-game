@@ -272,3 +272,17 @@ Owner answers in chat (all seven in `docs/DECISIONS.md`): keep the paid Sky Ches
 - Not built from the plan: the in-game day-5 announcement with countdown (needs a launch date).
 - Checks: 44 files compile, specs pass (new week-two block in `catalog.spec`: hidden before Start, sold and featured after, won trail never sold, Crown Rush window, King multiplier), xref 0, headless 17/17, place build.
 - Not checked: anything in Studio; the Crown Rush prize path runs only in the headless build with the event off (no scenario makes a player King during an event); the new items' look in the shop.
+
+## Lead session, 2026-11-16: biome skins, Living Woodland prototype (owner direction)
+Owner direction in chat: captured land itself becomes the cosmetic; 3D biome skins grow low-poly Blender scenery and are top-tier (expensive in gems, or a good amount of Robux). Owner approved uploading the Blender meshes to his account.
+- **Kit:** 11 props (3 rocks, 2 logs, 2 bushes, 3 trees, mushroom cluster) made in Blender by two Sonnet workers from `docs/art/WOODLAND_KIT.md`. An Opus reviewer judged them and built a forest test scene (`assets/biomes/woodland/renders/_diorama.png`); a third Sonnet worker applied its six fixes. Files: `assets/biomes/woodland/fbx/*.fbx`, `woodland_kit.blend`, helpers `tools/blender/kit.py`. Turf colour for the skin is #A3CF62 (the first green matched the leaves).
+- **Placement** (`src/shared/Biomes.luau`, spec `tests/biomes.spec.luau`): one prop slot per 3x3-cell block, hash-chosen anchor, 70% of blocks filled. A prop appears only if every cell within its reach is the owner's (trees need a 5x5 owned square), otherwise it falls back to a smaller prop. Placement is stable when more land is captured; edge props may upgrade in place.
+- **Client** (`src/client/controllers/BiomeRenderer.luau`, hooked from `ArenaClient`): clones templates from `ReplicatedStorage.BiomeProps`, grows trunks first then canopies with a slight overshoot, shrinks out when the land is lost, pools clones, at most 600 props, 24 blocks re-evaluated per frame. Studio-only hook: `workspace.BiomeProps.Debug:Fire("biome_woodland")` forces the biome on every runner.
+- **Server** (`BiomeService.luau`): loads `Config.Biomes.Assets` (prop name -> Model asset id) with InsertService into `ReplicatedStorage.BiomeProps`. Empty until uploads.
+- **Price:** `Config.Prices.biome` = 2,000 gems. Proposed: Robux-only showcase biomes (Orca Cove, Rainbow Dreamland) at 799 each. Not built.
+- **Seen in Studio** (local build, second window, stand-in block props): props spawn only inside bot territory, sit on the turf, use the palette colours, grow in (captured mid-growth) and clear when the biome is switched off. No script errors.
+- **Not done / blocked:**
+  - The real meshes are not uploaded: Open Cloud refuses `assets/biomes` until the owner approves that folder in Studio (Assistant Settings -> MCP Permissions).
+  - No `biome_woodland` item in the shop yet: `Catalog.luau`, `PanelController.luau` and `TurfRenderer.luau` hold another session's uncommitted animated-cosmetics work. It needs one `add("skin", "biome", "biome_woodland", "Living Woodland", "#A3CF62", "#8CBF52", "solid")` and a "biome" rarity label and colour in the shop.
+  - Phone performance, the real meshes' look in Roblox, and low-detail mode (scenery is not reduced yet) are untested.
+- Checks: 49 files compile, specs pass (new biomes spec), xref 0, headless 17/17.
