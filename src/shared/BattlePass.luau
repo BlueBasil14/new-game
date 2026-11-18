@@ -14,7 +14,7 @@ export type State = {
 	playDay: number, -- day number playXp counts for
 	playXp: number, -- play XP granted on playDay (capped)
 	bonus: number, -- bonus keys granted after the last tier
-	seen: number, -- bitmask of one-time prompts shown (1 = tier 10 popup, 2 = tier 20 popup)
+	seen: number, -- bitmask of one-time prompts shown (1 = tier 10 popup, 2 = tier 20 popup, 4 = first-open popup)
 }
 
 local CFG = Config.BattlePass
@@ -268,6 +268,9 @@ function BattlePass.applyProduct(st: State, key: string): (number, number)
 		return 0, bonus
 	elseif key == "battlePassTier" then
 		local _, bonus = BattlePass.addXp(st, CFG.TierXp)
+		return 0, bonus
+	elseif key == "battlePassTiers10" then
+		local _, bonus = BattlePass.addXp(st, CFG.TierXp * 10)
 		return 0, bonus
 	end
 	return 0, 0

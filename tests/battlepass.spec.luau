@@ -122,6 +122,8 @@ BattlePass.applyProduct(plus, "battlePassPlus")
 eq(plus.premium and BattlePass.tierOf(plus.xp) == 10, true, "plus = premium + 10 tiers")
 BattlePass.applyProduct(plus, "battlePassTier")
 eq(BattlePass.tierOf(plus.xp), 11, "tier skip")
+BattlePass.applyProduct(plus, "battlePassTiers10")
+eq(BattlePass.tierOf(plus.xp), 21, "owners +10 tiers")
 
 -- Missions
 eq(BattlePass.missionXp(5, false), 800, "hard mission")

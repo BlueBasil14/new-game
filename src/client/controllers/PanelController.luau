@@ -10,6 +10,8 @@ local Types = require(Shared.Types)
 local Catalog = require(Shared.Catalog)
 local Formulas = require(Shared.Formulas)
 local Remotes = require(Shared.Remotes)
+local BattlePass = require(Shared.BattlePass)
+local TurfAnim = require(Shared.TurfAnim)
 local UiKit = require(script.Parent.Parent.ui.UiKit)
 local ClientState = require(script.Parent.Parent.ClientState)
 
@@ -76,6 +78,7 @@ local S = {
 		daily7 = "7-day streak",
 		daily28 = "28-day streak",
 		crownRush = "Crown Rush event",
+		pass = "Turf Pass",
 	},
 	rarity = {
 		common = "Common",
@@ -97,6 +100,7 @@ local S = {
 		effect = "Animated capture effect",
 		pattern = "Patterned",
 		solid = "Solid colour",
+		anim = "Animated turf",
 	},
 	gemsName = "%s Gems",
 	boostName = "2x Coins",
@@ -170,6 +174,9 @@ local S = {
 	deathCoins = "Coins earned",
 	deathKills = "Eliminations",
 	deathTime = "Time alive",
+	deathPass = "+%s Pass XP",
+	deathPassNext = "%d tier%s to %s!",
+	deathPassTier = "Tier %d",
 	deathKiller = "Cut by %s",
 	respawn = "Respawn",
 	secondChance = "Second Chance  R$ %d  (%d)",
@@ -182,6 +189,7 @@ local S = {
 	starterNo = "No thanks",
 
 	neonBanner = "Neon Pack: 5 neon skins + trail  R$ %d",
+	passBanner = "TURF PASS: 4 animated Legendaries + 6 Rares, from R$ %d  >",
 	boostQuest = "%dx Coins %d min",
 	awayTitle = "Welcome back",
 	awayStreak = "Daily streak: %d",
@@ -277,6 +285,21 @@ local MUTED = Color3.fromHex("626779")
 
 local PanelController = {}
 PanelController.onSound = nil :: ((name: string) -> ())?
+-- Opens the Turf Pass screen (set by Main; PassController requires this module, so no direct require).
+PanelController.onOpenPass = nil :: (() -> ())?
+
+local function passOpen(): boolean
+	local sp = (ClientState.session :: any).pass
+	return type(sp) == "table" and sp.open == true
+end
+
+local function openPass()
+	local hook = PanelController.onOpenPass
+	if hook then
+		PanelController.close()
+		hook()
+	end
+end
 
 local shopSetTab: ((string) -> ())? = nil
 
@@ -688,6 +711,29 @@ local function iconArt(key: string)
 end
 
 -- Turf preview: colorA ground with the pattern tile tinted colorB, exactly as the turf draws it.
+-- Animated (Turf Pass) skin previews in the shop move like the turf does (Shared/TurfAnim).
+local animatedArt: { { img: ImageLabel, item: Catalog.Item } } = {}
+local animClock = 0
+game:GetService("RunService").Heartbeat:Connect(function()
+	local now = os.clock()
+	if #animatedArt == 0 or now - animClock < 0.05 then
+		return
+	end
+	animClock = now
+	for i = #animatedArt, 1, -1 do
+		local a = animatedArt[i]
+		if a.img.Parent == nil then
+			table.remove(animatedArt, i)
+		elseif a.img.Visible then
+			local color, u, v, transparency = TurfAnim.frame(a.item.anim :: string, Color3.fromHex(a.item.colorB or "#FFFFFF"), now)
+			local tile = a.img.TileSize.X.Offset
+			a.img.ImageColor3 = color
+			a.img.ImageTransparency = transparency
+			a.img.Position = UDim2.fromOffset(-u * tile, -v * tile)
+		end
+	end
+end)
+
 local function skinArt(item: Catalog.Item)
 	return function(art: Frame)
 		local a = Color3.fromHex(item.colorA)
@@ -711,6 +757,12 @@ local function skinArt(item: Catalog.Item)
 				local function fit()
 					local px = math.max(8, art.AbsoluteSize.Y * 0.62)
 					img.TileSize = UDim2.fromOffset(px, px)
+					if item.anim then
+						img.Size = UDim2.new(1, px, 1, px) -- one tile of slack so the shifted pattern never shows an edge
+					end
+				end
+				if item.anim then
+					table.insert(animatedArt, { img = img, item = item })
 				end
 				art:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
 				fit()
@@ -773,6 +825,8 @@ local function itemSub(item: Catalog.Item): string
 		return S.subs.biome
 	elseif item.type == "effect" then
 		return S.subs.effect
+	elseif item.anim then
+		return S.subs.anim
 	elseif item.pattern ~= "solid" and item.colorB then
 		return S.subs.pattern
 	end
@@ -1098,6 +1152,8 @@ local function buildShop(): PanelEntry
 			spec.onAction = function()
 				if source == "vip" or source == "neonPack" then
 					promptPass(source)
+				elseif source == "pass" then
+					openPass()
 				else
 					UiKit.toast(string.format(S.unlockVia, label))
 				end
@@ -1241,7 +1297,15 @@ local function buildShop(): PanelEntry
 		end
 		-- Item tabs: one section per tier, best first, so the tier is obvious at a glance.
 		local byTier: { [string]: { CardSpec } } = {}
-		for _, item in Catalog.ofType(TAB_TYPES[tab]) do
+		local tabItems = Catalog.ofType(TAB_TYPES[tab])
+		if passOpen() and Config.BattlePass.Start == 0 then
+			for _, item in Catalog.items do
+				if item.type == TAB_TYPES[tab] and item.source == "pass" then
+					table.insert(tabItems, item)
+				end
+			end
+		end
+		for _, item in tabItems do
 			if not ownedOnly or ClientState.owns(item.id) then
 				local list = byTier[item.rarity]
 				if not list then
@@ -1306,7 +1370,8 @@ local function buildShop(): PanelEntry
 		local sections = buildSections(p)
 		passPulse = false
 		local showNeon = tab == "skins" and not ownedOnly and neonOffered()
-		local keys = { tab, if ownedOnly then "own" else "all", if showNeon then "neon" else "" }
+		local showPass = (tab == "featured" or tab == "skins" or tab == "trails") and not ownedOnly and passOpen()
+		local keys = { tab, if ownedOnly then "own" else "all", if showNeon then "neon" else "", if showPass then "pass" else "" }
 		for _, sec in sections do
 			table.insert(keys, "#" .. (sec.tier or ""))
 			for _, spec in sec.specs do
@@ -1336,6 +1401,24 @@ local function buildShop(): PanelEntry
 		table.clear(cards)
 		table.clear(grids)
 		local order = 0
+		if showPass then
+			order += 1
+			local banner = button({
+				text = string.format(S.passBanner, Config.BattlePass.Robux.premium),
+				color = Color3.fromHex("9C7DFF"),
+				size = UDim2.new(1, -(SCROLLBAR_PX + 4), 0, BANNER_PX),
+				parent = scroller,
+				onClick = openPass,
+			})
+			banner.Name = "PassBanner"
+			banner.TextColor3 = Color3.new(1, 1, 1)
+			banner.LayoutOrder = order
+			local st = Instance.new("UIStroke")
+			st.Color = INK
+			st.Thickness = 2
+			st.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
+			st.Parent = banner
+		end
 		if showNeon then
 			order += 1
 			local banner = button({
@@ -1903,8 +1986,8 @@ local function buildDeath(): PanelEntry
 	for i, def in statDefs do
 		local row = UiKit.frame({
 			Name = def[1],
-			Position = UDim2.fromScale(0.08, 0.03 + (i - 1) * 0.11),
-			Size = UDim2.fromScale(0.84, 0.1),
+			Position = UDim2.fromScale(0.08, 0.02 + (i - 1) * 0.1),
+			Size = UDim2.fromScale(0.84, 0.09),
 			BackgroundColor3 = CARD_BG,
 			parent = body,
 		})
@@ -1912,22 +1995,32 @@ local function buildDeath(): PanelEntry
 		plainLabel(row, def[2], UDim2.fromScale(0.04, 0.15), UDim2.fromScale(0.55, 0.7))
 		stats[def[1]] = plainLabel(row, "", UDim2.fromScale(0.6, 0.15), UDim2.fromScale(0.36, 0.7), Enum.TextXAlignment.Right)
 	end
-	local killer = plainLabel(body, "", UDim2.fromScale(0.08, 0.47), UDim2.fromScale(0.84, 0.07), Enum.TextXAlignment.Center)
+	-- Turf Pass row: XP earned this life, the bar filling, and the next Legendary to chase.
+	local passRow = UiKit.frame({ Name = "PassXp", Position = UDim2.fromScale(0.08, 0.42), Size = UDim2.fromScale(0.84, 0.11), BackgroundColor3 = Color3.fromHex("3A2A8C"), Visible = false, parent = body })
+	UiKit.corner(passRow, 10)
+	UiKit.stroke(passRow, INK, 2)
+	local passTrack = UiKit.frame({ Position = UDim2.fromScale(0.03, 0.55), Size = UDim2.fromScale(0.94, 0.3), BackgroundColor3 = Color3.fromHex("6A4BD8"), parent = passRow })
+	UiKit.corner(passTrack, 100)
+	local passFill = UiKit.frame({ Size = UDim2.fromScale(0, 1), BackgroundColor3 = theme.Yellow, parent = passTrack })
+	UiKit.corner(passFill, 100)
+	local passText = plainLabel(passRow, "", UDim2.fromScale(0.03, 0.06), UDim2.fromScale(0.94, 0.44), Enum.TextXAlignment.Left)
+	passText.TextColor3 = Color3.new(1, 1, 1)
+	local killer = plainLabel(body, "", UDim2.fromScale(0.08, 0.54), UDim2.fromScale(0.84, 0.06), Enum.TextXAlignment.Center)
 	killer.TextTransparency = 0.2
 
 	local respawn = button({
 		text = S.respawn,
 		color = theme.Success,
-		size = UDim2.fromScale(0.8, 0.2),
-		position = UDim2.fromScale(0.1, 0.57),
+		size = UDim2.fromScale(0.8, 0.18),
+		position = UDim2.fromScale(0.1, 0.61),
 		parent = body,
 		onClick = finishDeath,
 	})
 	local second = button({
 		text = "",
 		color = theme.Pink,
-		size = UDim2.fromScale(0.8, 0.15),
-		position = UDim2.fromScale(0.1, 0.8),
+		size = UDim2.fromScale(0.8, 0.14),
+		position = UDim2.fromScale(0.1, 0.81),
 		parent = body,
 		onClick = function()
 			death.frozen = true
@@ -1936,7 +2029,7 @@ local function buildDeath(): PanelEntry
 		end,
 	})
 	second.TextColor3 = INK
-	death.ui = { stats = stats, killer = killer, respawn = respawn, second = second }
+	death.ui = { stats = stats, killer = killer, respawn = respawn, second = second, passRow = passRow, passFill = passFill, passText = passText }
 	return { panel = panel, refresh = function() end }
 end
 
@@ -1961,6 +2054,38 @@ local function showDeath(payload: any)
 	ui.stats.kills.Text = UiKit.formatNumber(payload.kills or 0)
 	ui.stats.time.Text = formatClock(payload.lifeSeconds or 0)
 	ui.killer.Text = if payload.killerName then string.format(S.deathKiller, payload.killerName) else ""
+	-- Turf Pass XP this life (pass XP at spawn -> now), with the bar filling toward the next tier
+	local sp = (ClientState.session :: any).pass
+	local prof = ClientState.profile
+	if type(sp) == "table" and sp.open and prof then
+		local st = BattlePass.normalize((prof :: any).pass, Config.BattlePass.Season)
+		local tier = BattlePass.tierOf(st.xp)
+		local gained = math.max(0, st.xp - (death.passXpAtSpawn or st.xp))
+		local nextName: string? = nil
+		local away = 0
+		for _, t in BattlePass.legendaryTiers do
+			if t > tier then
+				local it = Catalog.byId(BattlePass.tiers[t].prem[1].id :: string)
+				nextName = if it then it.name else nil
+				away = t - tier
+				break
+			end
+		end
+		local head = string.format(S.deathPass, UiKit.formatNumber(gained))
+		if nextName then
+			head ..= "   " .. string.format(S.deathPassNext, away, if away == 1 then "" else "s", nextName)
+		else
+			head ..= "   " .. string.format(S.deathPassTier, tier)
+		end
+		ui.passText.Text = head
+		local frac = if tier >= Config.BattlePass.Tiers then 1 else (st.xp % Config.BattlePass.XpPerTier) / Config.BattlePass.XpPerTier
+		local before = if tier >= Config.BattlePass.Tiers then 1 else math.max(0, frac - gained / Config.BattlePass.XpPerTier)
+		ui.passFill.Size = UDim2.fromScale(before, 1)
+		TweenService:Create(ui.passFill, TweenInfo.new(0.9, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { Size = UDim2.fromScale(frac, 1) }):Play()
+		ui.passRow.Visible = true
+	else
+		ui.passRow.Visible = false
+	end
 	local eligible = payload.canSecondChance == true
 	ui.second.Visible = eligible
 	local remaining = Config.Products.secondChance.PromptSeconds
@@ -2249,7 +2374,12 @@ function PanelController.start()
 	ClientState.arenaChanged:Connect(function()
 		if ClientState.arena.alive then
 			closeDeath()
+			if not death.wasAlive then
+				local prof = ClientState.profile
+				death.passXpAtSpawn = if prof then BattlePass.normalize((prof :: any).pass, Config.BattlePass.Season).xp else nil
+			end
 		end
+		death.wasAlive = ClientState.arena.alive
 	end)
 	ClientState.reward:Connect(function()
 		sound("reward")

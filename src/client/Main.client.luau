@@ -74,6 +74,7 @@ boot("Feedback", FeedbackController.start)
 boot("Hud", HudController.start)
 boot("Panels", PanelController.start)
 boot("Pass", PassController.start)
+PanelController.onOpenPass = PassController.open
 boot("Tutorial", TutorialController.start)
 boot("Music", MusicController.start)
 boot("SkyChest", function() require(controllers:WaitForChild("SkyChestController")).start() end)

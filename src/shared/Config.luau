@@ -144,6 +144,7 @@ Config.Ids = {
 		battlePass = 0, -- 399 R$ Turf Pass Premium (owner creates; 0 = "Coming soon")
 		battlePassPlus = 0, -- 799 R$ Premium + 10 tiers
 		battlePassTier = 0, -- 49 R$ +1 tier
+		battlePassTiers10 = 0, -- 399 R$ +10 tiers (offered to Premium owners instead of Premium+)
 	},
 	Badges = {
 		firstLoop = 0,
@@ -266,7 +267,7 @@ Config.BattlePass = {
 	RestrictedKeyCoins = 3000, -- a key for players where paid random items are restricted
 	DuplicatePremiumGems = 400, -- a stale Premium receipt while already premium
 	PlusHideSeconds = 48 * 3600, -- Premium+ hidden in the last 48 h
-	Robux = { premium = 399, plus = 799, tier = 49 }, -- display only; must match the dashboard
+	Robux = { premium = 399, plus = 799, tier = 49, tiers10 = 399 }, -- display only; must match the dashboard
 }
 
 -- Shop and turf art (tools/art/shop_art.py, Blender render for biomes), uploaded to the owner's account.

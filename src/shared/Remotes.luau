@@ -30,7 +30,7 @@ Remotes.Request = "Request"
 
 Remotes.Requests = {
 	SkyChest = "SkyChest",
-	BattlePass = "BattlePass", -- ("claim", track: "free"|"prem", tier) | ("claimAll") | ("seen", 1|2)
+	BattlePass = "BattlePass", -- ("claim", track: "free"|"prem", tier) | ("claimAll") | ("seen", 1|2|4)
 	BuyUpgrade = "BuyUpgrade", -- (upgradeId: string)
 	BuyItem = "BuyItem", -- (itemId: string)
 	Equip = "Equip", -- (itemId: string)

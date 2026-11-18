@@ -214,7 +214,7 @@ function BattlePassService.request(player: Player, action: any, track: any, tier
 	elseif action == "claimAll" then
 		return claimList(player, BattlePass.unclaimed(BattlePass.normalize((p :: any).pass, CFG.Season)))
 	elseif action == "seen" then
-		if tier ~= 1 and tier ~= 2 then
+		if tier ~= 1 and tier ~= 2 and tier ~= 4 then
 			return false, "bad_args"
 		end
 		DataService.update(player, function(pp)

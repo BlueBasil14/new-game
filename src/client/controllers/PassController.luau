@@ -16,6 +16,7 @@ local Formulas = require(Shared.Formulas)
 local Remotes = require(Shared.Remotes)
 local TurfAnim = require(Shared.TurfAnim)
 local ArcadeIcons = require(Shared.ArcadeIcons)
+local SkyChest = require(Shared.SkyChest)
 local UiKit = require(script.Parent.Parent.ui.UiKit)
 local ClientState = require(script.Parent.Parent.ClientState)
 local PanelController = require(script.Parent.PanelController)
@@ -34,7 +35,7 @@ local S = {
 	premium = "PREMIUM",
 	unlock = "UNLOCK",
 	unlockPrice = "R$ %d",
-	worth = "Worth 1,900+ gems",
+	worth = "4 exclusive animated Legendaries",
 	plus = "+10 TIERS\nR$ %d",
 	tierSkip = "+1 TIER\nR$ %d",
 	owner = "SEASON 1\nOWNER",
@@ -44,6 +45,13 @@ local S = {
 	toGo = "%d tiers to go!",
 	finaleDone = "Unlocked!",
 	go = "GO!",
+	unlockNamed = "GET %s\nR$ %d",
+	plusJump = "+10 TIERS R$ %d\n%s now!",
+	odds = "Sky Chest odds: ",
+	firstTitle = "Tier 1 unlocked! %s is waiting",
+	waitingTile = "WAITING!",
+	waitingShort = "waiting for you!",
+	alsoWaiting = "Waiting: %d Legendary, %d Rare, %d gems",
 	get = "GET",
 	claimAll = "CLAIM ALL\n%d",
 	finale = "TIER 30",
@@ -65,7 +73,7 @@ local S = {
 	equipNow = "Equip now",
 	nice = "Awesome!",
 	popupTitle = "You just passed %s!",
-	popupBody = "Unlock Premium to claim it and every premium reward you've reached.",
+	popupBody = "Unlock Premium to claim it and everything you've reached:",
 	popupLater = "Later",
 	keyName = "Sky Chest Key",
 	keysName = "Sky Chest Keys",
@@ -106,6 +114,7 @@ local COL_W = 132 -- px per tier column (before the track scale)
 local TILE = 112 -- px reward tile (before the track scale)
 local BASE_H = 340 -- track height the layout is drawn for; scaled to the real track height
 local MAX_TRACK_SCALE = 1.3
+local COMPACT_HEIGHT = 560 -- viewport px below which the pass goes full-screen (phones in landscape)
 local QUEST_ICONS: { [string]: string } = {
 	cells = "gameplay_territory",
 	kills = "gameplay_trail_cut",
@@ -486,15 +495,35 @@ local function build()
 	-- Buy zone (right): finale chase card, the one big UNLOCK, value line, tier offer -------------
 	local buy = UiKit.frame({ Name = "BuyZone", BackgroundTransparency = 1, Position = UDim2.fromScale(0.838, 0.22), Size = UDim2.fromScale(0.15, 0.76), parent = surface })
 	local unlockBtn = UiKit.button({ text = "", color = GREEN, size = UDim2.fromScale(1, 0.17), position = UDim2.fromScale(0, 0.53), parent = buy })
-	local unlockL = label(unlockBtn, "", { Size = UDim2.fromScale(0.92, 0.84), Position = UDim2.fromScale(0.04, 0.08), TextColor3 = WHITE })
+	local hookItem = Catalog.byId(BattlePass.tiers[1].prem[1].id :: string) :: Catalog.Item
+	local thumb = UiKit.frame({ Name = "Thumb", Position = UDim2.fromScale(0.04, 0.12), Size = UDim2.fromScale(0.3, 0.76), parent = unlockBtn })
+	UiKit.corner(thumb, 8)
+	UiKit.stroke(thumb, INK, 2)
+	thumb.ZIndex = unlockBtn.ZIndex + 2
+	skinPreview(thumb, hookItem)
+	local unlockL = label(unlockBtn, "", { Size = UDim2.fromScale(0.62, 0.84), Position = UDim2.fromScale(0.36, 0.08), TextColor3 = WHITE })
 	outlined(unlockL, INK, 2)
 	unlockL.ZIndex = unlockBtn.ZIndex + 6
 	shine(unlockBtn, 1.8)
 	local unlockPulse = bob(unlockBtn, 0.06, 0.55)
 	local ownerCrown = UiKit.icon("economy_crown", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.1, 0.1), Size = UDim2.fromScale(0.36, 0.6), Rotation = -18, Visible = false, parent = unlockBtn })
 	ownerCrown.ZIndex = unlockBtn.ZIndex + 7
-	local valueL = label(buy, "", { Position = UDim2.fromScale(0, 0.715), Size = UDim2.fromScale(1, 0.15), TextColor3 = GOLD_DEEP })
+	local valuePill = UiKit.frame({ Name = "Value", Position = UDim2.fromScale(0, 0.715), Size = UDim2.fromScale(1, 0.15), BackgroundColor3 = WHITE, parent = buy })
+	UiKit.corner(valuePill, 10)
+	UiKit.stroke(valuePill, GOLD_DEEP, 2)
+	local valueRow = UiKit.frame({ BackgroundTransparency = 1, Position = UDim2.fromScale(0.03, 0.04), Size = UDim2.fromScale(0.94, 0.52), parent = valuePill })
+	UiKit.list(valueRow, { FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Center, VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0.02, 0) })
+	local valueNums: { TextLabel } = {}
+	for k, icon in { "gameplay_cosmetics", "economy_star", "economy_gem_cluster" } do
+		local ic = UiKit.icon(icon, { Size = UDim2.fromScale(0.13, 1), LayoutOrder = k * 2 - 1, parent = valueRow })
+		UiKit.aspect(ic, 1)
+		local n = label(valueRow, "0", { Size = UDim2.fromScale(if k == 3 then 0.24 else 0.12, 1), LayoutOrder = k * 2, TextColor3 = INK, TextXAlignment = Enum.TextXAlignment.Left })
+		valueNums[k] = n
+	end
+	local valueL = label(valuePill, "", { Position = UDim2.fromScale(0.04, 0.56), Size = UDim2.fromScale(0.92, 0.38), TextColor3 = GOLD_DEEP })
 	local plusBtn = UiKit.button({ text = "", color = GOLD, size = UDim2.fromScale(1, 0.12), position = UDim2.fromScale(0, 0.88), parent = buy })
+	local tierBtn = UiKit.button({ text = "", color = Color3.fromHex("C9B7FF"), size = UDim2.fromScale(1, 0.12), position = UDim2.fromScale(0, 0.88), parent = buy })
+	tierBtn.Visible = false
 
 	-- Track ---------------------------------------------------------------------------------------
 	local trackBack = UiKit.frame({ Name = "TrackBack", Position = UDim2.fromScale(0.12, 0.22), Size = UDim2.fromScale(0.71, 0.76), BackgroundColor3 = WHITE, ClipsDescendants = true, parent = surface })
@@ -533,7 +562,7 @@ local function build()
 	-- lane backgrounds: premium is a purple-to-gold band, free a soft blue band
 	local premLane = UiKit.frame({ Name = "PremiumLane", Size = UDim2.fromScale(1, 0.5), BackgroundColor3 = WHITE, ZIndex = 0, parent = trackBack })
 	gradient(premLane, Color3.fromHex("B9A2FF"), Color3.fromHex("FFD66B"), 0)
-	premLane.BackgroundTransparency = 0.2
+	premLane.BackgroundTransparency = 0.45
 	local freeLane = UiKit.frame({ Name = "FreeLane", Position = UDim2.fromScale(0, 0.5), Size = UDim2.fromScale(1, 0.5), BackgroundColor3 = Color3.fromHex("CFE6FF"), BackgroundTransparency = 0.15, ZIndex = 0, parent = trackBack })
 	local _ = freeLane
 	for i = 1, 30 do
@@ -544,7 +573,7 @@ local function build()
 
 	-- scroll arrows on both track edges (the track scrolls sideways)
 	local function chevron(left: boolean)
-		local b = UiKit.button({ text = "", color = WHITE, size = UDim2.fromScale(0.055, 0.16), position = UDim2.fromScale(if left then 0.01 else 0.935, 0.42), parent = trackBack })
+		local b = UiKit.button({ text = "", color = WHITE, size = UDim2.fromScale(0.46, 0.08), position = UDim2.fromScale(if left then 0 else 0.54, 0.46), parent = rail })
 		b.ZIndex = 30
 		local a = UiKit.icon("gameplay_arrow_right", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromScale(0.75, 0.75), Rotation = if left then 180 else 0, parent = b })
 		a.ZIndex = 31
@@ -605,6 +634,9 @@ local function build()
 		rewardArt(art, main, restricted)
 		if rarity == "legendary" then
 			shine(f, 2.4)
+			local halo = UiKit.frame({ Name = "Halo", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.new(1, 22, 1, 22), BackgroundColor3 = GOLD, BackgroundTransparency = 0.45, ZIndex = 0, parent = f })
+			UiKit.corner(halo, 20)
+			tween(halo, 0.9, { BackgroundTransparency = 0.8, Size = UDim2.new(1, 30, 1, 30) }, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
 		end
 		local name, sub = rewardName(main, restricted)
 		if #rewards > 1 then
@@ -643,14 +675,20 @@ local function build()
 		local lock: GuiObject? = nil
 		if isPrem then
 			-- dark scrim + big padlock until Premium; lifting it is the unlock payoff
-			local scrim = UiKit.frame({ Name = "Locked", Size = UDim2.fromScale(1, 1), BackgroundColor3 = VIOLET_DEEP, BackgroundTransparency = 0.5, parent = f })
+			local scrim = UiKit.frame({ Name = "Locked", Size = UDim2.fromScale(1, 1), BackgroundColor3 = INK, BackgroundTransparency = 0.8, parent = f })
 			UiKit.corner(scrim, 14)
 			scrim.ZIndex = f.ZIndex + 8
-			local l = UiKit.icon("gameplay_lock", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.42), Size = UDim2.fromOffset(56, 56), parent = scrim })
-			l.ZIndex = scrim.ZIndex + 1
+			local l = UiKit.icon("gameplay_lock", { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, 6, 1, 6), Size = UDim2.fromOffset(42, 42), parent = scrim })
+			l.ZIndex = scrim.ZIndex + 2
+			local waiting = UiKit.frame({ Name = "Waiting", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(TILE - 12, 26), BackgroundColor3 = GOLD, Rotation = -8, Visible = false, parent = scrim })
+			UiKit.corner(waiting, 8)
+			UiKit.stroke(waiting, INK, 2)
+			waiting.ZIndex = scrim.ZIndex + 3
+			local wl = label(waiting, S.waitingTile, { Size = UDim2.fromScale(0.92, 0.8), Position = UDim2.fromScale(0.04, 0.1), TextColor3 = INK })
+			wl.ZIndex = waiting.ZIndex + 1
 			lock = scrim
 		end
-		local dim = UiKit.frame({ Name = "NotYet", Size = UDim2.fromScale(1, 1), BackgroundColor3 = INK, BackgroundTransparency = 0.82, Visible = false, parent = f })
+		local dim = UiKit.frame({ Name = "NotYet", Size = UDim2.fromScale(1, 1), BackgroundColor3 = INK, BackgroundTransparency = 0.86, Visible = false, parent = f })
 		UiKit.corner(dim, 14)
 		dim.ZIndex = f.ZIndex + 7
 		local check = UiKit.frame({ Name = "Done", Size = UDim2.fromScale(1, 1), BackgroundColor3 = INK, BackgroundTransparency = 0.45, Visible = false, parent = f })
@@ -692,9 +730,9 @@ local function build()
 	UiKit.stroke(finale, GOLD_DEEP, 4)
 	gradient(finale, Color3.fromHex("FFE9A6"), Color3.fromHex("F7A31F"), 90)
 	shine(finale, 3)
-	local ft = label(finale, S.finale, { Position = UDim2.fromScale(0.05, 0.03), Size = UDim2.fromScale(0.9, 0.13), TextColor3 = WHITE })
+	local ft = label(finale, S.finale, { Position = UDim2.fromScale(0.05, 0.03), Size = UDim2.fromScale(0.78, 0.13), TextColor3 = WHITE })
 	outlined(ft, INK, 2)
-	local fCrown = UiKit.icon("economy_crown", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.06, 0.04), Size = UDim2.fromScale(0.34, 0.2), Rotation = -20, parent = finale })
+	local fCrown = UiKit.icon("economy_crown", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.94, 0.03), Size = UDim2.fromScale(0.3, 0.17), Rotation = 20, parent = finale })
 	fCrown.ZIndex = finale.ZIndex + 6
 	local finaleItem = Catalog.byId(BattlePass.tiers[CFG.Tiers].prem[1].id :: string) :: Catalog.Item
 	local fArt = UiKit.frame({ Position = UDim2.fromScale(0.08, 0.18), Size = UDim2.fromScale(0.84, 0.5), parent = finale })
@@ -733,7 +771,7 @@ local function build()
 		t.ZIndex = 52
 		t.TextScaled = false -- one size for every row (long texts used to shrink on their own)
 		local function fitText()
-			t.TextSize = math.max(10, math.floor(r.AbsoluteSize.Y * 0.26))
+			t.TextSize = math.max(12, math.floor(r.AbsoluteSize.Y * 0.29))
 		end
 		r:GetPropertyChangedSignal("AbsoluteSize"):Connect(fitText)
 		fitText()
@@ -753,7 +791,7 @@ local function build()
 		gradient(xpPill, GOLD_LIGHT, GOLD, 90)
 		local xp = label(xpPill, "", { Size = UDim2.fromScale(0.9, 0.8), Position = UDim2.fromScale(0.05, 0.1), TextColor3 = INK })
 		xp.ZIndex = 53
-		local reward = label(r, "", { Position = UDim2.fromScale(0.56, 0.56), Size = UDim2.fromScale(0.22, 0.34), TextColor3 = MUTED })
+		local reward = label(r, "", { Position = UDim2.fromScale(0.56, 0.56), Size = UDim2.fromScale(0.22, 0.34), TextColor3 = INK })
 		reward.ZIndex = 52
 		local btn = UiKit.button({ text = S.claim, color = GREEN, size = UDim2.fromScale(0.17, 0.7), position = UDim2.fromScale(0.805, 0.15), parent = r })
 		btn.ZIndex = 53
@@ -789,7 +827,10 @@ local function build()
 		end
 	end)
 	plusBtn.Activated:Connect(function()
-		premiumPrompt(if state().premium then "battlePassTier" else "battlePassPlus")
+		premiumPrompt(if state().premium then "battlePassTiers10" else "battlePassPlus")
+	end)
+	tierBtn.Activated:Connect(function()
+		premiumPrompt("battlePassTier")
 	end)
 
 	local function claim(track: string?, tier: number?, from: GuiObject?)
@@ -853,6 +894,14 @@ local function build()
 				UiKit.toast(S.needPremium)
 			elseif why == "too_early" then
 				UiKit.toast(string.format(S.notReady, t.tier))
+			end
+			local first = BattlePass.rewards(t.track, t.tier)[1]
+			if first and first.kind == "keys" and sessionPass().keysRestricted ~= true then
+				local parts = {}
+				for _, prize in SkyChest.Prizes do
+					table.insert(parts, prize.name .. " " .. prize.weight .. "%")
+				end
+				UiKit.toast(S.odds .. table.concat(parts, ", "))
 			end
 		end)
 	end
@@ -921,7 +970,20 @@ local function build()
 				n.Visible = not can -- GET takes the name's place
 			end
 			t.glow.BackgroundTransparency = if can then 0.35 else 1
-			t.dim.Visible = not reached and not (isPrem and not st.premium)
+			t.dim.Visible = not reached
+			local lockedHere = isPrem and not st.premium and not claimed
+			if lockedHere and reached then
+				t.glow.BackgroundColor3 = GOLD
+				t.glow.BackgroundTransparency = 0.3
+			else
+				t.glow.BackgroundColor3 = GREEN
+			end
+			if t.lock then
+				local w = (t.lock :: GuiObject):FindFirstChild("Waiting")
+				if w and w:IsA("GuiObject") then
+					w.Visible = lockedHere and reached
+				end
+			end
 			if t.lock then
 				(t.lock :: GuiObject).Visible = not st.premium
 			end
@@ -935,24 +997,51 @@ local function build()
 		local plusHidden = sp.endsAt and (sp.endsAt - ClientState.serverNow()) < CFG.PlusHideSeconds
 		if st.premium then
 			unlockL.Text = S.owner
+			unlockL.Size = UDim2.fromScale(0.92, 0.84)
+			unlockL.Position = UDim2.fromScale(0.04, 0.08)
+			thumb.Visible = false
 			unlockBtn.BackgroundColor3 = GOLD
 			unlockPulse.Scale = 1
 			ownerCrown.Visible = true
-			valueL.Visible = false
-			plusBtn.Text = string.format(S.tierSkip, CFG.Robux.tier)
+			valuePill.Visible = false
+			-- owners: a fair +10 (not Premium+ again) and the single tier, filling the space under the badge
+			plusBtn.Text = string.format(S.plus, CFG.Robux.tiers10)
 			plusBtn.Visible = tier < CFG.Tiers
+			plusBtn.Position = UDim2.fromScale(0, 0.72)
+			tierBtn.Text = string.format(S.tierSkip, CFG.Robux.tier)
+			tierBtn.Visible = tier < CFG.Tiers
 		else
 			local secsLeft = math.max(0, (sp.endsAt or 0) - ClientState.serverNow())
-			unlockL.Text = if plusHidden then string.format(S.unlockLate, CFG.Robux.premium, secsLeft // 3600) else string.format(S.unlockTwo, CFG.Robux.premium)
+			unlockL.Text = if plusHidden then string.format(S.unlockLate, CFG.Robux.premium, secsLeft // 3600) else string.format(S.unlockNamed, string.upper(hookItem.name), CFG.Robux.premium)
+			unlockL.Size = UDim2.fromScale(0.62, 0.84)
+			unlockL.Position = UDim2.fromScale(0.36, 0.08)
+			thumb.Visible = true
+			tierBtn.Visible = false
 			unlockBtn.BackgroundColor3 = GREEN
 			ownerCrown.Visible = false
-			valueL.Visible = true
+			valuePill.Visible = true
+			plusBtn.Position = UDim2.fromScale(0, 0.88)
 			local got = BattlePass.premiumReached(st, function(id)
 				local it = Catalog.byId(id)
 				return if it and it.type == "skin" then it.rarity else nil
 			end)
-			valueL.Text = if got.legendary + got.rare + got.gems > 0 then string.format(S.waiting, got.legendary, got.rare, got.gems) else S.worth
-			plusBtn.Text = string.format(S.plus, CFG.Robux.plus)
+			local any = got.legendary + got.rare + got.gems > 0
+			valueRow.Visible = any
+			valueNums[1].Text = tostring(got.legendary)
+			valueNums[2].Text = tostring(got.rare)
+			valueNums[3].Text = UiKit.formatNumber(got.gems)
+			valueL.Text = if any then S.waitingShort else S.worth
+			valueL.Position = if any then UDim2.fromScale(0.04, 0.56) else UDim2.fromScale(0.04, 0.2)
+			valueL.Size = if any then UDim2.fromScale(0.92, 0.38) else UDim2.fromScale(0.92, 0.6)
+			-- +10 tiers that would pass a Legendary right away says so
+			local jump: Catalog.Item? = nil
+			for _, lt in BattlePass.legendaryTiers do
+				if lt > tier and lt <= tier + 10 and lt > 1 then
+					jump = Catalog.byId(BattlePass.tiers[lt].prem[1].id :: string)
+					break
+				end
+			end
+			plusBtn.Text = if jump then string.format(S.plusJump, CFG.Robux.plus, jump.name) else string.format(S.plus, CFG.Robux.plus)
 			plusBtn.Visible = not plusHidden
 		end
 
@@ -994,16 +1083,16 @@ local function build()
 			(hudDot :: (number) -> ())(claimable + open)
 		end
 
-		-- one-time "you just passed a Legendary" prompt for free players at tiers 10 and 20
+		-- one-time "you just passed a Legendary" prompt for free players: first open (tier 1), tiers 10 and 20
 		if not st.premium and isOpen then
-			for _, pair in { { 1, 10 }, { 2, 20 } } do
+			for _, pair in { { 4, 1 }, { 1, 10 }, { 2, 20 } } do
 				local bitN, at = pair[1], pair[2]
 				if tier >= at and not bit32.btest(st.seen, bitN) and not popupShown[bitN] then
 					popupShown[bitN] = true
 					task.spawn(ClientState.request, Remotes.Requests.BattlePass, "seen", nil, bitN)
 					local it = Catalog.byId(BattlePass.tiers[at].prem[1].id :: string)
 					if it then
-						PassController.passedPopup(it)
+						PassController.passedPopup(it, if at == 1 then S.firstTitle else nil)
 					end
 					break
 				end
@@ -1015,6 +1104,24 @@ local function build()
 	closeBtn.Activated:Connect(function()
 		PassController.close()
 	end)
+
+	-- Short screens (phones in landscape): the pass takes the whole screen and the lane labels drop
+	-- their text, so tiles and text stay big enough to read.
+	function PassController._fitScreen()
+		local cam = workspace.CurrentCamera
+		local compact = cam ~= nil and cam.ViewportSize.Y < COMPACT_HEIGHT
+		win.Size = if compact then UDim2.fromScale(1, 1) else UDim2.fromScale(0.94, 0.86)
+		win.Position = if compact then UDim2.fromScale(0.5, 0.5) else UDim2.fromScale(0.5, 0.53)
+		for _, t in rail:GetChildren() do
+			if t:IsA("Frame") then
+				for _, l in t:GetChildren() do
+					if l:IsA("TextLabel") then
+						l.Visible = not compact
+					end
+				end
+			end
+		end
+	end
 
 	-- open: scroll so the next tier is in view; animate in
 	function PassController._afterOpen()
@@ -1060,6 +1167,7 @@ local function build()
 	end)
 end
 PassController._lastAnim = 0 :: number
+PassController._fitScreen = nil :: (() -> ())?
 PassController._afterOpen = nil :: (() -> ())?
 PassController._unlockShow = nil :: (() -> ())?
 
@@ -1114,15 +1222,23 @@ function PassController.reveal(item: Catalog.Item)
 	end)
 end
 
-function PassController.passedPopup(item: Catalog.Item)
+function PassController.passedPopup(item: Catalog.Item, title: string?)
 	popup(function(card, close)
-		local t = label(card, string.format(S.popupTitle, item.name), { Position = UDim2.fromScale(0.05, 0.04), Size = UDim2.fromScale(0.9, 0.12), TextColor3 = VIOLET, ZIndex = 93 })
+		local t = label(card, if title then string.format(title, item.name) else string.format(S.popupTitle, item.name), { Position = UDim2.fromScale(0.05, 0.04), Size = UDim2.fromScale(0.9, 0.12), TextColor3 = VIOLET, ZIndex = 93 })
 		local _ = t
 		local art = UiKit.frame({ Position = UDim2.fromScale(0.15, 0.18), Size = UDim2.fromScale(0.7, 0.42), ZIndex = 93, parent = card })
 		UiKit.corner(art, 14)
 		UiKit.stroke(art, GOLD_DEEP, 4)
 		skinPreview(art, item)
-		label(card, S.popupBody, { Position = UDim2.fromScale(0.07, 0.62), Size = UDim2.fromScale(0.86, 0.15), TextColor3 = INK, ZIndex = 93 })
+		label(card, S.popupBody, { Position = UDim2.fromScale(0.07, 0.615), Size = UDim2.fromScale(0.86, 0.095), TextColor3 = INK, ZIndex = 93 })
+		local got = BattlePass.premiumReached(state(), function(id)
+			local it = Catalog.byId(id)
+			return if it and it.type == "skin" then it.rarity else nil
+		end)
+		local strip = UiKit.frame({ Position = UDim2.fromScale(0.08, 0.715), Size = UDim2.fromScale(0.84, 0.065), BackgroundColor3 = GOLD_LIGHT, ZIndex = 93, parent = card })
+		UiKit.corner(strip, 8)
+		UiKit.stroke(strip, GOLD_DEEP, 2)
+		label(strip, string.format(S.alsoWaiting, got.legendary, got.rare, got.gems), { Size = UDim2.fromScale(0.94, 0.8), Position = UDim2.fromScale(0.03, 0.1), TextColor3 = INK, ZIndex = 94 })
 		local tag = UiKit.frame({ AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.18), Size = UDim2.fromScale(0.42, 0.06), BackgroundColor3 = GOLD, ZIndex = 95, parent = card })
 		UiKit.corner(tag, 6)
 		UiKit.stroke(tag, INK, 2)
@@ -1207,6 +1323,10 @@ function PassController.open()
 	end
 	if not gui then
 		build()
+	end
+	local fit = PassController._fitScreen
+	if fit then
+		fit()
 	end
 	PanelController.close()
 	local r = root :: Frame

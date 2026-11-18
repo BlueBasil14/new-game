@@ -512,7 +512,7 @@ local function buildRail(gui: ScreenGui): (() -> ())
 	for i, def in S.rail do
 		local b = UiKit.button({
 			text = def.text,
-			color = if def.panel == "Shop" or def.panel == "Pass" then theme.Yellow elseif def.panel == "Upgrades" then CYAN elseif def.panel == "Daily" then LILAC else PANEL_BG,
+			color = if def.panel == "Pass" then Color3.fromHex("9C7DFF") elseif def.panel == "Shop" then theme.Yellow elseif def.panel == "Upgrades" then CYAN elseif def.panel == "Daily" then LILAC else PANEL_BG,
 			size = UDim2.fromScale(1, RAIL_BUTTON_HEIGHT),
 			parent = rail,
 			onClick = function()
@@ -527,7 +527,7 @@ local function buildRail(gui: ScreenGui): (() -> ())
 		b.Name = def.panel
 		b.LayoutOrder = i
 		railButtons[def.panel] = b
-		UiKit.icon(if def.panel == "Pass" then "economy_premium" else "core_" .. string.lower(def.panel), {
+		UiKit.icon(if def.panel == "Pass" then "economy_crown" else "core_" .. string.lower(def.panel), {
 			Name = "MenuIcon",
 			AnchorPoint = Vector2.new(0, 0.5),
 			Position = UDim2.fromScale(0.04, 0.5),
@@ -584,8 +584,8 @@ local function buildRail(gui: ScreenGui): (() -> ())
 			local count = UiKit.frame({
 				Name = "PassCount",
 				AnchorPoint = Vector2.new(0.5, 0.5),
-				Position = UDim2.fromScale(0.94, 0.08),
-				Size = UDim2.fromScale(0.26, 0.26),
+				Position = UDim2.fromScale(0.95, 0.1),
+				Size = UDim2.fromScale(0.5, 0.5),
 				BackgroundColor3 = theme.Danger,
 				Visible = false,
 				parent = b,
