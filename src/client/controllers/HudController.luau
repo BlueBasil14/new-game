@@ -14,6 +14,7 @@ local Remotes = require(Shared.Remotes)
 local UiKit = require(script.Parent.Parent.ui.UiKit)
 local ClientState = require(script.Parent.Parent.ClientState)
 local PanelController = require(script.Parent.PanelController)
+local PassController = require(script.Parent.PassController)
 local ArenaClient = require(script.Parent.ArenaClient)
 local TurfRenderer = require(script.Parent.TurfRenderer)
 local FeedbackController = require(script.Parent.FeedbackController)
@@ -41,6 +42,7 @@ local S = {
 	claimed = "OK",
 	rewardClaimed = "Reward claimed",
 	rail = {
+		{ panel = "Pass", text = "Pass" }, -- Turf Pass; shown only while a season is open
 		{ panel = "Shop", text = "Shop" },
 		{ panel = "Upgrades", text = "Upgrades" },
 		{ panel = "Quests", text = "Quests" },
@@ -493,7 +495,7 @@ end
 
 -- Button rail -------------------------------------------------------------------------------
 
-local RAIL_BUTTON_HEIGHT = 0.115
+local RAIL_BUTTON_HEIGHT = 0.103 -- 8 buttons (Pass added) fit the rail above the Sky Chest button
 local RAIL_TEXT_WIDTH_DIVISOR = 5.2 -- widest label ("Upgrades") fits when TextSize <= width / this
 
 local function buildRail(gui: ScreenGui): (() -> ())
@@ -504,24 +506,28 @@ local function buildRail(gui: ScreenGui): (() -> ())
 		parent = gui,
 	})
 	belowTopbar(rail, 0.012, 0.13)
-	UiKit.list(rail, { Padding = UDim.new(0.032, 0) })
+	UiKit.list(rail, { Padding = UDim.new(0.026, 0) })
 
 	local dots: { [string]: Frame } = {}
 	for i, def in S.rail do
 		local b = UiKit.button({
 			text = def.text,
-			color = if def.panel == "Shop" then theme.Yellow elseif def.panel == "Upgrades" then CYAN elseif def.panel == "Daily" then LILAC else PANEL_BG,
+			color = if def.panel == "Shop" or def.panel == "Pass" then theme.Yellow elseif def.panel == "Upgrades" then CYAN elseif def.panel == "Daily" then LILAC else PANEL_BG,
 			size = UDim2.fromScale(1, RAIL_BUTTON_HEIGHT),
 			parent = rail,
 			onClick = function()
 				PanelController.sound("click")
-				PanelController.open(def.panel)
+				if def.panel == "Pass" then
+					PassController.open()
+				else
+					PanelController.open(def.panel)
+				end
 			end,
 		})
 		b.Name = def.panel
 		b.LayoutOrder = i
 		railButtons[def.panel] = b
-		UiKit.icon("core_" .. string.lower(def.panel), {
+		UiKit.icon(if def.panel == "Pass" then "economy_premium" else "core_" .. string.lower(def.panel), {
 			Name = "MenuIcon",
 			AnchorPoint = Vector2.new(0, 0.5),
 			Position = UDim2.fromScale(0.04, 0.5),
@@ -561,6 +567,37 @@ local function buildRail(gui: ScreenGui): (() -> ())
 				parent = badge,
 			})
 			dots.Shop = badge
+		end
+		if def.panel == "Pass" then
+			-- gold shine sweeping across the button, and a count of rewards + missions to claim
+			local g = Instance.new("UIGradient")
+			g.Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0, Color3.new(1, 1, 1)),
+				ColorSequenceKeypoint.new(0.45, Color3.new(1, 1, 1)),
+				ColorSequenceKeypoint.new(0.5, Color3.fromHex("FFF6CC")),
+				ColorSequenceKeypoint.new(0.55, Color3.new(1, 1, 1)),
+				ColorSequenceKeypoint.new(1, Color3.new(1, 1, 1)),
+			})
+			g.Offset = Vector2.new(-1, 0)
+			g.Parent = b
+			game:GetService("TweenService"):Create(g, TweenInfo.new(1.8, Enum.EasingStyle.Linear, Enum.EasingDirection.Out, -1, false, 1), { Offset = Vector2.new(1, 0) }):Play()
+			local count = UiKit.frame({
+				Name = "PassCount",
+				AnchorPoint = Vector2.new(0.5, 0.5),
+				Position = UDim2.fromScale(0.94, 0.08),
+				Size = UDim2.fromScale(0.26, 0.26),
+				BackgroundColor3 = theme.Danger,
+				Visible = false,
+				parent = b,
+			})
+			UiKit.corner(count, 100)
+			UiKit.aspect(count, 1)
+			UiKit.stroke(count, theme.UiLight, 2)
+			local countL = UiKit.label({ Text = "", Size = UDim2.fromScale(0.8, 0.8), Position = UDim2.fromScale(0.1, 0.1), TextColor3 = Color3.new(1, 1, 1), parent = count })
+			PassController.onDot(function(n: number)
+				count.Visible = n > 0
+				countL.Text = if n > 9 then "9+" else tostring(n)
+			end)
 		end
 		if def.panel == "Daily" or def.panel == "Quests" then
 			local dot = UiKit.frame({
@@ -606,6 +643,10 @@ local function buildRail(gui: ScreenGui): (() -> ())
 		local shop = dots.Shop
 		if shop then
 			shop.Visible = ClientState.starterOfferOpen()
+		end
+		local pass = railButtons.Pass
+		if pass then
+			pass.Visible = PassController.isOpenSeason()
 		end
 	end
 end

@@ -12,6 +12,7 @@ local Catalog = require(Shared.Catalog)
 local Grid = require(Shared.Grid)
 local GreedyMesh = require(Shared.GreedyMesh)
 local TrailRuns = require(Shared.TrailRuns)
+local TurfAnim = require(Shared.TurfAnim)
 local Types = require(Shared.Types)
 local ClientState = require(script.Parent.Parent.ClientState)
 
@@ -30,6 +31,8 @@ local STOLEN_TINT = 0.7 -- stolen-claim flash starts this far from the owner col
 local FLASH_WINDOW = 0.6 -- seconds a claim event and its cell delta may arrive apart
 local BLINK_HZ = 4
 local TEXTURE_TILE_CELLS = 2
+local TEXTURE_ALIGN = 1 -- sign of the world-alignment offset (checked in Studio)
+local ANIM_PERIOD = 1 / 15 -- animated skins: texture updates per second (shared clock, low detail freezes them)
 
 local CS = Config.Arena.CellSize
 local FLOOR = Config.Arena.FloorY
@@ -47,6 +50,7 @@ type Style = {
 	trail: Color3,
 	edge: Color3,
 	image: number?,
+	anim: string?, -- animated skin (TurfAnim), Turf Pass Legendaries
 }
 
 local started = false
@@ -68,6 +72,9 @@ local gainTime: { number } = {}
 local turfPool: { BasePart } = {}
 local trailPool: { BasePart } = {}
 local partTexture: { [BasePart]: Texture } = {}
+local animTex: { [Texture]: Style } = {} -- textures of animated-skin turf, stepped together
+local texBase: { [Texture]: Vector2 } = {} -- per-rect offset that lines the pattern up with the world grid
+local animClock = 0
 local edgeOf: { [BasePart]: BasePart } = {} -- trail strip -> its neon rim (pooled together)
 local pulseLevel = -1
 
@@ -153,6 +160,10 @@ end
 
 local function releaseTurf(p: BasePart)
 	stopFlash(p)
+	local tex = partTexture[p]
+	if tex then
+		animTex[tex] = nil
+	end
 	p.Parent = nil
 	table.insert(turfPool, p)
 end
@@ -192,7 +203,7 @@ local function styleOf(owner: number): Style
 	if s then
 		return s
 	end
-	local a, b, pattern = FALLBACK, nil :: Color3?, "solid"
+	local a, b, pattern, anim = FALLBACK, nil :: Color3?, "solid", nil :: string?
 	local trailBase = FALLBACK
 	local info: Types.RunnerInfo? = ClientState.arena.runners[owner]
 	if info then
@@ -201,6 +212,7 @@ local function styleOf(owner: number): Style
 			a = hex(item.colorA) or FALLBACK
 			b = hex(item.colorB)
 			pattern = item.pattern
+			anim = item.anim
 		else
 			a = hex(Config.Colors.Players[info.colorIndex]) or FALLBACK
 		end
@@ -218,6 +230,7 @@ local function styleOf(owner: number): Style
 		trail = trail,
 		edge = edge,
 		image = if (Config.ShopArt.Patterns[pattern] or 0) ~= 0 then Config.ShopArt.Patterns[pattern] else nil,
+		anim = anim,
 	}
 	styles[owner] = s
 	return s
@@ -233,7 +246,8 @@ local function chunkColor(s: Style, cx: number, cy: number): Color3
 	return s.a
 end
 
-local function applyTexture(p: BasePart, s: Style)
+-- x, y = the rect's first cell: the offset makes neighbouring rects continue one seamless pattern.
+local function applyTexture(p: BasePart, s: Style, x: number, y: number)
 	local tex = partTexture[p]
 	local image = s.image
 	if image then
@@ -250,8 +264,15 @@ local function applyTexture(p: BasePart, s: Style)
 		t.Texture = "rbxassetid://" .. image
 		t.Color3 = s.b or WHITE
 		t.Transparency = 0
+		local tile = CS * TEXTURE_TILE_CELLS
+		local base = Vector2.new((x * CS) % tile, (y * CS) % tile) * TEXTURE_ALIGN
+		texBase[t] = base
+		t.OffsetStudsU = base.X
+		t.OffsetStudsV = base.Y
+		animTex[t] = if s.anim then s else nil
 	elseif tex then
 		tex.Transparency = 1
+		animTex[tex] = nil
 	end
 end
 
@@ -348,7 +369,7 @@ local function rebuildChunk(c: number, now: number)
 			p.Size = Vector3.new(r.w * CS, TURF_H, r.h * CS)
 			p.CFrame = CFrame.new((r.x + r.w * 0.5) * CS - half, FLOOR + 0.1 - TURF_H * 0.5, (r.y + r.h * 0.5) * CS - half)
 			p.Color = color
-			applyTexture(p, s)
+			applyTexture(p, s, r.x, r.y)
 			if o == flashOwner then
 				startFlash(p, o, color, now)
 			end
@@ -478,6 +499,20 @@ local function step()
 			else
 				p.Color = flashFrom[p]:Lerp(flashTo[p], a)
 			end
+		end
+	end
+
+	-- Animated skins: every animated texture moves on one shared clock, ~15 updates per second.
+	if not lowDetail and next(animTex) ~= nil and now - animClock >= ANIM_PERIOD then
+		animClock = now
+		local tile = CS * TEXTURE_TILE_CELLS
+		for t, s in animTex do
+			local color, u, v, transparency = TurfAnim.frame(s.anim :: string, s.b or WHITE, now)
+			t.Color3 = color
+			local base = texBase[t] or Vector2.zero
+			t.OffsetStudsU = base.X + u * tile
+			t.OffsetStudsV = base.Y + v * tile
+			t.Transparency = transparency
 		end
 	end
 

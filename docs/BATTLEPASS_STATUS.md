@@ -1,6 +1,6 @@
 # Battle pass build status
 
-Heartbeat: 2026-11-18 00:40 local, lead session (interactive)
+Heartbeat: 2026-11-18 01:15 local, lead session (interactive)
 
 Design: `docs/BATTLEPASS.md`. Owner decisions: Premium 399 R$, Premium+ 799 R$ (+10 tiers), 14-day seasons, 30 tiers.
 Product ids stay 0 until the owner creates them on the dashboard or approves creation (paid items).

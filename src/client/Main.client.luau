@@ -18,6 +18,7 @@ local HudController = require(controllers:WaitForChild("HudController"))
 local PanelController = require(controllers:WaitForChild("PanelController"))
 local TutorialController = require(controllers:WaitForChild("TutorialController"))
 local MusicController = require(controllers:WaitForChild("MusicController"))
+local PassController = require(controllers:WaitForChild("PassController"))
 
 local PANEL_SOUNDS: { [string]: string } = {
 	click = "uiClick",
@@ -72,6 +73,7 @@ boot("Arena", ArenaClient.start)
 boot("Feedback", FeedbackController.start)
 boot("Hud", HudController.start)
 boot("Panels", PanelController.start)
+boot("Pass", PassController.start)
 boot("Tutorial", TutorialController.start)
 boot("Music", MusicController.start)
 boot("SkyChest", function() require(controllers:WaitForChild("SkyChestController")).start() end)
@@ -82,7 +84,9 @@ if game:GetService("RunService"):IsStudio() then
 	local debugEvent = Instance.new("BindableEvent")
 	debugEvent.Name = "Debug"
 	debugEvent.Event:Connect(function(action: string, arg: string?)
-		if action == "open" and arg then
+		if action == "open" and arg == "Pass" then
+			PassController.open()
+		elseif action == "open" and arg then
 			PanelController.open(arg)
 		elseif action == "shopTab" and arg then
 			PanelController.openShopTab(arg) -- e.g. ("shopTab", "passes")
