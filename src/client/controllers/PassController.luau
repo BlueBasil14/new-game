@@ -15,6 +15,7 @@ local Config = require(Shared.Config)
 local Formulas = require(Shared.Formulas)
 local Remotes = require(Shared.Remotes)
 local TurfAnim = require(Shared.TurfAnim)
+local ArcadeIcons = require(Shared.ArcadeIcons)
 local UiKit = require(script.Parent.Parent.ui.UiKit)
 local ClientState = require(script.Parent.Parent.ClientState)
 local PanelController = require(script.Parent.PanelController)
@@ -34,12 +35,17 @@ local S = {
 	unlock = "UNLOCK",
 	unlockPrice = "R$ %d",
 	worth = "Worth 1,900+ gems",
-	plus = "+10 TIERS  R$ %d",
-	tierSkip = "+1 TIER  R$ %d",
-	premiumOn = "PREMIUM ACTIVE",
-	earned = "You've earned:\n%d Legendary, %d Rare, %d gems",
+	plus = "+10 TIERS\nR$ %d",
+	tierSkip = "+1 TIER\nR$ %d",
+	owner = "SEASON 1\nOWNER",
+	unlockTwo = "UNLOCK\nR$ %d",
+	unlockLate = "UNLOCK R$ %d\nends in %dh",
+	waiting = "%d Legendary, %d Rare,\n%d gems waiting!",
+	toGo = "%d tiers to go!",
+	finaleDone = "Unlocked!",
+	go = "GO!",
 	get = "GET",
-	claimAll = "CLAIM ALL (%d)",
+	claimAll = "CLAIM ALL\n%d",
 	finale = "TIER 30",
 	finaleSub = "Season finale",
 	comingSoon = "Coming soon",
@@ -87,6 +93,7 @@ local BLUE = Color3.fromHex("4F8BFF")
 local BLUE_LIGHT = Color3.fromHex("BFE3FF")
 local VIOLET = Color3.fromHex("6A4BD8")
 local VIOLET_DEEP = Color3.fromHex("3A2A8C")
+local MUTED = Color3.fromHex("626779")
 local GREEN = Color3.fromHex("43D17A")
 local WHITE = Color3.new(1, 1, 1)
 local RARITY: { [string]: Color3 } = {
@@ -98,7 +105,15 @@ local RARITY: { [string]: Color3 } = {
 local COL_W = 132 -- px per tier column (before the track scale)
 local TILE = 112 -- px reward tile (before the track scale)
 local BASE_H = 340 -- track height the layout is drawn for; scaled to the real track height
-local MAX_TRACK_SCALE = 1.3 -- tall windows centre the track instead of growing tiles further
+local MAX_TRACK_SCALE = 1.3
+local QUEST_ICONS: { [string]: string } = {
+	cells = "gameplay_territory",
+	kills = "gameplay_trail_cut",
+	bigCapture = "gameplay_capture_loop",
+	mapPct = "gameplay_map_control",
+	kingSeconds = "economy_crown",
+	playMinutes = "core_timer",
+} -- tall windows centre the track instead of growing tiles further
 local ANIM_HZ = 20
 
 local theme = UiKit.theme
@@ -355,7 +370,7 @@ end
 
 -- Screen ------------------------------------------------------------------------------------------
 
-type TileUi = { frame: Frame, get: TextButton, lock: GuiObject?, check: GuiObject, glow: Frame, track: string, tier: number, names: { TextLabel } }
+type TileUi = { frame: Frame, get: TextButton, lock: GuiObject?, check: GuiObject, glow: Frame, track: string, tier: number, names: { TextLabel }, dim: Frame }
 
 local function build()
 	local g = UiKit.screenGui("TurfPass", 60)
@@ -401,7 +416,7 @@ local function build()
 	local tierL = label(badgeInner, "0", { Position = UDim2.fromScale(0.1, 0.32), Size = UDim2.fromScale(0.8, 0.55), TextColor3 = WHITE })
 	outlined(tierL, INK, 3)
 
-	local barBack = UiKit.frame({ Name = "XpBar", Position = UDim2.fromScale(0.4, 0.34), Size = UDim2.fromScale(0.36, 0.32), BackgroundColor3 = VIOLET_DEEP, parent = header })
+	local barBack = UiKit.frame({ Name = "XpBar", Position = UDim2.fromScale(0.4, 0.3), Size = UDim2.fromScale(0.3, 0.34), BackgroundColor3 = VIOLET_DEEP, parent = header })
 	UiKit.corner(barBack, 100)
 	UiKit.stroke(barBack, INK, 3)
 	local barFill = UiKit.frame({ Name = "Fill", Size = UDim2.fromScale(0, 1), BackgroundColor3 = WHITE, parent = barBack })
@@ -411,7 +426,7 @@ local function build()
 	local xpL = label(barBack, "", { Size = UDim2.fromScale(0.92, 0.7), Position = UDim2.fromScale(0.04, 0.15), TextColor3 = WHITE })
 	xpL.ZIndex = barFill.ZIndex + 6
 	outlined(xpL, INK, 2)
-	local chips = UiKit.frame({ Name = "Chips", BackgroundTransparency = 1, Position = UDim2.fromScale(0.4, 0.72), Size = UDim2.fromScale(0.36, 0.22), parent = header })
+	local chips = UiKit.frame({ Name = "Chips", BackgroundTransparency = 1, Position = UDim2.fromScale(0.4, 0.7), Size = UDim2.fromScale(0.3, 0.22), parent = header })
 	UiKit.list(chips, { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0.02, 0) })
 	local function chip(text: string, color: Color3): Frame
 		local c = UiKit.frame({ Size = UDim2.fromScale(0.48, 1), BackgroundColor3 = color, Visible = false, parent = chips })
@@ -423,7 +438,7 @@ local function build()
 	local catchChip = chip(S.catchUp, GREEN)
 	local capChip = chip(S.playCapped, Color3.fromHex("FFB59A"))
 
-	local missionsBtn = UiKit.button({ text = "", color = GREEN, size = UDim2.fromScale(0.12, 0.5), position = UDim2.fromScale(0.785, 0.25), parent = header })
+	local missionsBtn = UiKit.button({ text = "", color = Color3.fromHex("C9B7FF"), size = UDim2.fromScale(0.11, 0.5), position = UDim2.fromScale(0.715, 0.25), parent = header })
 	UiKit.icon("core_quests", { AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.fromScale(0.05, 0.5), Size = UDim2.fromScale(0.3, 0.8), parent = missionsBtn })
 	label(missionsBtn, S.missions, { Position = UDim2.fromScale(0.34, 0.15), Size = UDim2.fromScale(0.62, 0.7), TextColor3 = INK })
 	local missionDot = UiKit.frame({ Name = "Dot", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.97, 0.05), Size = UDim2.fromScale(0.26, 0.5), BackgroundColor3 = theme.Danger, Visible = false, parent = missionsBtn })
@@ -433,7 +448,17 @@ local function build()
 	local missionCount = label(missionDot, "", { Size = UDim2.fromScale(0.8, 0.8), Position = UDim2.fromScale(0.1, 0.1), TextColor3 = WHITE })
 	missionCount.ZIndex = missionDot.ZIndex + 1
 
-	local closeBtn = UiKit.button({ text = "", color = theme.Danger, size = UDim2.fromScale(0.06, 0.5), position = UDim2.fromScale(0.92, 0.25), parent = header })
+	local claimAllBtn = UiKit.button({ text = "", color = GREEN, size = UDim2.fromScale(0.095, 0.5), position = UDim2.fromScale(0.835, 0.25), parent = header })
+	claimAllBtn.TextColor3 = WHITE
+	local cas = Instance.new("UIStroke")
+	cas.Color = INK
+	cas.Thickness = 2
+	cas.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
+	cas.Parent = claimAllBtn
+	bob(claimAllBtn, 0.07, 0.45)
+	claimAllBtn.Visible = false
+
+	local closeBtn = UiKit.button({ text = "", color = theme.Danger, size = UDim2.fromScale(0.055, 0.5), position = UDim2.fromScale(0.94, 0.25), parent = header })
 	closeBtn.BackgroundTransparency = 1
 	local cs = closeBtn:FindFirstChildOfClass("UIStroke")
 	if cs then
@@ -442,34 +467,37 @@ local function build()
 	UiKit.icon("core_close", { Size = UDim2.fromScale(1, 1), parent = closeBtn })
 	UiKit.aspect(closeBtn, 1)
 
-	-- Left rail: FREE / PREMIUM tickets, unlock -------------------------------------------------
-	local rail = UiKit.frame({ Name = "Rail", BackgroundTransparency = 1, Position = UDim2.fromScale(0.012, 0.22), Size = UDim2.fromScale(0.17, 0.76), parent = surface })
-	local function ticket(text: string, top: number, color: Color3, color2: Color3): Frame
-		local t = UiKit.frame({ Position = UDim2.fromScale(0, top), Size = UDim2.fromScale(1, 0.2), BackgroundColor3 = WHITE, parent = rail })
+	-- Lane labels (left) ------------------------------------------------------------------------
+	local rail = UiKit.frame({ Name = "Lanes", BackgroundTransparency = 1, Position = UDim2.fromScale(0.012, 0.22), Size = UDim2.fromScale(0.1, 0.76), parent = surface })
+	local function ticket(text: string, icon: string, top: number, h: number, color: Color3, color2: Color3): Frame
+		local t = UiKit.frame({ Position = UDim2.fromScale(0, top), Size = UDim2.fromScale(1, h), BackgroundColor3 = WHITE, parent = rail })
 		UiKit.corner(t, 14)
 		UiKit.stroke(t, INK, 3)
 		gradient(t, color, color2, 90)
-		local l = label(t, text, { Size = UDim2.fromScale(0.9, 0.6), Position = UDim2.fromScale(0.05, 0.2), TextColor3 = WHITE })
-		outlined(l, INK, 3)
+		UiKit.icon(icon, { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.36), Size = UDim2.fromScale(0.78, 0.36), parent = t })
+		local l = label(t, text, { Position = UDim2.fromScale(0.03, 0.6), Size = UDim2.fromScale(0.94, 0.24), TextColor3 = WHITE })
+		outlined(l, INK, 2)
 		return t
 	end
-	local premTicket = ticket(S.premium, 0.0, GOLD_LIGHT, GOLD_DEEP)
-	UiKit.icon("economy_crown", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.08, 0.05), Size = UDim2.fromScale(0.3, 0.6), Rotation = -20, parent = premTicket })
+	local premTicket = ticket(S.premium, "economy_crown", 0, 0.45, GOLD_LIGHT, GOLD_DEEP)
 	shine(premTicket, 2.6)
-	local unlockBtn = UiKit.button({ text = "", color = GREEN, size = UDim2.fromScale(1, 0.16), position = UDim2.fromScale(0, 0.22), parent = rail })
+	ticket(S.free, "core_gift", 0.55, 0.45, BLUE_LIGHT, BLUE)
+
+	-- Buy zone (right): finale chase card, the one big UNLOCK, value line, tier offer -------------
+	local buy = UiKit.frame({ Name = "BuyZone", BackgroundTransparency = 1, Position = UDim2.fromScale(0.838, 0.22), Size = UDim2.fromScale(0.15, 0.76), parent = surface })
+	local unlockBtn = UiKit.button({ text = "", color = GREEN, size = UDim2.fromScale(1, 0.17), position = UDim2.fromScale(0, 0.53), parent = buy })
 	local unlockL = label(unlockBtn, "", { Size = UDim2.fromScale(0.92, 0.84), Position = UDim2.fromScale(0.04, 0.08), TextColor3 = WHITE })
 	outlined(unlockL, INK, 2)
 	unlockL.ZIndex = unlockBtn.ZIndex + 6
 	shine(unlockBtn, 1.8)
 	local unlockPulse = bob(unlockBtn, 0.06, 0.55)
-	local worthL = label(rail, S.worth, { Position = UDim2.fromScale(0, 0.385), Size = UDim2.fromScale(1, 0.06), TextColor3 = GOLD_DEEP })
-	local earnedL = label(rail, "", { Position = UDim2.fromScale(0, 0.445), Size = UDim2.fromScale(1, 0.1), TextColor3 = INK })
-	local plusBtn = UiKit.button({ text = "", color = GOLD, size = UDim2.fromScale(1, 0.09), position = UDim2.fromScale(0, 0.565), parent = rail })
-	local freeTicket = ticket(S.free, 0.8, BLUE_LIGHT, BLUE)
-	local _ = freeTicket
+	local ownerCrown = UiKit.icon("economy_crown", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.1, 0.1), Size = UDim2.fromScale(0.36, 0.6), Rotation = -18, Visible = false, parent = unlockBtn })
+	ownerCrown.ZIndex = unlockBtn.ZIndex + 7
+	local valueL = label(buy, "", { Position = UDim2.fromScale(0, 0.715), Size = UDim2.fromScale(1, 0.15), TextColor3 = GOLD_DEEP })
+	local plusBtn = UiKit.button({ text = "", color = GOLD, size = UDim2.fromScale(1, 0.12), position = UDim2.fromScale(0, 0.88), parent = buy })
 
 	-- Track ---------------------------------------------------------------------------------------
-	local trackBack = UiKit.frame({ Name = "TrackBack", Position = UDim2.fromScale(0.19, 0.22), Size = UDim2.fromScale(0.65, 0.76), BackgroundColor3 = WHITE, parent = surface })
+	local trackBack = UiKit.frame({ Name = "TrackBack", Position = UDim2.fromScale(0.12, 0.22), Size = UDim2.fromScale(0.71, 0.76), BackgroundColor3 = WHITE, ClipsDescendants = true, parent = surface })
 	UiKit.corner(trackBack, 16)
 	UiKit.stroke(trackBack, INK, 3)
 	gradient(trackBack, Color3.fromHex("EDE6FF"), Color3.fromHex("D9CCFF"), 90)
@@ -502,6 +530,34 @@ local function build()
 	scroller:GetPropertyChangedSignal("AbsoluteWindowSize"):Connect(fitTrack)
 	task.defer(fitTrack)
 
+	-- lane backgrounds: premium is a purple-to-gold band, free a soft blue band
+	local premLane = UiKit.frame({ Name = "PremiumLane", Size = UDim2.fromScale(1, 0.5), BackgroundColor3 = WHITE, ZIndex = 0, parent = trackBack })
+	gradient(premLane, Color3.fromHex("B9A2FF"), Color3.fromHex("FFD66B"), 0)
+	premLane.BackgroundTransparency = 0.2
+	local freeLane = UiKit.frame({ Name = "FreeLane", Position = UDim2.fromScale(0, 0.5), Size = UDim2.fromScale(1, 0.5), BackgroundColor3 = Color3.fromHex("CFE6FF"), BackgroundTransparency = 0.15, ZIndex = 0, parent = trackBack })
+	local _ = freeLane
+	for i = 1, 30 do
+		local dot = UiKit.frame({ AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(math.random(), math.random() * 0.9), Size = UDim2.fromOffset(5, 5), BackgroundColor3 = WHITE, BackgroundTransparency = 0.3, ZIndex = 0, parent = premLane })
+		dot.Rotation = 45
+		tween(dot, 0.8 + (i % 5) * 0.3, { BackgroundTransparency = 0.95 }, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, -1, true)
+	end
+
+	-- scroll arrows on both track edges (the track scrolls sideways)
+	local function chevron(left: boolean)
+		local b = UiKit.button({ text = "", color = WHITE, size = UDim2.fromScale(0.055, 0.16), position = UDim2.fromScale(if left then 0.01 else 0.935, 0.42), parent = trackBack })
+		b.ZIndex = 30
+		local a = UiKit.icon("gameplay_arrow_right", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromScale(0.75, 0.75), Rotation = if left then 180 else 0, parent = b })
+		a.ZIndex = 31
+		UiKit.aspect(b, 1)
+		b.Activated:Connect(function()
+			local step = COL_W * 3 * contentScale.Scale
+			local x = math.clamp(scroller.CanvasPosition.X + (if left then -step else step), 0, math.max(0, scroller.AbsoluteCanvasSize.X - scroller.AbsoluteWindowSize.X))
+			tween(scroller, 0.35, { CanvasPosition = Vector2.new(x, 0) }, Enum.EasingStyle.Quart, Enum.EasingDirection.Out)
+		end)
+	end
+	chevron(true)
+	chevron(false)
+
 	-- rail line behind the nodes
 	local lineBack = UiKit.frame({ Name = "Rail", AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.new(0, 12 + COL_W / 2, 0.5, 0), Size = UDim2.new(0, (CFG.Tiers - 1) * COL_W, 0, 14), BackgroundColor3 = VIOLET_DEEP, parent = content })
 	UiKit.corner(lineBack, 100)
@@ -512,8 +568,12 @@ local function build()
 
 	local tiles: { TileUi } = {}
 	local nodes: { Frame } = {}
-	local claimAllBtn: TextButton
 	local busy = false
+	-- pulsing ring behind the current tier's node
+	local ring = UiKit.frame({ Name = "CurrentRing", AnchorPoint = Vector2.new(0.5, 0.5), Size = UDim2.fromOffset(74, 74), BackgroundColor3 = GOLD, BackgroundTransparency = 0.35, parent = content })
+	UiKit.corner(ring, 100)
+	ring.ZIndex = lineBack.ZIndex + 1
+	bob(ring, 0.25, 0.6)
 
 	local function makeTile(tier: number, track: string): TileUi
 		local col = 12 + (tier - 1) * COL_W + (COL_W - TILE) / 2
@@ -548,7 +608,19 @@ local function build()
 		end
 		local name, sub = rewardName(main, restricted)
 		if #rewards > 1 then
-			sub = "+" .. (#rewards - 1) .. " more"
+			local extras = {}
+			for k = 2, #rewards do
+				local r = rewards[k]
+				if r.kind == "item" then
+					local it = Catalog.byId(r.id :: string)
+					table.insert(extras, if it and it.type == "trail" then "Trail" else "Skin")
+				elseif r.kind == "gems" then
+					table.insert(extras, UiKit.formatNumber(r.amount or 0) .. " gems")
+				elseif r.kind == "keys" then
+					table.insert(extras, (r.amount or 0) .. " keys")
+				end
+			end
+			sub = "+ " .. table.concat(extras, " + ")
 		end
 		local names: { TextLabel } = {}
 		local nameL = label(f, name, { AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, if sub then -18 else -4), Size = UDim2.new(1, -8, 0, 22), TextColor3 = WHITE })
@@ -570,10 +642,17 @@ local function build()
 		end
 		local lock: GuiObject? = nil
 		if isPrem then
-			local l = UiKit.icon("gameplay_lock", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.new(1, -6, 0, 8), Size = UDim2.fromOffset(34, 34), parent = f })
-			l.ZIndex = f.ZIndex + 8
-			lock = l
+			-- dark scrim + big padlock until Premium; lifting it is the unlock payoff
+			local scrim = UiKit.frame({ Name = "Locked", Size = UDim2.fromScale(1, 1), BackgroundColor3 = VIOLET_DEEP, BackgroundTransparency = 0.5, parent = f })
+			UiKit.corner(scrim, 14)
+			scrim.ZIndex = f.ZIndex + 8
+			local l = UiKit.icon("gameplay_lock", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.42), Size = UDim2.fromOffset(56, 56), parent = scrim })
+			l.ZIndex = scrim.ZIndex + 1
+			lock = scrim
 		end
+		local dim = UiKit.frame({ Name = "NotYet", Size = UDim2.fromScale(1, 1), BackgroundColor3 = INK, BackgroundTransparency = 0.82, Visible = false, parent = f })
+		UiKit.corner(dim, 14)
+		dim.ZIndex = f.ZIndex + 7
 		local check = UiKit.frame({ Name = "Done", Size = UDim2.fromScale(1, 1), BackgroundColor3 = INK, BackgroundTransparency = 0.45, Visible = false, parent = f })
 		UiKit.corner(check, 14)
 		check.ZIndex = f.ZIndex + 9
@@ -590,7 +669,7 @@ local function build()
 		gs.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
 		gs.Parent = getL
 		bob(get, 0.1, 0.4)
-		local tile: TileUi = { frame = f, get = get, lock = lock, check = check, glow = glow, track = track, tier = tier, names = names }
+		local tile: TileUi = { frame = f, get = get, lock = lock, check = check, glow = glow, track = track, tier = tier, names = names, dim = dim }
 		return tile
 	end
 
@@ -607,50 +686,37 @@ local function build()
 		nodes[tier] = node
 	end
 
-	-- Finale card pinned at the right --------------------------------------------------------------
-	local finale = UiKit.frame({ Name = "Finale", Position = UDim2.fromScale(0.85, 0.22), Size = UDim2.fromScale(0.138, 0.76), BackgroundColor3 = WHITE, parent = surface })
+	-- Finale card (top of the buy zone) ---------------------------------------------------------
+	local finale = UiKit.frame({ Name = "Finale", Size = UDim2.fromScale(1, 0.5), BackgroundColor3 = WHITE, parent = buy })
 	UiKit.corner(finale, 16)
 	UiKit.stroke(finale, GOLD_DEEP, 4)
 	gradient(finale, Color3.fromHex("FFE9A6"), Color3.fromHex("F7A31F"), 90)
 	shine(finale, 3)
-	local ft = label(finale, S.finale, { Position = UDim2.fromScale(0.05, 0.03), Size = UDim2.fromScale(0.9, 0.09), TextColor3 = WHITE })
+	local ft = label(finale, S.finale, { Position = UDim2.fromScale(0.05, 0.03), Size = UDim2.fromScale(0.9, 0.13), TextColor3 = WHITE })
 	outlined(ft, INK, 2)
+	local fCrown = UiKit.icon("economy_crown", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.06, 0.04), Size = UDim2.fromScale(0.34, 0.2), Rotation = -20, parent = finale })
+	fCrown.ZIndex = finale.ZIndex + 6
 	local finaleItem = Catalog.byId(BattlePass.tiers[CFG.Tiers].prem[1].id :: string) :: Catalog.Item
-	local fArt = UiKit.frame({ Position = UDim2.fromScale(0.08, 0.14), Size = UDim2.fromScale(0.84, 0.46), parent = finale })
+	local fArt = UiKit.frame({ Position = UDim2.fromScale(0.08, 0.18), Size = UDim2.fromScale(0.84, 0.5), parent = finale })
 	UiKit.corner(fArt, 12)
 	UiKit.stroke(fArt, INK, 3)
 	fArt.ZIndex = finale.ZIndex + 1
 	skinPreview(fArt, finaleItem)
-	local fn = label(finale, finaleItem.name, { Position = UDim2.fromScale(0.05, 0.62), Size = UDim2.fromScale(0.9, 0.1), TextColor3 = WHITE })
+	local fn = label(finale, finaleItem.name, { Position = UDim2.fromScale(0.04, 0.7), Size = UDim2.fromScale(0.92, 0.14), TextColor3 = WHITE })
 	outlined(fn, INK, 2)
-	local ftag = UiKit.frame({ Position = UDim2.fromScale(0.15, 0.73), Size = UDim2.fromScale(0.7, 0.07), BackgroundColor3 = GOLD, parent = finale })
-	UiKit.corner(ftag, 6)
-	UiKit.stroke(ftag, INK, 2)
-	label(ftag, "LEGENDARY", { Size = UDim2.fromScale(0.9, 0.8), Position = UDim2.fromScale(0.05, 0.1), TextColor3 = INK })
-	label(finale, S.finaleSub, { Position = UDim2.fromScale(0.05, 0.83), Size = UDim2.fromScale(0.9, 0.07), TextColor3 = INK })
-
-	claimAllBtn = UiKit.button({ text = "", color = GREEN, size = UDim2.fromScale(1, 0.1), position = UDim2.fromScale(0, 0.675), parent = rail })
-	claimAllBtn.TextColor3 = WHITE
-	claimAllBtn.ZIndex = 40
-	local cas = Instance.new("UIStroke")
-	cas.Color = INK
-	cas.Thickness = 2
-	cas.ApplyStrokeMode = Enum.ApplyStrokeMode.Contextual
-	cas.Parent = claimAllBtn
-	bob(claimAllBtn, 0.06, 0.5)
-	claimAllBtn.Visible = false
+	local toGo = label(finale, "", { Position = UDim2.fromScale(0.04, 0.85), Size = UDim2.fromScale(0.92, 0.12), TextColor3 = INK })
 
 	-- Missions sheet ------------------------------------------------------------------------------
-	local sheet = UiKit.frame({ Name = "Missions", Position = UDim2.fromScale(0.19, 1.05), Size = UDim2.fromScale(0.65, 0.76), BackgroundColor3 = CREAM, ZIndex = 50, parent = surface })
+	local sheet = UiKit.frame({ Name = "Missions", Position = UDim2.fromScale(0.12, 1.05), Size = UDim2.fromScale(0.71, 0.76), BackgroundColor3 = CREAM, ZIndex = 50, parent = surface })
 	UiKit.corner(sheet, 16)
 	UiKit.stroke(sheet, INK, 3)
-	local sheetTitle = label(sheet, S.missionsTitle, { Position = UDim2.fromScale(0.03, 0.03), Size = UDim2.fromScale(0.5, 0.1), TextXAlignment = Enum.TextXAlignment.Left, TextColor3 = VIOLET })
+	local sheetTitle = label(sheet, S.missionsTitle, { Position = UDim2.fromScale(0.03, 0.03), Size = UDim2.fromScale(0.4, 0.1), TextXAlignment = Enum.TextXAlignment.Left, TextColor3 = VIOLET })
 	sheetTitle.ZIndex = 51
-	local sheetTime = label(sheet, "", { Position = UDim2.fromScale(0.5, 0.04), Size = UDim2.fromScale(0.34, 0.08), TextXAlignment = Enum.TextXAlignment.Right, TextColor3 = INK })
+	local sheetTime = label(sheet, "", { Position = UDim2.fromScale(0.45, 0.045), Size = UDim2.fromScale(0.39, 0.07), TextXAlignment = Enum.TextXAlignment.Right, TextColor3 = INK })
 	sheetTime.ZIndex = 51
 	local sheetClose = UiKit.button({ text = S.close, color = Color3.fromHex("C9B7FF"), size = UDim2.fromScale(0.12, 0.1), position = UDim2.fromScale(0.86, 0.03), parent = sheet })
 	sheetClose.ZIndex = 52
-	type Row = { frame: Frame, text: TextLabel, fill: Frame, prog: TextLabel, reward: TextLabel, btn: TextButton }
+	type Row = { frame: Frame, icon: ImageLabel, text: TextLabel, fill: Frame, prog: TextLabel, xp: TextLabel, reward: TextLabel, btn: TextButton, bob: UIScale }
 	local rows: { Row } = {}
 	for i = 1, CFG.Missions do
 		local r = UiKit.frame({ Position = UDim2.fromScale(0.03, 0.16 + (i - 1) * 0.165), Size = UDim2.fromScale(0.94, 0.145), BackgroundColor3 = WHITE, parent = sheet })
@@ -661,9 +727,17 @@ local function build()
 		local pill = UiKit.frame({ Position = UDim2.fromScale(0.01, 0.15), Size = UDim2.fromScale(0.012, 0.7), BackgroundColor3 = diff, parent = r })
 		pill.ZIndex = 52
 		UiKit.corner(pill, 100)
-		local t = label(r, "", { Position = UDim2.fromScale(0.035, 0.08), Size = UDim2.fromScale(0.5, 0.45), TextXAlignment = Enum.TextXAlignment.Left, TextColor3 = INK })
+		local ic = UiKit.icon("gameplay_territory", { Position = UDim2.fromScale(0.03, 0.1), Size = UDim2.fromScale(0.08, 0.8), parent = r })
+		ic.ZIndex = 52
+		local t = label(r, "", { Position = UDim2.fromScale(0.12, 0.08), Size = UDim2.fromScale(0.42, 0.45), TextXAlignment = Enum.TextXAlignment.Left, TextColor3 = INK })
 		t.ZIndex = 52
-		local track = UiKit.frame({ Position = UDim2.fromScale(0.035, 0.6), Size = UDim2.fromScale(0.5, 0.28), BackgroundColor3 = Color3.fromHex("E1DACA"), parent = r })
+		t.TextScaled = false -- one size for every row (long texts used to shrink on their own)
+		local function fitText()
+			t.TextSize = math.max(10, math.floor(r.AbsoluteSize.Y * 0.26))
+		end
+		r:GetPropertyChangedSignal("AbsoluteSize"):Connect(fitText)
+		fitText()
+		local track = UiKit.frame({ Position = UDim2.fromScale(0.12, 0.6), Size = UDim2.fromScale(0.42, 0.28), BackgroundColor3 = Color3.fromHex("E1DACA"), parent = r })
 		track.ZIndex = 52
 		UiKit.corner(track, 100)
 		UiKit.stroke(track, INK, 2)
@@ -672,16 +746,25 @@ local function build()
 		UiKit.corner(fill, 100)
 		local prog = label(track, "", { Size = UDim2.fromScale(0.9, 0.8), Position = UDim2.fromScale(0.05, 0.1), TextColor3 = INK })
 		prog.ZIndex = 54
-		local reward = label(r, "", { Position = UDim2.fromScale(0.56, 0.15), Size = UDim2.fromScale(0.24, 0.7), TextColor3 = VIOLET })
+		local xpPill = UiKit.frame({ Position = UDim2.fromScale(0.56, 0.1), Size = UDim2.fromScale(0.22, 0.42), BackgroundColor3 = WHITE, parent = r })
+		xpPill.ZIndex = 52
+		UiKit.corner(xpPill, 100)
+		UiKit.stroke(xpPill, INK, 2)
+		gradient(xpPill, GOLD_LIGHT, GOLD, 90)
+		local xp = label(xpPill, "", { Size = UDim2.fromScale(0.9, 0.8), Position = UDim2.fromScale(0.05, 0.1), TextColor3 = INK })
+		xp.ZIndex = 53
+		local reward = label(r, "", { Position = UDim2.fromScale(0.56, 0.56), Size = UDim2.fromScale(0.22, 0.34), TextColor3 = MUTED })
 		reward.ZIndex = 52
-		local btn = UiKit.button({ text = S.claim, color = GREEN, size = UDim2.fromScale(0.16, 0.7), position = UDim2.fromScale(0.82, 0.15), parent = r })
+		local btn = UiKit.button({ text = S.claim, color = GREEN, size = UDim2.fromScale(0.17, 0.7), position = UDim2.fromScale(0.805, 0.15), parent = r })
 		btn.ZIndex = 53
-		rows[i] = { frame = r, text = t, fill = fill, prog = prog, reward = reward, btn = btn }
+		local bs = Instance.new("UIScale")
+		bs.Parent = btn
+		rows[i] = { frame = r, icon = ic, text = t, fill = fill, prog = prog, xp = xp, reward = reward, btn = btn, bob = bs }
 	end
 	local sheetOpen = false
 	local function showSheet(on: boolean)
 		sheetOpen = on
-		tween(sheet, 0.3, { Position = UDim2.fromScale(0.19, if on then 0.22 else 1.05) }, Enum.EasingStyle.Back, if on then Enum.EasingDirection.Out else Enum.EasingDirection.In)
+		tween(sheet, 0.3, { Position = UDim2.fromScale(0.12, if on then 0.22 else 1.05) }, Enum.EasingStyle.Back, if on then Enum.EasingDirection.Out else Enum.EasingDirection.In)
 	end
 	missionsBtn.Activated:Connect(function()
 		showSheet(not sheetOpen)
@@ -776,6 +859,13 @@ local function build()
 
 	for i, row in rows do
 		row.btn.Activated:Connect(function()
+			if row.btn.Text == S.go then
+				PassController.close() -- back to the match to finish it
+				return
+			end
+			if row.btn.Text ~= S.claim then
+				return
+			end
 			local ok, result = ClientState.request(Remotes.Requests.ClaimQuest, i)
 			if ok then
 				PanelController.sound("reward")
@@ -813,8 +903,11 @@ local function build()
 		for i, node in nodes do
 			local reached = i <= tier
 			node.BackgroundColor3 = if reached then GOLD else WHITE
-			node.Size = if i == tier + 1 then UDim2.fromOffset(48, 48) else UDim2.fromOffset(40, 40)
+			node.Size = if i == math.max(tier, 1) then UDim2.fromOffset(54, 54) else UDim2.fromOffset(40, 40)
 		end
+		local cur = nodes[math.max(tier, 1)]
+		ring.Position = cur.Position
+		toGo.Text = if tier >= CFG.Tiers then S.finaleDone else string.format(S.toGo, CFG.Tiers - tier)
 
 		local claimable = 0
 		for _, t in tiles do
@@ -828,6 +921,7 @@ local function build()
 				n.Visible = not can -- GET takes the name's place
 			end
 			t.glow.BackgroundTransparency = if can then 0.35 else 1
+			t.dim.Visible = not reached and not (isPrem and not st.premium)
 			if t.lock then
 				(t.lock :: GuiObject).Visible = not st.premium
 			end
@@ -840,24 +934,24 @@ local function build()
 
 		local plusHidden = sp.endsAt and (sp.endsAt - ClientState.serverNow()) < CFG.PlusHideSeconds
 		if st.premium then
-			unlockL.Text = S.premiumOn
+			unlockL.Text = S.owner
 			unlockBtn.BackgroundColor3 = GOLD
 			unlockPulse.Scale = 1
-			worthL.Visible = false
-			earnedL.Visible = false
+			ownerCrown.Visible = true
+			valueL.Visible = false
 			plusBtn.Text = string.format(S.tierSkip, CFG.Robux.tier)
 			plusBtn.Visible = tier < CFG.Tiers
 		else
-			local daysLeft = math.max(0, (sp.endsAt or 0) - ClientState.serverNow())
-			unlockL.Text = if plusHidden then string.format("%s  R$ %d\n%s", S.unlock, CFG.Robux.premium, string.format(S.endsHours, daysLeft // 3600, (daysLeft % 3600) // 60)) else string.format("%s  R$ %d", S.unlock, CFG.Robux.premium)
+			local secsLeft = math.max(0, (sp.endsAt or 0) - ClientState.serverNow())
+			unlockL.Text = if plusHidden then string.format(S.unlockLate, CFG.Robux.premium, secsLeft // 3600) else string.format(S.unlockTwo, CFG.Robux.premium)
 			unlockBtn.BackgroundColor3 = GREEN
-			worthL.Visible = true
+			ownerCrown.Visible = false
+			valueL.Visible = true
 			local got = BattlePass.premiumReached(st, function(id)
 				local it = Catalog.byId(id)
 				return if it and it.type == "skin" then it.rarity else nil
 			end)
-			earnedL.Visible = got.legendary + got.rare + got.gems > 0
-			earnedL.Text = string.format(S.earned, got.legendary, got.rare, got.gems)
+			valueL.Text = if got.legendary + got.rare + got.gems > 0 then string.format(S.waiting, got.legendary, got.rare, got.gems) else S.worth
 			plusBtn.Text = string.format(S.plus, CFG.Robux.plus)
 			plusBtn.Visible = not plusHidden
 		end
@@ -873,14 +967,19 @@ local function build()
 			if entry and q then
 				local fmt = S.questKinds[q.kind] or "%s"
 				row.text.Text = string.format(fmt, UiKit.formatNumber(q.target))
+				row.icon.Image = ArcadeIcons[QUEST_ICONS[q.kind] or "gameplay_territory"] or row.icon.Image
 				local pr = math.min(entry.progress, q.target)
 				row.fill.Size = UDim2.fromScale(math.clamp(pr / q.target, 0, 1), 1)
 				row.prog.Text = UiKit.formatNumber(math.floor(pr)) .. " / " .. UiKit.formatNumber(q.target)
 				local xp = BattlePass.missionXp(i, sp.behind == true)
-				row.reward.Text = string.format(S.missionXp, UiKit.formatNumber(xp)) .. "\n+" .. UiKit.formatNumber(q.reward.amount) .. " " .. q.reward.currency
+				row.xp.Text = string.format(S.missionXp, UiKit.formatNumber(xp))
+				row.reward.Text = "+" .. UiKit.formatNumber(q.reward.amount) .. " " .. q.reward.currency
 				local done = entry.progress >= q.target
-				row.btn.Text = if entry.claimed then S.claimed elseif done then S.claim else "..."
-				row.btn.BackgroundColor3 = if entry.claimed then Color3.fromHex("DAD8D2") elseif done then GREEN else Color3.fromHex("DAD8D2")
+				row.btn.Text = if entry.claimed then S.claimed elseif done then S.claim else S.go
+				row.btn.BackgroundColor3 = if entry.claimed then Color3.fromHex("DAD8D2") elseif done then GREEN else Color3.fromHex("43D8E8")
+				if done and not entry.claimed then
+					punch(row.btn)
+				end
 				if done and not entry.claimed then
 					open += 1
 				end
@@ -931,15 +1030,19 @@ local function build()
 	-- premium unlock celebration: locks pop off left to right
 	function PassController._unlockShow()
 		for _, t in tiles do
-			local l = t.lock
-			if l then
-				task.delay(t.tier * 0.04, function()
-					l.Visible = true
-					tween(l, 0.25, { Size = UDim2.fromOffset(60, 60), ImageTransparency = 1 } :: any)
-					task.wait(0.3)
-					l.Visible = false
-					l.Size = UDim2.fromOffset(34, 34);
-					(l :: any).ImageTransparency = 0
+			local scrim = t.lock
+			if scrim then
+				scrim.Visible = true
+				task.delay(t.tier * 0.05, function()
+					tween(scrim, 0.3, { BackgroundTransparency = 1 } :: any)
+					for _, d in scrim:GetDescendants() do
+						if d:IsA("ImageLabel") then
+							tween(d, 0.3, { ImageTransparency = 1, Size = UDim2.fromOffset(84, 84) } :: any)
+						end
+					end
+					punch(t.frame)
+					task.wait(0.35)
+					scrim.Visible = false
 				end)
 			end
 		end
@@ -1019,11 +1122,26 @@ function PassController.passedPopup(item: Catalog.Item)
 		UiKit.corner(art, 14)
 		UiKit.stroke(art, GOLD_DEEP, 4)
 		skinPreview(art, item)
-		label(card, S.popupBody, { Position = UDim2.fromScale(0.07, 0.62), Size = UDim2.fromScale(0.86, 0.18), TextColor3 = INK, ZIndex = 93 })
-		local buy = UiKit.button({ text = string.format("%s  R$ %d", S.unlock, CFG.Robux.premium), color = GREEN, size = UDim2.fromScale(0.5, 0.11), position = UDim2.fromScale(0.05, 0.85), parent = card })
+		label(card, S.popupBody, { Position = UDim2.fromScale(0.07, 0.62), Size = UDim2.fromScale(0.86, 0.15), TextColor3 = INK, ZIndex = 93 })
+		local tag = UiKit.frame({ AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.18), Size = UDim2.fromScale(0.42, 0.06), BackgroundColor3 = GOLD, ZIndex = 95, parent = card })
+		UiKit.corner(tag, 6)
+		UiKit.stroke(tag, INK, 2)
+		label(tag, "LEGENDARY", { Size = UDim2.fromScale(0.9, 0.8), Position = UDim2.fromScale(0.05, 0.1), TextColor3 = INK, ZIndex = 96 })
+		shine(art, 2)
+		local buy = UiKit.button({ text = string.format(S.unlockTwo, CFG.Robux.premium), color = GREEN, size = UDim2.fromScale(0.6, 0.13), position = UDim2.fromScale(0.2, 0.79), parent = card })
 		buy.ZIndex = 94
-		local later = UiKit.button({ text = S.popupLater, color = Color3.fromHex("DAD8D2"), size = UDim2.fromScale(0.34, 0.11), position = UDim2.fromScale(0.61, 0.85), parent = card })
+		buy.TextColor3 = WHITE
+		bob(buy, 0.06, 0.5)
+		local later = Instance.new("TextButton")
+		later.BackgroundTransparency = 1
+		later.Text = S.popupLater
+		later.Font = Enum.Font.GothamBold
+		later.TextColor3 = MUTED
+		later.TextScaled = true
+		later.Size = UDim2.fromScale(0.3, 0.05)
+		later.Position = UDim2.fromScale(0.35, 0.935)
 		later.ZIndex = 94
+		later.Parent = card
 		buy.Activated:Connect(function()
 			close()
 			local id = Config.Ids.Products.battlePass
