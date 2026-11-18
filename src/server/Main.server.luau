@@ -16,6 +16,7 @@ local WorldBuilder = require(Server:WaitForChild("WorldBuilder") :: any)
 local AnalyticsService = require(Services:WaitForChild("AnalyticsService") :: any)
 local ArenaService = require(Services:WaitForChild("ArenaService") :: any)
 local BadgeService = require(Services:WaitForChild("BadgeService") :: any)
+local BattlePassService = require(Services:WaitForChild("BattlePassService") :: any)
 local BiomeService = require(Services:WaitForChild("BiomeService") :: any)
 local BotService = require(Services:WaitForChild("BotService") :: any)
 local DataService = require(Services:WaitForChild("DataService") :: any)
@@ -63,6 +64,7 @@ EconomyService.start()
 ShopService.start()
 MonetizationService.start()
 RewardService.start()
+BattlePassService.start()
 LeaderboardService.start()
 ArenaService.start()
 BotService.start()
@@ -89,6 +91,7 @@ local function sessionInfo(player: Player): { [string]: any }
 		starterOffer = MonetizationService.shouldOfferStarter(player),
 		serverTime = os.time(),
 		withFriend = EconomyService.hasFriendHere(player),
+		pass = BattlePassService.session(player),
 	}
 end
 
@@ -276,6 +279,13 @@ local handlers: { [string]: Handler } = {
 	end,
 	SkyChest = function(player: Player, action: any): (boolean, any)
 		return SkyChestService.request(player, action)
+	end,
+	BattlePass = function(player: Player, action: any, track: any, tier: any): (boolean, any)
+		local ok, result = BattlePassService.request(player, action, track, tier)
+		if ok and action ~= "seen" then
+			AnalyticsService.log(player, "pass_claim", { n = #result.claimed })
+		end
+		return ok, result
 	end,
 	ClaimQuest = function(player: Player, index: any): (boolean, any)
 		local ok, result = RewardService.claimQuest(player, index)

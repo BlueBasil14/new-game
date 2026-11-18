@@ -23,8 +23,9 @@ for _, item in Catalog.items do
 end
 local expect = {
 	-- owner 2026-11-17: colours common, patterns rare, animated (effects) and 3D (biomes) legendary
-	["skin:common"] = 8, ["skin:rare"] = 23, ["skin:legendary"] = 1, ["skin:crown"] = 4,
-	["trail:common"] = 2, ["trail:rare"] = 7,
+	-- + Turf Pass season 1 (source "pass"): 4 animated Legendary skins + 4 matching trails, 6 Rare skins, 2 trails
+	["skin:common"] = 8, ["skin:rare"] = 23 + 6, ["skin:legendary"] = 1 + 4, ["skin:crown"] = 4,
+	["trail:common"] = 2 + 1, ["trail:rare"] = 7 + 1, ["trail:legendary"] = 4,
 	["effect:legendary"] = 4,
 	["skin:exclusive"] = 10, ["trail:exclusive"] = 3, -- skin +streak_month (T-RET-02, departs from GDD G3.6)
 }

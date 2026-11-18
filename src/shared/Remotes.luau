@@ -21,12 +21,16 @@ Remotes.ProfileUpdate = "ProfileUpdate"
 Remotes.Toast = "Toast" -- (text: string, kind: "info" | "good" | "bad")
 -- (runners: {RunnerInfo}) every alive or pending runner, re-sent when someone's equipped cosmetics change
 Remotes.RunnerInfo = "RunnerInfo"
+-- Turf Pass feedback: { kind = "xp", amount, reason, tier, gained, bonus, capped } | { kind = "capped" }
+-- | { kind = "delivered", count } | { kind = "product", key }
+Remotes.PassEvent = "PassEvent"
 
 -- client -> server RemoteFunction; server returns (ok: boolean, resultOrErrorKey: any)
 Remotes.Request = "Request"
 
 Remotes.Requests = {
 	SkyChest = "SkyChest",
+	BattlePass = "BattlePass", -- ("claim", track: "free"|"prem", tier) | ("claimAll") | ("seen", 1|2)
 	BuyUpgrade = "BuyUpgrade", -- (upgradeId: string)
 	BuyItem = "BuyItem", -- (itemId: string)
 	Equip = "Equip", -- (itemId: string)

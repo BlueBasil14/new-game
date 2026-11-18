@@ -10,6 +10,7 @@ local Types = require(Shared.Types)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
 local ShopService = require(script.Parent.ShopService)
+local BattlePassService = require(script.Parent.BattlePassService)
 
 type Profile = Types.Profile
 
@@ -56,7 +57,7 @@ local function regenerateQuests(profile: Profile, userId: number)
 		return
 	end
 	local list = {}
-	for i, quest in Catalog.questsForDay(day, userId) do
+	for i, quest in Catalog.questsForDay(day, userId, BattlePassService.missionCount()) do
 		list[i] = { id = quest.id, progress = 0, claimed = false }
 	end
 	profile.quests = { day = day, list = list }
@@ -180,6 +181,9 @@ function RewardService.claimQuest(player: Player, index: any): (boolean, any)
 		p.quests.list[index].claimed = true
 	end)
 	grant(player, reward, "quest")
+	if #profile.quests.list > 3 then
+		BattlePassService.onMission(player, index) -- Turf Pass mission XP by slot
+	end
 	return true, { id = entry.id, currency = reward.currency, amount = reward.amount }
 end
 
@@ -239,6 +243,11 @@ function RewardService.progress(player: Player, kind: string, amount: number, mo
 		regenerateQuests(p, player.UserId)
 		EconomyRules.applyQuestProgress(p.quests.list, questDefs, kind, amount, if mode == "max" then "max" else "add")
 	end)
+	if kind == "cells" then
+		BattlePassService.onCells(player, amount)
+	elseif kind == "kills" then
+		BattlePassService.onKill(player)
+	end
 end
 
 local function playLoop()

@@ -141,6 +141,9 @@ Config.Ids = {
 		gemsM = 3731883784,
 		gemsL = 3731883882,
 		gemsXL = 3731883942,
+		battlePass = 0, -- 399 R$ Turf Pass Premium (owner creates; 0 = "Coming soon")
+		battlePassPlus = 0, -- 799 R$ Premium + 10 tiers
+		battlePassTier = 0, -- 49 R$ +1 tier
 	},
 	Badges = {
 		firstLoop = 0,
@@ -239,6 +242,31 @@ Config.Colors = {
 		"#FF4D4D", "#FF8A3D", "#FFC83D", "#B6E33B", "#4ADE80", "#2DD4BF", "#3DDCFF", "#4F8BFF",
 		"#7C5CFF", "#C45CFF", "#FF5CD6", "#FF4F8B", "#A0704A", "#6B7A99", "#F5F5F5", "#2B2F3A",
 	},
+}
+
+-- Turf Pass (battle pass, docs/BATTLEPASS.md). Owner 2026-11-17: 14-day seasons, 30 tiers, Premium 399 R$,
+-- Premium+ 799 R$ (+10 tiers). Start = unix time the season opens; 0 = hidden in live servers (shown in Studio).
+Config.BattlePass = {
+	Season = 1,
+	Name = "Neon Rush",
+	Start = 0,
+	Days = 14,
+	Tiers = 30,
+	XpPerTier = 1000,
+	FinishDay = 12, -- catch-up schedule: tier 30 by this day
+	CatchUpBehind = 3, -- tiers behind schedule before missions give double XP
+	MissionXp = { 300, 300, 300, 500, 800 }, -- by daily mission slot
+	Missions = 5, -- daily missions while a season is open (3 otherwise)
+	CellsPerXp = 5,
+	KillXp = 25,
+	PlayXpPerDay = 400,
+	BonusKeyXp = 1000, -- after tier 30: one Sky Chest Key per this much XP
+	PlusXp = 10000,
+	TierXp = 1000, -- the +1 tier product
+	RestrictedKeyCoins = 3000, -- a key for players where paid random items are restricted
+	DuplicatePremiumGems = 400, -- a stale Premium receipt while already premium
+	PlusHideSeconds = 48 * 3600, -- Premium+ hidden in the last 48 h
+	Robux = { premium = 399, plus = 799, tier = 49 }, -- display only; must match the dashboard
 }
 
 -- Shop and turf art (tools/art/shop_art.py, Blender render for biomes), uploaded to the owner's account.

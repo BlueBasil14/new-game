@@ -66,6 +66,7 @@ export type Profile = {
 	settings: { music: boolean, sfx: boolean, shake: boolean, lowDetail: boolean },
 	firstJoin: number,
 	lastJoin: number,
+	pass: any?, -- Turf Pass state (BattlePass.State), reconciled by BattlePass.normalize, not ProfileTemplate
 }
 
 return {}

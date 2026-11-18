@@ -9,6 +9,7 @@ local EconomyRules = require(Shared.EconomyRules)
 local DataService = require(script.Parent.DataService)
 local EconomyService = require(script.Parent.EconomyService)
 local ShopService = require(script.Parent.ShopService)
+local BattlePassService = require(script.Parent.BattlePassService)
 
 local MonetizationService = {}
 
@@ -169,6 +170,9 @@ local function processReceipt(info: { [string]: any }): Enum.ProductPurchaseDeci
 	end
 
 	local cfg = (Config.Products :: any)[productKey]
+	local isPass = string.sub(productKey, 1, 10) == "battlePass"
+	-- Policy lookup can yield, so it runs before the profile update (pass keys become coins when restricted).
+	local passRestricted = isPass and BattlePassService.keysRestricted(player)
 	local secondChanceApplied = true
 	if productKey == "secondChance" then
 		local handler = MonetizationService.onSecondChance
@@ -186,7 +190,9 @@ local function processReceipt(info: { [string]: any }): Enum.ProductPurchaseDeci
 			return
 		end
 		DataService.addReceipt(p, purchaseId)
-		if productKey == "wheelSpin" then
+		if isPass then
+			BattlePassService.applyProductIn(player, p, productKey, passRestricted)
+		elseif productKey == "wheelSpin" then
 			p.wheelPaid += 1
 		elseif productKey == "boost15" then
 			EconomyService.extendBoostInProfile(p, cfg.Seconds)
@@ -215,6 +221,9 @@ local function processReceipt(info: { [string]: any }): Enum.ProductPurchaseDeci
 	local saveOk, saved = pcall(DataService.save, player)
 	if not saveOk or saved ~= true then
 		return Enum.ProductPurchaseDecision.NotProcessedYet
+	end
+	if isPass then
+		BattlePassService.afterProduct(player, productKey)
 	end
 	local bought = MonetizationService.onProductBought
 	if bought ~= nil then

@@ -11,10 +11,11 @@ export type Item = {
 	colorB: string?,
 	pattern: string, -- "solid" | "stripes" | "dots" | "checker" | "waves" | "stars" | "hex"
 	crownsRequired: number?,
-	source: string?, -- "vip" | "neonPack" | "starterPack" | "group" | "daily7" | "daily28" | "crownRush"
+	source: string?, -- "vip" | "neonPack" | "starterPack" | "group" | "daily7" | "daily28" | "crownRush" | "pass"
 	default: boolean?,
 	release: string?, -- "weekTwo": hidden until Config.WeekTwo.Start
 	priceTier: string?, -- Config.Prices key when it differs from rarity (biome skins)
+	anim: string?, -- animated turf: "pulse" | "flow" | "drift" | "rainbow" (TurfRenderer)
 	biome: boolean?, -- 3D biome skin (scenery from Biomes.bySkin)
 }
 
@@ -34,7 +35,7 @@ local function add(
 	colorA: string,
 	colorB: string?,
 	pattern: string?,
-	extra: { crownsRequired: number?, source: string?, default: boolean?, release: string?, priceTier: string?, biome: boolean? }?
+	extra: { crownsRequired: number?, source: string?, default: boolean?, release: string?, priceTier: string?, biome: boolean?, anim: string? }?
 )
 	assert(itemsById[id] == nil, "duplicate item id " .. id)
 	local item: Item = {
@@ -53,6 +54,7 @@ local function add(
 		item.release = extra.release
 		item.priceTier = extra.priceTier
 		item.biome = extra.biome
+		item.anim = extra.anim
 	end
 	table.insert(items, item)
 	itemsById[id] = item
@@ -157,12 +159,39 @@ add("skin", "rare", "sunset_grid", "Sunset Grid", "#FF8A3D", "#FF4F8B", "checker
 add("trail", tierOf("trail", "stars", "#7C5CFF"), "trail_comet", "Comet Tail", "#FFFFFF", "#7C5CFF", "stars", WEEK_TWO)
 add("trail", "exclusive", "crown_rush_trail", "Crown Rush Trail", "#FFC83D", "#2B2F3A", "stars", { source = "crownRush", release = "weekTwo" })
 
+-- Turf Pass season 1 "Neon Rush" (BattlePass.luau): earned on the pass, never sold. Hidden from the shop until
+-- the season opens (release "pass").
+local PASS = { source = "pass", release = "pass" }
+local function passAnim(anim: string)
+	return { source = "pass", release = "pass", anim = anim }
+end
+add("skin", "legendary", "pass_neon_pulse", "Neon Pulse", "#FF2E9A", "#00F0FF", "stripes", passAnim("pulse"))
+add("trail", "legendary", "pass_neon_pulse_trail", "Neon Pulse Trail", "#00F0FF", "#FF2E9A", "stripes", PASS)
+add("skin", "legendary", "pass_magma_surge", "Magma Surge", "#E8361A", "#FFC83D", "waves", passAnim("flow"))
+add("trail", "legendary", "pass_magma_trail", "Magma Trail", "#FF6A1A", "#FFC83D", "waves", PASS)
+add("skin", "legendary", "pass_starfall", "Starfall", "#1B1F5E", "#FFE88A", "stars", passAnim("drift"))
+add("trail", "legendary", "pass_starfall_trail", "Starfall Trail", "#FFE88A", "#3A3FA0", "stars", PASS)
+add("skin", "legendary", "pass_prism_storm", "Prism Storm", "#7C5CFF", "#FFFFFF", "hex", passAnim("rainbow"))
+add("trail", "legendary", "pass_prism_trail", "Prism Trail", "#C45CFF", "#3DDCFF", "hex", PASS)
+add("skin", "rare", "pass_sour_blast", "Sour Blast", "#B6FF3B", "#FFE14D", "checker", PASS)
+add("skin", "rare", "pass_frost_bite", "Frost Bite", "#9FE8FF", "#FFFFFF", "hex", PASS)
+add("skin", "rare", "pass_bubble_pop", "Bubble Pop", "#FF8AD8", "#FFFFFF", "dots", PASS)
+add("skin", "rare", "pass_sunset_riot", "Sunset Riot", "#FF6A3D", "#7C2BD9", "stripes", PASS)
+add("skin", "rare", "pass_zigzag_rookie", "Zigzag Rookie", "#4F8BFF", "#FFC83D", "waves", PASS)
+add("skin", "rare", "pass_turbo_tide", "Turbo Tide", "#00C2B8", "#E6FFF9", "waves", PASS)
+add("trail", "rare", "pass_neon_streak", "Neon Streak", "#00F0FF", "#FF2E9A", "stripes", PASS)
+add("trail", "common", "pass_pebble_dash", "Pebble Dash", "#C9B8FF", nil, "dots", PASS)
+
 Catalog.items = items
 
 -- True when a release tag (nil = always out) is open at unix time `now`.
 function Catalog.isReleaseOpen(release: string?, now: number): boolean
 	if release == nil then
 		return true
+	end
+	if release == "pass" then
+		local bp = Config.BattlePass
+		return bp.Start > 0 and now >= bp.Start
 	end
 	local start = Config.WeekTwo.Start
 	return start > 0 and now >= start
@@ -262,18 +291,25 @@ Catalog.quests = {
 
 Catalog.questKinds = { "cells", "kills", "bigCapture", "mapPct", "kingSeconds", "playMinutes" }
 
-function Catalog.questsForDay(dayNumber: number, userId: number): { Quest }
+-- count 3: the classic daily quests (random difficulty). count 5: Turf Pass missions while a season is open,
+-- slots 1-3 easy, 4 medium, 5 hard (pools are ordered easy -> hard); mission XP is by slot (Config.BattlePass).
+function Catalog.questsForDay(dayNumber: number, userId: number, count: number?): { Quest }
+	local n = count or 3
 	local rng = makeRng(dayNumber * 104729 + userId * 31 + 7)
 	local kinds = shuffle(Catalog.questKinds, rng)
 	local out = {}
-	for i = 1, 3 do
+	for i = 1, n do
 		local pool = {}
 		for _, quest in Catalog.quests do
 			if quest.kind == kinds[i] then
 				table.insert(pool, quest)
 			end
 		end
-		out[i] = pool[rng(#pool)]
+		local pick = rng(#pool)
+		if n > 3 then
+			pick = if i <= 3 then 1 elseif i == 4 then math.min(2, #pool) else #pool
+		end
+		out[i] = pool[pick]
 	end
 	return out
 end
