@@ -50,7 +50,9 @@ local S = {
 	odds = "Sky Chest odds: ",
 	firstTitle = "%s is waiting!",
 	waitingWords = "%d Legendary · %d Rare · %s gems",
-	plusOne = "+10 TIERS  R$ %d",
+	waitingSkins = "%d Legendary · %d Rare",
+	waitingGems = "+ %s gems waiting!",
+	plusOne = "+10 TIERS\nR$ %d",
 	jumpTag = "%s now!",
 	waitingTile = "WAITING!",
 	waitingShort = "waiting for you!",
@@ -118,6 +120,7 @@ local TILE = 112 -- px reward tile (before the track scale)
 local BASE_H = 340 -- track height the layout is drawn for; scaled to the real track height
 local MAX_TRACK_SCALE = 1.3
 local COMPACT_HEIGHT = 560 -- viewport px below which the pass goes full-screen (phones in landscape)
+local COMPACT_MIN_TEXT = 12 -- smallest text size on phones
 local QUEST_ICONS: { [string]: string } = {
 	cells = "gameplay_territory",
 	kills = "gameplay_trail_cut",
@@ -344,11 +347,6 @@ local function rewardArt(art: Frame, r: BattlePass.Reward, restricted: boolean)
 		else nil
 	if icon then
 		UiKit.icon(icon, { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.48), Size = UDim2.fromScale(0.86, 0.86), parent = art })
-		if r.kind == "boost" then
-			local x = label(art, "2x", { AnchorPoint = Vector2.new(1, 1), Position = UDim2.fromScale(0.98, 0.98), Size = UDim2.fromScale(0.5, 0.36), TextColor3 = WHITE })
-			outlined(x, INK, 2)
-			x.ZIndex = art.ZIndex + 3
-		end
 		return
 	end
 	local it = Catalog.byId(r.id :: string)
@@ -511,13 +509,13 @@ local function build()
 	local unlockPulse = bob(unlockBtn, 0.06, 0.55)
 	local ownerCrown = UiKit.icon("economy_crown", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.1, 0.1), Size = UDim2.fromScale(0.36, 0.6), Rotation = -18, Visible = false, parent = unlockBtn })
 	ownerCrown.ZIndex = unlockBtn.ZIndex + 7
-	local valuePill = UiKit.frame({ Name = "Value", Position = UDim2.fromScale(0, 0.71), Size = UDim2.fromScale(1, 0.14), BackgroundColor3 = WHITE, parent = buy })
+	local valuePill = UiKit.frame({ Name = "Value", Position = UDim2.fromScale(0, 0.71), Size = UDim2.fromScale(1, 0.12), BackgroundColor3 = WHITE, parent = buy })
 	UiKit.corner(valuePill, 10)
 	UiKit.stroke(valuePill, GOLD_DEEP, 2)
 	local valueRow = label(valuePill, "", { Position = UDim2.fromScale(0.04, 0.06), Size = UDim2.fromScale(0.92, 0.5), TextColor3 = INK })
 	local valueL = label(valuePill, "", { Position = UDim2.fromScale(0.04, 0.56), Size = UDim2.fromScale(0.92, 0.38), TextColor3 = GOLD_DEEP })
 	local plusBtn = UiKit.button({ text = "", color = GOLD, size = UDim2.fromScale(1, 0.12), position = UDim2.fromScale(0, 0.88), parent = buy })
-	local jumpTag = UiKit.frame({ Name = "JumpTag", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0), Size = UDim2.fromScale(0.8, 0.34), BackgroundColor3 = theme.Pink, Visible = false, parent = plusBtn })
+	local jumpTag = UiKit.frame({ Name = "JumpTag", AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 0, 2), Size = UDim2.fromScale(0.8, 0.3), BackgroundColor3 = theme.Pink, Visible = false, parent = plusBtn })
 	UiKit.corner(jumpTag, 6)
 	UiKit.stroke(jumpTag, INK, 2)
 	jumpTag.ZIndex = plusBtn.ZIndex + 4
@@ -1031,8 +1029,8 @@ local function build()
 			end)
 			local any = got.legendary + got.rare + got.gems > 0
 			valueRow.Visible = any
-			valueRow.Text = string.format(S.waitingWords, got.legendary, got.rare, UiKit.formatNumber(got.gems))
-			valueL.Text = if any then S.waitingShort else S.worth
+			valueRow.Text = string.format(S.waitingSkins, got.legendary, got.rare)
+			valueL.Text = if any then string.format(S.waitingGems, UiKit.formatNumber(got.gems)) else S.worth
 			valueL.Position = if any then UDim2.fromScale(0.04, 0.56) else UDim2.fromScale(0.04, 0.2)
 			valueL.Size = if any then UDim2.fromScale(0.92, 0.38) else UDim2.fromScale(0.92, 0.6)
 			-- +10 tiers that would pass a Legendary right away says so
@@ -1127,6 +1125,17 @@ local function build()
 				end
 			end
 		end
+		for _, c in win:GetDescendants() do
+			if c:IsA("UITextSizeConstraint") then
+				c.MinTextSize = if compact then COMPACT_MIN_TEXT else 8
+			end
+		end
+		-- phones: narrower lane labels, a wider buy zone so prices and tags fit at the larger text size
+		rail.Size = UDim2.fromScale(if compact then 0.075 else 0.1, 0.76)
+		trackBack.Position = UDim2.fromScale(if compact then 0.095 else 0.12, 0.22)
+		trackBack.Size = UDim2.fromScale(if compact then 0.665 else 0.71, 0.76)
+		buy.Position = UDim2.fromScale(if compact then 0.77 else 0.838, 0.22)
+		buy.Size = UDim2.fromScale(if compact then 0.218 else 0.15, 0.76)
 	end
 
 	-- open: scroll so the next tier is in view; animate in
@@ -1251,7 +1260,11 @@ function PassController.passedPopup(item: Catalog.Item, title: string?)
 		label(tag, "LEGENDARY", { Size = UDim2.fromScale(0.9, 0.8), Position = UDim2.fromScale(0.05, 0.1), TextColor3 = INK, ZIndex = 96 })
 		shine(art, 2)
 		local hook = Catalog.byId(BattlePass.tiers[1].prem[1].id :: string)
-		local buy = UiKit.button({ text = string.format(S.unlockNamed, string.upper(if hook then hook.name else ""), CFG.Robux.premium), color = GREEN, size = UDim2.fromScale(0.6, 0.13), position = UDim2.fromScale(0.2, 0.79), parent = card })
+		local buy = UiKit.button({ text = string.format(S.unlockNamed, string.upper(if hook then hook.name else ""), CFG.Robux.premium), color = GREEN, size = UDim2.fromScale(0.76, 0.13), position = UDim2.fromScale(0.12, 0.79), parent = card })
+		local pad = Instance.new("UIPadding")
+		pad.PaddingLeft = UDim.new(0, 12)
+		pad.PaddingRight = UDim.new(0, 12)
+		pad.Parent = buy
 		buy.ZIndex = 94
 		buy.TextColor3 = WHITE
 		bob(buy, 0.06, 0.5)

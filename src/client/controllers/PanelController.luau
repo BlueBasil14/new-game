@@ -177,7 +177,7 @@ local S = {
 	deathPass = "+%s Pass XP",
 	deathPassNext = "%d tier%s to %s!",
 	deathPassTier = "Tier %d",
-	deathPassBtn = "Get %s in the Turf Pass  >",
+	deathPassBtn = "%s in Turf Pass  >",
 	deathKiller = "Cut by %s",
 	respawn = "Respawn",
 	secondChance = "Second Chance  R$ %d  (%d)",
@@ -2045,8 +2045,8 @@ local function buildDeath(): PanelEntry
 	local passBtn = button({
 		text = "",
 		color = Color3.fromHex("9C7DFF"),
-		size = UDim2.fromScale(0.8, 0.14),
-		position = UDim2.fromScale(0.1, 0.81),
+		size = UDim2.fromScale(0.64, 0.1),
+		position = UDim2.fromScale(0.18, 0.83),
 		parent = body,
 		onClick = function()
 			finishDeath()
