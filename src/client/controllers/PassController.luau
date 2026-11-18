@@ -50,7 +50,7 @@ local S = {
 	odds = "Sky Chest odds: ",
 	firstTitle = "%s is waiting!",
 	waitingWords = "%d Legendary · %d Rare · %s gems",
-	waitingSkins = "%d Legendary · %d Rare",
+	waitingSkins = "%d Legendary\n%d Rare",
 	waitingGems = "+ %s gems waiting!",
 	plusOne = "+10 TIERS\nR$ %d",
 	jumpTag = "%s now!",
@@ -512,10 +512,10 @@ local function build()
 	local valuePill = UiKit.frame({ Name = "Value", Position = UDim2.fromScale(0, 0.71), Size = UDim2.fromScale(1, 0.12), BackgroundColor3 = WHITE, parent = buy })
 	UiKit.corner(valuePill, 10)
 	UiKit.stroke(valuePill, GOLD_DEEP, 2)
-	local valueRow = label(valuePill, "", { Position = UDim2.fromScale(0.04, 0.06), Size = UDim2.fromScale(0.92, 0.5), TextColor3 = INK })
-	local valueL = label(valuePill, "", { Position = UDim2.fromScale(0.04, 0.56), Size = UDim2.fromScale(0.92, 0.38), TextColor3 = GOLD_DEEP })
+	local valueRow = label(valuePill, "", { Position = UDim2.fromScale(0.04, 0.05), Size = UDim2.fromScale(0.92, 0.58), TextColor3 = INK })
+	local valueL = label(valuePill, "", { Position = UDim2.fromScale(0.04, 0.63), Size = UDim2.fromScale(0.92, 0.33), TextColor3 = INK })
 	local plusBtn = UiKit.button({ text = "", color = GOLD, size = UDim2.fromScale(1, 0.12), position = UDim2.fromScale(0, 0.88), parent = buy })
-	local jumpTag = UiKit.frame({ Name = "JumpTag", AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 0, 2), Size = UDim2.fromScale(0.8, 0.3), BackgroundColor3 = theme.Pink, Visible = false, parent = plusBtn })
+	local jumpTag = UiKit.frame({ Name = "JumpTag", AnchorPoint = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 0, -3), Size = UDim2.fromScale(0.8, 0.3), BackgroundColor3 = theme.Pink, Visible = false, parent = plusBtn })
 	UiKit.corner(jumpTag, 6)
 	UiKit.stroke(jumpTag, INK, 2)
 	jumpTag.ZIndex = plusBtn.ZIndex + 4
@@ -1031,8 +1031,8 @@ local function build()
 			valueRow.Visible = any
 			valueRow.Text = string.format(S.waitingSkins, got.legendary, got.rare)
 			valueL.Text = if any then string.format(S.waitingGems, UiKit.formatNumber(got.gems)) else S.worth
-			valueL.Position = if any then UDim2.fromScale(0.04, 0.56) else UDim2.fromScale(0.04, 0.2)
-			valueL.Size = if any then UDim2.fromScale(0.92, 0.38) else UDim2.fromScale(0.92, 0.6)
+			valueL.Position = if any then UDim2.fromScale(0.04, 0.63) else UDim2.fromScale(0.04, 0.2)
+			valueL.Size = if any then UDim2.fromScale(0.92, 0.33) else UDim2.fromScale(0.92, 0.6)
 			-- +10 tiers that would pass a Legendary right away says so
 			local jump: Catalog.Item? = nil
 			for _, lt in BattlePass.legendaryTiers do
