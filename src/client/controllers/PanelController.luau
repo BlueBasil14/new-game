@@ -912,15 +912,20 @@ local function buildShop(): PanelEntry
 	scroller.CanvasSize = UDim2.new()
 	scroller.AutomaticCanvasSize = Enum.AutomaticSize.None
 	scroller.ScrollingDirection = Enum.ScrollingDirection.Y
-	scroller.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
+	-- No inset: the bar's room is reserved below, so the card width never depends on whether the bar shows
+	-- (that dependency looped: bar appears -> narrower cards -> new height -> bar toggles).
+	scroller.VerticalScrollBarInset = Enum.ScrollBarInset.None
 	scroller.ScrollBarThickness = SCROLLBAR_PX
 	scroller.ScrollBarImageColor3 = INK
 	scroller.ElasticBehavior = Enum.ElasticBehavior.WhenScrollable
 	scroller.Parent = body
 	local rowsLayout = UiKit.list(scroller, { Padding = UDim.new(0, SECTION_GAP_PX) })
-	rowsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	rowsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Left
 	rowsLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
-		scroller.CanvasSize = UDim2.fromOffset(0, rowsLayout.AbsoluteContentSize.Y + SECTION_GAP_PX)
+		local h = math.ceil(rowsLayout.AbsoluteContentSize.Y) + SECTION_GAP_PX
+		if scroller.CanvasSize.Y.Offset ~= h then
+			scroller.CanvasSize = UDim2.fromOffset(0, h)
+		end
 	end)
 
 	local tab = "featured"
@@ -936,7 +941,7 @@ local function buildShop(): PanelEntry
 
 	-- Pixel cell sizes from the visible width: 3 columns on phones, 4 on wide screens.
 	local function layoutGrids()
-		local w = scroller.AbsoluteWindowSize.X
+		local w = scroller.AbsoluteSize.X - SCROLLBAR_PX - 4
 		if w <= 0 then
 			return
 		end
@@ -944,12 +949,13 @@ local function buildShop(): PanelEntry
 		local cellW = math.floor((w - CARD_GAP_PX * (cols - 1)) / cols)
 		local cellH = math.floor(cellW * CARD_HEIGHT_PER_WIDTH)
 		for _, g in grids do
+			g.frame.Size = UDim2.new(0, w, 0, g.frame.Size.Y.Offset)
 			g.layout.CellSize = UDim2.fromOffset(cellW, cellH)
 			local rows = math.ceil(g.count / cols)
-			g.frame.Size = UDim2.new(1, 0, 0, rows * cellH + math.max(0, rows - 1) * CARD_GAP_PX)
+			g.frame.Size = UDim2.new(0, w, 0, rows * cellH + math.max(0, rows - 1) * CARD_GAP_PX)
 		end
 	end
-	scroller:GetPropertyChangedSignal("AbsoluteWindowSize"):Connect(layoutGrids)
+	scroller:GetPropertyChangedSignal("AbsoluteSize"):Connect(layoutGrids)
 
 	local function setTab(newTab: string)
 		if newTab ~= tab then
@@ -1335,7 +1341,7 @@ local function buildShop(): PanelEntry
 			local banner = button({
 				text = string.format(S.neonBanner, Config.Passes.neonPack.Robux),
 				color = theme.Pink,
-				size = UDim2.new(1, 0, 0, BANNER_PX),
+				size = UDim2.new(1, -(SCROLLBAR_PX + 4), 0, BANNER_PX),
 				parent = scroller,
 				onClick = function()
 					promptPass("neonPack")

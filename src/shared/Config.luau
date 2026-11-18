@@ -244,10 +244,23 @@ Config.Colors = {
 -- Shop and turf art (tools/art/shop_art.py, Blender render for biomes), uploaded to the owner's account.
 -- 0 = not uploaded yet: the shop falls back to plain colour cards and the turf to two-colour chunks.
 Config.ShopArt = {
-	Patterns = { stripes = 0, dots = 0, checker = 0, waves = 0, stars = 0, hex = 0 } :: { [string]: number },
-	Trail = { band = 0, core = 0, line = 0 },
-	Effects = { sparkle = 0, fireworks = 0, bubbles = 0, lightning = 0, hearts = 0 } :: { [string]: number },
-	Biomes = { biome_woodland = 0 } :: { [string]: number },
+	Patterns = {
+		stripes = 140252245518912,
+		dots = 138455625728900,
+		checker = 116641132904815,
+		waves = 79636188706272,
+		stars = 90991567260746,
+		hex = 108418968139652,
+	} :: { [string]: number },
+	Trail = { band = 101914103618787, core = 112470643208525, line = 134943060518509 },
+	Effects = {
+		sparkle = 90878427070281,
+		fireworks = 117566169384430,
+		bubbles = 95790074171043,
+		lightning = 83779033219197,
+		hearts = 105956331785322,
+	} :: { [string]: number },
+	Biomes = { biome_woodland = 134790323882434 } :: { [string]: number },
 }
 
 -- Biome skins (owner direction 2026-11-16, placement in Biomes.luau). Assets = prop name -> uploaded
