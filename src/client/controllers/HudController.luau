@@ -57,7 +57,6 @@ local FEED_SECONDS = 5
 local FEED_FADE = 0.5
 local ROLL_SECONDS = 0.5
 local TICK_SECONDS = 0.5
-local COIN_TICK_INTERVAL = 0.1 -- coinTick plays at most 10 times per second while the wallet rolls
 local MINI_BLOCK = 8 -- cells per minimap block side
 local MINI_HEIGHT = 0.16 -- fraction of screen height
 local MINI_BLOCKS_PER_TICK = 100
@@ -167,15 +166,6 @@ local function buildWallet(gui: ScreenGui)
 		crowns = walletRow(wallet, 3, S.crownsIcon, theme.Pink),
 	}
 	local shown: { [string]: number } = {}
-	local lastTick = -math.huge
-	local function tickFormat(n: number): string
-		local now = os.clock()
-		if now - lastTick >= COIN_TICK_INTERVAL then
-			lastTick = now
-			FeedbackController.play("coinTick")
-		end
-		return UiKit.formatNumber(n)
-	end
 
 	local function update()
 		local p = ClientState.profile
@@ -189,13 +179,19 @@ local function buildWallet(gui: ScreenGui)
 			if old == nil then
 				UiKit.rollNumber(label, new, new, 0)
 			elseif old ~= new then
-				UiKit.rollNumber(label, old, new, ROLL_SECONDS, if key == "coins" then tickFormat else nil)
+				UiKit.rollNumber(label, old, new, ROLL_SECONDS)
 			end
 			shown[key] = new
 		end
 	end
 	ClientState.profileChanged:Connect(update)
 	update()
+	-- ponytail: coin drop on server-sent capture/kill rewards only; passive income (every 10 s) stays silent.
+	ClientState.reward:Connect(function(payload: any)
+		if type(payload) == "table" and type(payload.coins) == "number" and payload.coins > 0 then
+			FeedbackController.play("coinDrop")
+		end
+	end)
 end
 
 -- Top centre: map %, boost chip, weekend chip -----------------------------------------------
