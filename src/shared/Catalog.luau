@@ -6,7 +6,7 @@ export type Item = {
 	id: string,
 	name: string,
 	type: string, -- "skin" | "trail" | "effect"
-	rarity: string, -- "common" | "rare" | "epic" | "legendary" | "crown" | "exclusive"
+	rarity: string, -- "common" | "rare" | "legendary" | "crown" | "exclusive"
 	colorA: string,
 	colorB: string?,
 	pattern: string, -- "solid" | "stripes" | "dots" | "checker" | "waves" | "stars" | "hex"
@@ -14,6 +14,8 @@ export type Item = {
 	source: string?, -- "vip" | "neonPack" | "starterPack" | "group" | "daily7" | "daily28" | "crownRush"
 	default: boolean?,
 	release: string?, -- "weekTwo": hidden until Config.WeekTwo.Start
+	priceTier: string?, -- Config.Prices key when it differs from rarity (biome skins)
+	biome: boolean?, -- 3D biome skin (scenery from Biomes.bySkin)
 }
 
 export type Reward = { currency: string, amount: number }
@@ -32,7 +34,7 @@ local function add(
 	colorA: string,
 	colorB: string?,
 	pattern: string?,
-	extra: { crownsRequired: number?, source: string?, default: boolean?, release: string? }?
+	extra: { crownsRequired: number?, source: string?, default: boolean?, release: string?, priceTier: string?, biome: boolean? }?
 )
 	assert(itemsById[id] == nil, "duplicate item id " .. id)
 	local item: Item = {
@@ -49,6 +51,8 @@ local function add(
 		item.source = extra.source
 		item.default = extra.default
 		item.release = extra.release
+		item.priceTier = extra.priceTier
+		item.biome = extra.biome
 	end
 	table.insert(items, item)
 	itemsById[id] = item
@@ -59,8 +63,16 @@ add("skin", "common", "default", "Runner Colour", "#FFFFFF", nil, "solid", { def
 add("trail", "common", "default_trail", "Plain Trail", "#FFFFFF", nil, "solid", { default = true })
 add("effect", "common", "sparkle", "Sparkle", "#FFE88A", "#FFFFFF", "stars", { default = true })
 
--- Turf skins: common
-local commonSkins = {
+-- Shop tiers (owner 2026-11-17): plain colours are Common, patterned (two-colour) items are Rare,
+-- animated (capture effects) and 3D (biome skins) are Legendary.
+local function tierOf(itemType: string, pattern: string, colorB: string?): string
+	if itemType == "effect" then
+		return "legendary"
+	end
+	return if pattern == "solid" or colorB == nil then "common" else "rare"
+end
+
+local shopSkins = {
 	{ "sky_blue", "Sky Blue", "#7CC4FF", nil, "solid" },
 	{ "mint_fresh", "Mint Fresh", "#8FF0C8", nil, "solid" },
 	{ "lemon_pop", "Lemon Pop", "#FFF07A", nil, "solid" },
@@ -73,12 +85,6 @@ local commonSkins = {
 	{ "teal_tide", "Teal Tide", "#2DD4BF", "#7CE8DA", "waves" },
 	{ "cherry_dots", "Cherry Dots", "#FF4D4D", "#FFFFFF", "dots" },
 	{ "slate_check", "Slate Check", "#6B7A99", "#9AA7C2", "checker" },
-}
-for _, r in commonSkins do
-	add("skin", "common", r[1], r[2], r[3], r[4], r[5])
-end
-
-local rareSkins = {
 	{ "candy_stripe", "Candy Stripe", "#FF4F8B", "#FFFFFF", "stripes" },
 	{ "ocean_waves", "Ocean Waves", "#3D8BFF", "#9DD3FF", "waves" },
 	{ "forest_hex", "Forest Hex", "#2E9E5B", "#8FE3A8", "hex" },
@@ -87,31 +93,22 @@ local rareSkins = {
 	{ "starry_night", "Starry Night", "#2B3A8C", "#FFE88A", "stars" },
 	{ "tangerine_wave", "Tangerine Wave", "#FF8A3D", "#FFD2A8", "waves" },
 	{ "frosty_hex", "Frosty Hex", "#BDEBFF", "#FFFFFF", "hex" },
-}
-for _, r in rareSkins do
-	add("skin", "rare", r[1], r[2], r[3], r[4], r[5])
-end
-
-local epicSkins = {
 	{ "aurora", "Aurora", "#4ADE80", "#7C5CFF", "waves" },
 	{ "lava_lamp", "Lava Lamp", "#FF4D4D", "#FFC83D", "waves" },
 	{ "galaxy_swirl", "Galaxy Swirl", "#2B1F6B", "#C45CFF", "stars" },
 	{ "disco_floor", "Disco Floor", "#FF5CD6", "#3DDCFF", "checker" },
 	{ "jungle_gems", "Jungle Gems", "#1F8A4C", "#B6E33B", "hex" },
 	{ "cotton_clouds", "Cotton Clouds", "#FFB8E0", "#B8E6FF", "dots" },
-}
-for _, r in epicSkins do
-	add("skin", "epic", r[1], r[2], r[3], r[4], r[5])
-end
-
-local legendarySkins = {
 	{ "rainbow_road", "Rainbow Road", "#FF4D4D", "#4F8BFF", "stripes" },
 	{ "cosmic_crystal", "Cosmic Crystal", "#3DDCFF", "#C45CFF", "hex" },
 	{ "golden_sunrise", "Golden Sunrise", "#FFC83D", "#FF4F8B", "stars" },
 }
-for _, r in legendarySkins do
-	add("skin", "legendary", r[1], r[2], r[3], r[4], r[5])
+for _, r in shopSkins do
+	add("skin", tierOf("skin", r[5], r[4]), r[1], r[2], r[3], r[4], r[5])
 end
+
+-- 3D biome skins: grow scenery on owned turf (Biomes.luau). Legendary, priced as Config.Prices.biome.
+add("skin", "legendary", "biome_woodland", "Living Woodland", "#A3CF62", nil, "solid", { priceTier = "biome", biome = true })
 
 local crownSkins = {
 	{ "crown_bronze", "Bronze Crown", "#C98A4B", "#F0C08A", "stars", 1 },
@@ -124,20 +121,20 @@ for _, r in crownSkins do
 end
 
 -- Trails
-add("trail", "common", "trail_pebble", "Pebble Path", "#B8C2D6", nil, "dots")
-add("trail", "common", "trail_ribbon", "Ribbon", "#FF9ACB", nil, "stripes")
-add("trail", "rare", "trail_bubble", "Bubble Trail", "#7CC4FF", "#FFFFFF", "dots")
-add("trail", "rare", "trail_leaf", "Leaf Trail", "#4ADE80", "#B6E33B", "waves")
-add("trail", "rare", "trail_ember", "Ember Trail", "#FF8A3D", "#FFC83D", "dots")
-add("trail", "epic", "trail_stardust", "Stardust", "#FFE88A", "#C45CFF", "stars")
-add("trail", "epic", "trail_ice", "Ice Streak", "#BDEBFF", "#3DDCFF", "hex")
-add("trail", "legendary", "trail_rainbow", "Rainbow Streak", "#FF4D4D", "#4F8BFF", "stripes")
+add("trail", tierOf("trail", "dots", nil), "trail_pebble", "Pebble Path", "#B8C2D6", nil, "dots")
+add("trail", tierOf("trail", "stripes", nil), "trail_ribbon", "Ribbon", "#FF9ACB", nil, "stripes")
+add("trail", tierOf("trail", "dots", "#FFFFFF"), "trail_bubble", "Bubble Trail", "#7CC4FF", "#FFFFFF", "dots")
+add("trail", tierOf("trail", "waves", "#B6E33B"), "trail_leaf", "Leaf Trail", "#4ADE80", "#B6E33B", "waves")
+add("trail", tierOf("trail", "dots", "#FFC83D"), "trail_ember", "Ember Trail", "#FF8A3D", "#FFC83D", "dots")
+add("trail", tierOf("trail", "stars", "#C45CFF"), "trail_stardust", "Stardust", "#FFE88A", "#C45CFF", "stars")
+add("trail", tierOf("trail", "hex", "#3DDCFF"), "trail_ice", "Ice Streak", "#BDEBFF", "#3DDCFF", "hex")
+add("trail", tierOf("trail", "stripes", "#4F8BFF"), "trail_rainbow", "Rainbow Streak", "#FF4D4D", "#4F8BFF", "stripes")
 
 -- Capture effects
-add("effect", "rare", "fireworks", "Fireworks", "#FF4F8B", "#FFC83D", "stars")
-add("effect", "rare", "bubbles", "Bubbles", "#7CC4FF", "#FFFFFF", "dots")
-add("effect", "epic", "lightning", "Lightning", "#FFE88A", "#4F8BFF", "stripes")
-add("effect", "legendary", "hearts", "Hearts", "#FF4F8B", "#FFB8E0", "dots")
+add("effect", tierOf("effect", "stars", "#FFC83D"), "fireworks", "Fireworks", "#FF4F8B", "#FFC83D", "stars")
+add("effect", tierOf("effect", "dots", "#FFFFFF"), "bubbles", "Bubbles", "#7CC4FF", "#FFFFFF", "dots")
+add("effect", tierOf("effect", "stripes", "#4F8BFF"), "lightning", "Lightning", "#FFE88A", "#4F8BFF", "stripes")
+add("effect", tierOf("effect", "dots", "#FFB8E0"), "hearts", "Hearts", "#FF4F8B", "#FFB8E0", "dots")
 
 -- Exclusives (not for sale)
 add("skin", "exclusive", "starter_spark", "Starter Spark", "#FFC83D", "#FF8A3D", "stars", { source = "starterPack" })
@@ -155,9 +152,9 @@ add("skin", "exclusive", "streak_month", "Month Streak", "#3DDCFF", "#FFC83D", "
 
 -- Week-two update: hidden until Config.WeekTwo.Start (Crown Rush trail is won, never sold)
 local WEEK_TWO = { release = "weekTwo" }
-add("skin", "epic", "tide_pool", "Tide Pool", "#2DD4BF", "#3DDCFF", "waves", WEEK_TWO)
+add("skin", "rare", "tide_pool", "Tide Pool", "#2DD4BF", "#3DDCFF", "waves", WEEK_TWO)
 add("skin", "rare", "sunset_grid", "Sunset Grid", "#FF8A3D", "#FF4F8B", "checker", WEEK_TWO)
-add("trail", "epic", "trail_comet", "Comet Tail", "#FFFFFF", "#7C5CFF", "stars", WEEK_TWO)
+add("trail", tierOf("trail", "stars", "#7C5CFF"), "trail_comet", "Comet Tail", "#FFFFFF", "#7C5CFF", "stars", WEEK_TWO)
 add("trail", "exclusive", "crown_rush_trail", "Crown Rush Trail", "#FFC83D", "#2B2F3A", "stars", { source = "crownRush", release = "weekTwo" })
 
 Catalog.items = items
@@ -187,8 +184,13 @@ function Catalog.ofType(itemType: string): { Item }
 	return out
 end
 
+-- Config.Prices key for an item (biome skins share Legendary rarity but have their own price).
+function Catalog.priceTier(item: Item): string
+	return item.priceTier or item.rarity
+end
+
 local function sellable(item: Item): boolean
-	return item.default ~= true and item.source == nil and item.crownsRequired == nil and Config.Prices[item.rarity :: any] ~= nil
+	return item.default ~= true and item.source == nil and item.crownsRequired == nil and Config.Prices[Catalog.priceTier(item) :: any] ~= nil
 end
 
 local function isPurchasable(item: Item, now: number?): boolean

@@ -94,7 +94,7 @@ function ShopService.buyItem(player: Player, itemId: any): (boolean, any)
 		return false, "not_for_sale"
 	end
 	local featured = table.find(Catalog.featured(Formulas.dayNumber(os.time())), itemId) ~= nil
-	local price = Formulas.itemPrice(item.rarity, featured)
+	local price = Formulas.itemPrice(Catalog.priceTier(item), featured)
 	if price == nil then
 		return false, "not_for_sale"
 	end

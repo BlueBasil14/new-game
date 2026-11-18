@@ -122,9 +122,8 @@ Config.Rebirth = { Base = 150000, Growth = 1.5, GemReward = 50 } -- requirement 
 Config.Prices = {
 	common = { Currency = "coins", Amount = 500 },
 	rare = { Currency = "coins", Amount = 12000 },
-	epic = { Currency = "gems", Amount = 150 },
-	legendary = { Currency = "gems", Amount = 400 },
-	biome = { Currency = "gems", Amount = 2000 }, -- owner 2026-11-16: 3D biome skins are the top tier
+	legendary = { Currency = "gems", Amount = 400 }, -- owner 2026-11-17: common = colours, rare = patterns, legendary = animated/3D (no epic)
+	biome = { Currency = "gems", Amount = 2000 }, -- owner 2026-11-16: 3D biome skins are the top tier (Legendary, own price)
 	FeaturedDiscount = 0.20,
 	FeaturedCount = 6,
 }
@@ -240,6 +239,15 @@ Config.Colors = {
 		"#FF4D4D", "#FF8A3D", "#FFC83D", "#B6E33B", "#4ADE80", "#2DD4BF", "#3DDCFF", "#4F8BFF",
 		"#7C5CFF", "#C45CFF", "#FF5CD6", "#FF4F8B", "#A0704A", "#6B7A99", "#F5F5F5", "#2B2F3A",
 	},
+}
+
+-- Shop and turf art (tools/art/shop_art.py, Blender render for biomes), uploaded to the owner's account.
+-- 0 = not uploaded yet: the shop falls back to plain colour cards and the turf to two-colour chunks.
+Config.ShopArt = {
+	Patterns = { stripes = 0, dots = 0, checker = 0, waves = 0, stars = 0, hex = 0 } :: { [string]: number },
+	Trail = { band = 0, core = 0, line = 0 },
+	Effects = { sparkle = 0, fireworks = 0, bubbles = 0, lightning = 0, hearts = 0 } :: { [string]: number },
+	Biomes = { biome_woodland = 0 } :: { [string]: number },
 }
 
 -- Biome skins (owner direction 2026-11-16, placement in Biomes.luau). Assets = prop name -> uploaded

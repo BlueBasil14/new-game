@@ -87,9 +87,10 @@ eq(p.currency, "coins", "common cur")
 eq(p.amount, 500, "common amt")
 p = F.itemPrice("rare", true) :: { currency: string, amount: number }
 eq(p.amount, Config.Prices.rare.Amount * (1 - Config.Prices.FeaturedDiscount), "rare featured")
-p = F.itemPrice("epic", false) :: { currency: string, amount: number }
-eq(p.currency, "gems", "epic cur")
-eq(p.amount, 150, "epic amt")
+eq(F.itemPrice("epic", false), nil, "no epic tier")
+p = F.itemPrice("biome", false) :: { currency: string, amount: number }
+eq(p.currency, "gems", "biome cur")
+eq(p.amount, 2000, "biome amt")
 p = F.itemPrice("legendary", true) :: { currency: string, amount: number }
 eq(p.amount, 320, "legendary featured")
 eq(F.itemPrice("crown", false), nil, "crown")

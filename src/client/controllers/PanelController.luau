@@ -80,10 +80,23 @@ local S = {
 	rarity = {
 		common = "Common",
 		rare = "Rare",
-		epic = "Epic",
 		legendary = "Legendary",
 		crown = "Crown",
 		exclusive = "Exclusive",
+	},
+	tierHeader = "%s  %d",
+	tierHints = {
+		legendary = "Animated and 3D",
+		rare = "Patterned",
+		common = "Solid colours",
+		crown = "Earned with Crowns",
+		exclusive = "Packs and rewards",
+	},
+	subs = {
+		biome = "3D trees grow on your land",
+		effect = "Animated capture effect",
+		pattern = "Patterned",
+		solid = "Solid colour",
 	},
 	gemsName = "%s Gems",
 	boostName = "2x Coins",
@@ -208,7 +221,6 @@ local ROBUX = {
 local RARITY_HEX: { [string]: string } = {
 	common = "#B8C2D6",
 	rare = "#4F8BFF",
-	epic = "#C45CFF",
 	legendary = "#FFC83D",
 	crown = "#3DDCFF",
 	exclusive = "#FF4F8B",
@@ -230,13 +242,20 @@ local PASS_COLORS: { [string]: Color3 } = {
 	skipMusic = UiKit.theme.Gem,
 	doubleSpeed = UiKit.theme.Yellow,
 }
+local TIER_ORDER = { "legendary", "rare", "common", "crown", "exclusive" }
+local LEGENDARY_EDGE = "#F08A1C"
+local LEGENDARY_SHINE = 1.6 -- seconds for the shine to cross a Legendary ribbon
 local TAB_ORDER = { "featured", "skins", "trails", "effects", "gems", "passes" }
 local TAB_TYPES: { [string]: string } = { skins = "skin", trails = "trail", effects = "effect" }
 local SETTING_ORDER = { "music", "sfx", "shake", "lowDetail" }
 
-local CARD_WIDTH = 0.32
-local CARD_HEIGHT_PER_WIDTH = 1.28
-local CARDS_PER_ROW = 3
+local CARD_HEIGHT_PER_WIDTH = 1.42
+local CARD_GAP_PX = 10
+local SECTION_GAP_PX = 10
+local HEADER_PX = 30
+local BANNER_PX = 44
+local SCROLLBAR_PX = 8
+local MIN_CARD_PX = 150 -- cards per row = as many as fit at this width, at least 3 (phones)
 local PULSE_SECONDS = 1.5
 local REBIRTH_CONFIRM_SECONDS = 3
 local DEATH_GUARD_SECONDS = 0.5
@@ -621,18 +640,16 @@ local function buildUpgrades(): PanelEntry
 end
 
 -- Shop --------------------------------------------------------------------------------------
+-- Cards are built once per tab and updated in place (price/equip state), so a coin change while
+-- the shop is open never rebuilds the list or moves the scroll position.
 
 type CardSpec = {
-	key: string,
+	key: string, -- identity: item id, product or pass key
 	name: string,
-	sub: string,
-	subColor: Color3,
-	colorA: Color3,
-	colorB: Color3?,
-	big: string?,
+	tier: string?, -- rarity key -> ribbon, tint and border; nil for products and passes
+	sub: string?,
+	art: (art: Frame) -> (),
 	badge: string?,
-	borderColor: Color3,
-	icon: string?,
 	action: string,
 	actionColor: Color3,
 	dim: boolean,
@@ -640,68 +657,232 @@ type CardSpec = {
 	onAction: (btn: TextButton) -> (),
 }
 
-local function makeCard(parent: Instance, spec: CardSpec, order: number)
+type Card = { frame: Frame, button: TextButton, badge: TextLabel, spec: CardSpec }
+type Section = { tier: string?, specs: { CardSpec } }
+
+local function artId(id: number?): string?
+	return if id and id ~= 0 then "rbxassetid://" .. id else nil
+end
+
+local function image(parent: Instance, id: string, color: Color3?, z: number): ImageLabel
+	local img = Instance.new("ImageLabel")
+	img.BackgroundTransparency = 1
+	img.Size = UDim2.fromScale(1, 1)
+	img.ScaleType = Enum.ScaleType.Fit
+	img.Image = id
+	img.ImageColor3 = color or Color3.new(1, 1, 1)
+	img.ZIndex = z
+	img.Parent = parent
+	return img
+end
+
+local function iconArt(key: string)
+	return function(art: Frame)
+		UiKit.icon(key, {
+			AnchorPoint = Vector2.new(0.5, 0.5),
+			Position = UDim2.fromScale(0.5, 0.5),
+			Size = UDim2.fromScale(0.8, 0.8),
+			parent = art,
+		})
+	end
+end
+
+-- Turf preview: colorA ground with the pattern tile tinted colorB, exactly as the turf draws it.
+local function skinArt(item: Catalog.Item)
+	return function(art: Frame)
+		local a = Color3.fromHex(item.colorA)
+		art.BackgroundColor3 = a
+		local biomeImg = artId(Config.ShopArt.Biomes[item.id])
+		if item.biome then
+			art.BackgroundColor3 = a:Lerp(Color3.new(1, 1, 1), 0.55)
+			if biomeImg then
+				image(art, biomeImg, nil, art.ZIndex + 1)
+			else
+				iconArt("gameplay_territory")(art)
+			end
+			return
+		end
+		local tileImg = artId(Config.ShopArt.Patterns[item.pattern])
+		if item.colorB and item.pattern ~= "solid" then
+			local b = Color3.fromHex(item.colorB)
+			if tileImg then
+				local img = image(art, tileImg, b, art.ZIndex + 1)
+				img.ScaleType = Enum.ScaleType.Tile
+				local function fit()
+					local px = math.max(8, art.AbsoluteSize.Y * 0.62)
+					img.TileSize = UDim2.fromOffset(px, px)
+				end
+				art:GetPropertyChangedSignal("AbsoluteSize"):Connect(fit)
+				fit()
+			else
+				art.BackgroundColor3 = Color3.new(1, 1, 1) -- UIGradient multiplies the background colour
+				local g = Instance.new("UIGradient")
+				g.Color = ColorSequence.new(a, b)
+				g.Rotation = 45
+				g.Parent = art
+			end
+		end
+		if item.default then
+			iconArt("gameplay_cosmetics")(art)
+		elseif item.crownsRequired then
+			UiKit.icon("economy_crown", { Position = UDim2.fromScale(0.62, 0.05), Size = UDim2.fromScale(0.34, 0.5), parent = art })
+		end
+	end
+end
+
+local function trailArt(item: Catalog.Item)
+	return function(art: Frame)
+		local a = Color3.fromHex(item.colorA)
+		art.BackgroundColor3 = a:Lerp(PANEL_BG, 0.8)
+		local band, core, line = artId(Config.ShopArt.Trail.band), artId(Config.ShopArt.Trail.core), artId(Config.ShopArt.Trail.line)
+		if not (band and core and line) then
+			iconArt("gameplay_capture_loop")(art)
+			return
+		end
+		local z = art.ZIndex
+		image(art, band, a, z + 1)
+		local b = if item.colorB then Color3.fromHex(item.colorB) else a:Lerp(Color3.new(1, 1, 1), 0.45)
+		image(art, core, b, z + 2)
+		image(art, line, nil, z + 3)
+	end
+end
+
+local function effectArt(item: Catalog.Item)
+	return function(art: Frame)
+		art.BackgroundColor3 = Color3.fromHex(item.colorA):Lerp(PANEL_BG, 0.78)
+		local img = artId(Config.ShopArt.Effects[item.id])
+		if img then
+			image(art, img, nil, art.ZIndex + 1)
+		else
+			iconArt("economy_star")(art)
+		end
+	end
+end
+
+local function itemArt(item: Catalog.Item): (Frame) -> ()
+	if item.type == "trail" then
+		return trailArt(item)
+	elseif item.type == "effect" then
+		return effectArt(item)
+	end
+	return skinArt(item)
+end
+
+local function itemSub(item: Catalog.Item): string
+	if item.biome then
+		return S.subs.biome
+	elseif item.type == "effect" then
+		return S.subs.effect
+	elseif item.pattern ~= "solid" and item.colorB then
+		return S.subs.pattern
+	end
+	return S.subs.solid
+end
+
+local function makeCard(parent: Instance, spec: CardSpec, order: number): Card
+	local tier = spec.tier
+	local tierHex = tier and RARITY_HEX[tier]
+	local tierColor = if tierHex then Color3.fromHex(tierHex) else nil
+	local legendary = tier == "legendary"
 	local card = UiKit.frame({
-		Name = "Card" .. order,
-		Size = UDim2.fromScale(CARD_WIDTH, 1),
-		BackgroundColor3 = CARD_BG,
+		Name = "Card_" .. spec.key,
+		BackgroundColor3 = if tierColor then tierColor:Lerp(CARD_BG, if legendary then 0.8 else 0.9) else CARD_BG,
 		LayoutOrder = order,
 		parent = parent,
 	})
 	UiKit.corner(card, 12)
-	UiKit.stroke(card, INK, 3)
-	local swatch = UiKit.frame({
-		Name = "Swatch",
-		Position = UDim2.fromScale(0.02, 0.02),
-		Size = UDim2.fromScale(0.96, 0.44),
-		BackgroundColor3 = spec.colorA:Lerp(CARD_BG, 0.68),
+	UiKit.stroke(card, if legendary and tierColor then Color3.fromHex(LEGENDARY_EDGE) else INK, if legendary then 4 else 3)
+
+	local artTop = 0.04
+	if tier and tierColor then
+		local ribbon = UiKit.frame({
+			Name = "Tier",
+			Position = UDim2.fromScale(0.05, 0.03),
+			Size = UDim2.fromScale(0.9, 0.09),
+			BackgroundColor3 = if legendary then Color3.new(1, 1, 1) else tierColor, -- gradient supplies the gold
+			parent = card,
+		})
+		UiKit.corner(ribbon, 6)
+		UiKit.stroke(ribbon, INK, 2)
+		local text = UiKit.label({
+			Text = string.upper(S.rarity[tier] or tier),
+			Size = UDim2.fromScale(0.92, 0.78),
+			Position = UDim2.fromScale(0.04, 0.11),
+			TextColor3 = if tier == "rare" or tier == "exclusive" then Color3.new(1, 1, 1) else INK,
+			parent = ribbon,
+		})
+		text.ZIndex = ribbon.ZIndex + 2
+		if legendary then
+			local g = Instance.new("UIGradient")
+			g.Color = ColorSequence.new({
+				ColorSequenceKeypoint.new(0, Color3.fromHex(RARITY_HEX.legendary)),
+				ColorSequenceKeypoint.new(0.45, Color3.fromHex(RARITY_HEX.legendary)),
+				ColorSequenceKeypoint.new(0.5, Color3.fromHex("FFF6CC")),
+				ColorSequenceKeypoint.new(0.55, Color3.fromHex(RARITY_HEX.legendary)),
+				ColorSequenceKeypoint.new(1, Color3.fromHex(LEGENDARY_EDGE)),
+			})
+			g.Offset = Vector2.new(-1, 0)
+			g.Parent = ribbon
+			TweenService:Create(g, TweenInfo.new(LEGENDARY_SHINE, Enum.EasingStyle.Linear, Enum.EasingDirection.Out, -1, false, 0.8), { Offset = Vector2.new(1, 0) }):Play()
+		end
+		artTop = 0.15
+	end
+
+	local art = UiKit.frame({
+		Name = "Art",
+		Position = UDim2.fromScale(0.05, artTop),
+		Size = UDim2.fromScale(0.9, 0.6 - artTop),
+		BackgroundColor3 = CARD_BG,
+		ClipsDescendants = true,
 		parent = card,
 	})
-	UiKit.corner(swatch, 8)
-	if spec.colorB then
-		local g = Instance.new("UIGradient")
-		g.Color = ColorSequence.new(spec.colorA:Lerp(CARD_BG, 0.6), spec.colorB:Lerp(CARD_BG, 0.72))
-		g.Rotation = 45
-		g.Parent = swatch
-	end
-	UiKit.icon(spec.icon or "gameplay_cosmetics", {
-		Name = "ProductIcon", AnchorPoint = Vector2.new(0.5, 0.5),
-		Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromScale(0.72, 0.86), parent = swatch,
+	UiKit.corner(art, 8)
+	UiKit.stroke(art, INK, 2)
+	spec.art(art)
+
+	local badge = UiKit.label({
+		Name = "Badge",
+		Text = "",
+		AnchorPoint = Vector2.new(1, 0),
+		Position = UDim2.fromScale(0.97, artTop - 0.02),
+		Size = UDim2.fromScale(0.36, 0.1),
+		BackgroundColor3 = theme.Pink,
+		BackgroundTransparency = 0,
+		TextColor3 = INK,
+		Visible = false,
+		parent = card,
 	})
-	if spec.badge then
-		local badge = UiKit.frame({
-			Name = "Badge",
-			Position = UDim2.fromScale(0.04, 0.06),
-			Size = UDim2.fromScale(0.36, 0.26),
-			BackgroundColor3 = theme.Pink,
-			parent = swatch,
-		})
-		UiKit.corner(badge, 6)
-		UiKit.label({
-			Text = spec.badge,
-			Size = UDim2.fromScale(0.9, 0.8),
-			Position = UDim2.fromScale(0.05, 0.1),
-			parent = badge,
-		})
+	badge.ZIndex = art.ZIndex + 5
+	UiKit.corner(badge, 6)
+	UiKit.stroke(badge, INK, 2)
+
+	plainLabel(card, spec.name, UDim2.fromScale(0.05, 0.62), UDim2.fromScale(0.9, 0.1), Enum.TextXAlignment.Center)
+	if spec.sub and spec.sub ~= "" then
+		local sub = plainLabel(card, spec.sub, UDim2.fromScale(0.05, 0.72), UDim2.fromScale(0.9, 0.07), Enum.TextXAlignment.Center)
+		sub.TextColor3 = MUTED
 	end
-	plainLabel(card, spec.name, UDim2.fromScale(0.06, 0.48), UDim2.fromScale(0.88, 0.14), Enum.TextXAlignment.Center)
-	if spec.pulse then
-		pulseFor(card, PULSE_SECONDS)
-	end
-	local sub = plainLabel(card, spec.sub, UDim2.fromScale(0.06, 0.62), UDim2.fromScale(0.88, 0.11), Enum.TextXAlignment.Center)
-	sub.TextColor3 = MUTED
-	local btn: TextButton = nil :: any
-	btn = button({
+	local self: Card = { frame = card, button = nil :: any, badge = badge, spec = spec }
+	self.button = button({
 		text = spec.action,
 		color = spec.actionColor,
-		size = UDim2.fromScale(0.88, 0.2),
-		position = UDim2.fromScale(0.06, 0.76),
+		size = UDim2.fromScale(0.9, 0.15),
+		position = UDim2.fromScale(0.05, 0.81),
 		parent = card,
 		onClick = function()
-			spec.onAction(btn)
+			self.spec.onAction(self.button)
 		end,
 	})
-	styleButton(btn, spec.action, spec.actionColor, spec.dim)
+	return self
+end
+
+local function updateCard(card: Card, spec: CardSpec)
+	card.spec = spec
+	styleButton(card.button, spec.action, spec.actionColor, spec.dim)
+	card.badge.Text = spec.badge or ""
+	card.badge.Visible = spec.badge ~= nil
+	if spec.pulse then
+		pulseFor(card.frame, PULSE_SECONDS)
+	end
 end
 
 local function specKey(parts: { string }): string
@@ -709,14 +890,14 @@ local function specKey(parts: { string }): string
 end
 
 local function buildShop(): PanelEntry
-	local panel = UiKit.panel({ title = S.shopTitle, size = UDim2.fromScale(0.66, 0.82) })
+	local panel = UiKit.panel({ title = S.shopTitle, size = UDim2.fromScale(0.7, 0.86) })
 	local body = panel.body
 
 	local tabBar = UiKit.frame({
 		Name = "Tabs",
 		BackgroundTransparency = 1,
 		Position = UDim2.fromScale(0.02, 0.015),
-		Size = UDim2.fromScale(0.96, 0.095),
+		Size = UDim2.fromScale(0.96, 0.085),
 		parent = body,
 	})
 	UiKit.list(tabBar, { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new(0.008, 0) })
@@ -725,29 +906,57 @@ local function buildShop(): PanelEntry
 	scroller.Name = "Cards"
 	scroller.BackgroundTransparency = 1
 	scroller.BorderSizePixel = 0
-	scroller.Position = UDim2.fromScale(0.02, 0.125)
-	scroller.Size = UDim2.fromScale(0.96, 0.86)
+	scroller.Position = UDim2.fromScale(0.02, 0.115)
+	scroller.Size = UDim2.fromScale(0.96, 0.87)
+	-- Canvas height is set from the layout below; AutomaticCanvasSize lagged a frame behind rebuilds.
 	scroller.CanvasSize = UDim2.new()
-	scroller.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	scroller.AutomaticCanvasSize = Enum.AutomaticSize.None
 	scroller.ScrollingDirection = Enum.ScrollingDirection.Y
-	scroller.ScrollBarThickness = 6
+	scroller.VerticalScrollBarInset = Enum.ScrollBarInset.ScrollBar
+	scroller.ScrollBarThickness = SCROLLBAR_PX
+	scroller.ScrollBarImageColor3 = INK
+	scroller.ElasticBehavior = Enum.ElasticBehavior.WhenScrollable
 	scroller.Parent = body
-	-- Offset padding: a scale padding inside an AutomaticCanvasSize canvas feeds back into the canvas height.
-	local rowsLayout = UiKit.list(scroller, { Padding = UDim.new(0, 8) })
+	local rowsLayout = UiKit.list(scroller, { Padding = UDim.new(0, SECTION_GAP_PX) })
 	rowsLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+	rowsLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+		scroller.CanvasSize = UDim2.fromOffset(0, rowsLayout.AbsoluteContentSize.Y + SECTION_GAP_PX)
+	end)
 
 	local tab = "featured"
 	local ownedOnly = false
-	local lastSig = ""
+	local lastLayout = ""
 	local busy = false
 	local passPulse = false
 	local tabButtons: { [string]: TextButton } = {}
 	local toggleButton: TextButton
 	local refresh: () -> ()
+	local cards: { [string]: Card } = {}
+	local grids: { { frame: Frame, layout: UIGridLayout, count: number } } = {}
+
+	-- Pixel cell sizes from the visible width: 3 columns on phones, 4 on wide screens.
+	local function layoutGrids()
+		local w = scroller.AbsoluteWindowSize.X
+		if w <= 0 then
+			return
+		end
+		local cols = math.max(3, math.floor((w + CARD_GAP_PX) / (MIN_CARD_PX + CARD_GAP_PX)))
+		local cellW = math.floor((w - CARD_GAP_PX * (cols - 1)) / cols)
+		local cellH = math.floor(cellW * CARD_HEIGHT_PER_WIDTH)
+		for _, g in grids do
+			g.layout.CellSize = UDim2.fromOffset(cellW, cellH)
+			local rows = math.ceil(g.count / cols)
+			g.frame.Size = UDim2.new(1, 0, 0, rows * cellH + math.max(0, rows - 1) * CARD_GAP_PX)
+		end
+	end
+	scroller:GetPropertyChangedSignal("AbsoluteWindowSize"):Connect(layoutGrids)
 
 	local function setTab(newTab: string)
+		if newTab ~= tab then
+			scroller.CanvasPosition = Vector2.zero
+		end
 		tab = newTab
-		lastSig = ""
+		lastLayout = ""
 		refresh()
 	end
 	shopSetTab = setTab
@@ -787,7 +996,8 @@ local function buildShop(): PanelEntry
 			if tab == "gems" or tab == "passes" then
 				tab = "skins"
 			end
-			lastSig = ""
+			scroller.CanvasPosition = Vector2.zero
+			lastLayout = ""
 			refresh()
 		end,
 	})
@@ -818,18 +1028,13 @@ local function buildShop(): PanelEntry
 	local function itemSpec(item: Catalog.Item, p: Types.Profile, featuredSet: { [string]: boolean }): CardSpec
 		local owned = ClientState.owns(item.id)
 		local featured = featuredSet[item.id] == true
-		local rarityColor = Color3.fromHex(RARITY_HEX[item.rarity] or RARITY_HEX.common)
 		local spec: CardSpec = {
-			key = "",
+			key = item.id,
 			name = item.name,
-			icon = if item.type == "trail" then "gameplay_capture_loop" elseif item.type == "effect" then "economy_star" else "gameplay_cosmetics",
-			sub = S.rarity[item.rarity] or item.rarity,
-			subColor = rarityColor,
-			colorA = Color3.fromHex(item.colorA),
-			colorB = if item.colorB then Color3.fromHex(item.colorB) else nil,
-			big = nil,
+			tier = item.rarity,
+			sub = itemSub(item),
+			art = itemArt(item),
 			badge = nil,
-			borderColor = rarityColor,
 			action = "",
 			actionColor = theme.Yellow,
 			dim = true,
@@ -892,7 +1097,7 @@ local function buildShop(): PanelEntry
 				end
 			end
 		else
-			local price = Formulas.itemPrice(item.rarity, featured)
+			local price = Formulas.itemPrice(Catalog.priceTier(item), featured)
 			if price == nil then
 				spec.action = S.notForSale
 			else
@@ -938,30 +1143,21 @@ local function buildShop(): PanelEntry
 				end
 			end
 		end
-		spec.key = specKey({
-			item.id,
-			spec.action,
-			if spec.dim then "d" else "a",
-			spec.badge or "",
-		})
 		return spec
 	end
 
-	local function productSpec(key: string, name: string, sub: string, big: string, colorA: Color3, colorB: Color3?): CardSpec
+	local function productSpec(key: string, name: string, sub: string, colorA: Color3): CardSpec
 		local robux = (ROBUX.products :: any)[key]
-		local action = string.format(S.priceRobux, robux)
+		local icon = if key == "boost15" then "economy_coin_stack" elseif key == "starterPack" then "economy_reward_chest" else "economy_gem_cluster"
 		return {
-			key = specKey({ key, action }),
+			key = key,
 			name = name,
-			icon = if key == "boost15" then "economy_coin_stack" elseif key == "starterPack" then "economy_reward_chest" else "economy_gem_cluster",
 			sub = sub,
-			subColor = INK,
-			colorA = colorA,
-			colorB = colorB,
-			big = big,
-			badge = nil,
-			borderColor = colorA,
-			action = action,
+			art = function(art: Frame)
+				art.BackgroundColor3 = colorA:Lerp(CARD_BG, 0.6)
+				iconArt(icon)(art)
+			end,
+			action = string.format(S.priceRobux, robux),
 			actionColor = theme.Yellow,
 			dim = false,
 			onAction = function()
@@ -979,16 +1175,13 @@ local function buildShop(): PanelEntry
 			desc = string.format(desc, Config.Passes.doubleSpeed.SpeedMultiplier)
 		end
 		return {
-			key = specKey({ key, if owned then "o" else "b" }),
+			key = "pass_" .. key,
 			name = S.passNames[key],
-			icon = PASS_ICONS[key],
 			sub = desc,
-			subColor = INK,
-			colorA = colorA,
-			colorB = CARD_BG,
-			big = nil,
-			badge = nil,
-			borderColor = colorA,
+			art = function(art: Frame)
+				art.BackgroundColor3 = colorA:Lerp(CARD_BG, 0.55)
+				iconArt(PASS_ICONS[key])(art)
+			end,
 			action = if owned then S.owned else string.format(S.priceRobux, robux),
 			actionColor = theme.Yellow,
 			dim = owned,
@@ -1001,57 +1194,95 @@ local function buildShop(): PanelEntry
 		}
 	end
 
-	local function buildSpecs(p: Types.Profile): { CardSpec }
-		local specs: { CardSpec } = {}
+	local function buildSections(p: Types.Profile): { Section }
 		if tab == "gems" then
+			local specs: { CardSpec } = {}
 			for _, key in GEM_PRODUCTS do
-				local gems = (Config.Products :: any)[key].Gems
-				local text = UiKit.formatNumber(gems)
-				table.insert(specs, productSpec(key, string.format(S.gemsName, text), "", text, theme.Gem, CARD_BG))
+				local text = UiKit.formatNumber((Config.Products :: any)[key].Gems)
+				table.insert(specs, productSpec(key, string.format(S.gemsName, text), "", theme.Gem))
 			end
 			local minutes = round(Config.Products.boost15.Seconds / 60)
-			table.insert(
-				specs,
-				productSpec("boost15", S.boostName, string.format(S.boostSub, minutes), Config.Income.BoostMultiplier .. "x", theme.Pink, theme.Yellow)
-			)
+			table.insert(specs, productSpec("boost15", S.boostName, string.format(S.boostSub, minutes), theme.Pink))
 			if not p.starterPackBought then
 				local gems = UiKit.formatNumber(Config.Products.starterPack.Gems)
-				table.insert(
-					specs,
-					productSpec("starterPack", S.starterName, string.format(S.starterSub, gems), gems, theme.Yellow, Color3.fromHex(Config.Colors.Players[2]))
-				)
+				table.insert(specs, productSpec("starterPack", S.starterName, string.format(S.starterSub, gems), theme.Yellow))
 			end
+			return { { tier = nil, specs = specs } }
 		elseif tab == "passes" then
+			local specs: { CardSpec } = {}
 			for _, key in PASS_ORDER do
 				table.insert(specs, passSpec(key))
 			end
-		else
-			local featuredSet: { [string]: boolean } = {}
-			for _, id in ClientState.session.featured do
-				featuredSet[id] = true
-			end
-			local items: { Catalog.Item } = {}
-			if tab == "featured" then
-				for _, id in ClientState.session.featured do
-					local item = Catalog.byId(id)
-					if item then
-						table.insert(items, item)
-					end
-				end
-			else
-				items = Catalog.ofType(TAB_TYPES[tab])
-			end
+			return { { tier = nil, specs = specs } }
+		end
+		local featuredSet: { [string]: boolean } = {}
+		for _, id in ClientState.session.featured do
+			featuredSet[id] = true
+		end
+		if tab == "featured" then
+			local specs: { CardSpec } = {}
 			-- VIP is the top slot of Featured until owned.
-			if tab == "featured" and not ownedOnly and ClientState.session.passes.vip ~= true then
+			if not ownedOnly and ClientState.session.passes.vip ~= true then
 				table.insert(specs, passSpec("vip"))
 			end
-			for _, item in items do
-				if not ownedOnly or ClientState.owns(item.id) then
+			for _, id in ClientState.session.featured do
+				local item = Catalog.byId(id)
+				if item and (not ownedOnly or ClientState.owns(id)) then
 					table.insert(specs, itemSpec(item, p, featuredSet))
 				end
 			end
+			return { { tier = nil, specs = specs } }
 		end
-		return specs
+		-- Item tabs: one section per tier, best first, so the tier is obvious at a glance.
+		local byTier: { [string]: { CardSpec } } = {}
+		for _, item in Catalog.ofType(TAB_TYPES[tab]) do
+			if not ownedOnly or ClientState.owns(item.id) then
+				local list = byTier[item.rarity]
+				if not list then
+					list = {}
+					byTier[item.rarity] = list
+				end
+				table.insert(list, itemSpec(item, p, featuredSet))
+			end
+		end
+		local sections: { Section } = {}
+		for _, t in TIER_ORDER do
+			if byTier[t] then
+				table.insert(sections, { tier = t, specs = byTier[t] })
+			end
+		end
+		return sections
+	end
+
+	local function sectionHeader(tier: string, count: number, order: number)
+		local hex = RARITY_HEX[tier] or RARITY_HEX.common
+		local head = UiKit.frame({
+			Name = "Header_" .. tier,
+			BackgroundTransparency = 1,
+			Size = UDim2.new(1, 0, 0, HEADER_PX),
+			LayoutOrder = order,
+			parent = scroller,
+		})
+		local pill = UiKit.frame({
+			Name = "Pill",
+			Size = UDim2.new(0, HEADER_PX * 5.5, 1, 0),
+			BackgroundColor3 = Color3.fromHex(hex),
+			parent = head,
+		})
+		UiKit.corner(pill, 8)
+		UiKit.stroke(pill, INK, 2)
+		UiKit.label({
+			Text = string.format(S.tierHeader, string.upper(S.rarity[tier] or tier), count),
+			Size = UDim2.fromScale(0.9, 0.72),
+			Position = UDim2.fromScale(0.05, 0.14),
+			TextColor3 = if tier == "rare" or tier == "exclusive" then Color3.new(1, 1, 1) else INK,
+			parent = pill,
+		})
+		local hint = if tab == "effects" then nil else S.tierHints[tier] -- effects: only the free Sparkle is Common
+		if hint then
+			local l = plainLabel(head, hint, UDim2.new(0, HEADER_PX * 5.5 + 10, 0.2, 0), UDim2.new(1, -(HEADER_PX * 5.5 + 10), 0.6, 0))
+			l.TextColor3 = MUTED
+		end
 	end
 
 	refresh = function()
@@ -1066,32 +1297,45 @@ local function buildShop(): PanelEntry
 		toggleButton.BackgroundColor3 = if ownedOnly then theme.Success else CARD_BG
 		toggleButton.TextColor3 = if ownedOnly then theme.UiDark else INK
 
-		local specs = buildSpecs(p)
+		local sections = buildSections(p)
 		passPulse = false
-		local keys = { tab, if ownedOnly then "own" else "all" }
-		local showNeon = tab == "skins" and neonOffered()
-		if showNeon then
-			table.insert(keys, "neon")
+		local showNeon = tab == "skins" and not ownedOnly and neonOffered()
+		local keys = { tab, if ownedOnly then "own" else "all", if showNeon then "neon" else "" }
+		for _, sec in sections do
+			table.insert(keys, "#" .. (sec.tier or ""))
+			for _, spec in sec.specs do
+				table.insert(keys, spec.key)
+			end
 		end
-		for _, spec in specs do
-			table.insert(keys, spec.key)
-		end
-		local sig = specKey(keys)
-		if sig == lastSig then
+		local layout = specKey(keys)
+		if layout == lastLayout then
+			-- Same cards: update prices, equip state and badges in place.
+			for _, sec in sections do
+				for _, spec in sec.specs do
+					local card = cards[spec.key]
+					if card then
+						updateCard(card, spec)
+					end
+				end
+			end
 			return
 		end
-		lastSig = sig
-		local canvasPos = scroller.CanvasPosition
+		lastLayout = layout
+		local keep = scroller.CanvasPosition
 		for _, child in scroller:GetChildren() do
 			if child:IsA("GuiObject") then
 				child:Destroy()
 			end
 		end
+		table.clear(cards)
+		table.clear(grids)
+		local order = 0
 		if showNeon then
+			order += 1
 			local banner = button({
 				text = string.format(S.neonBanner, Config.Passes.neonPack.Robux),
 				color = theme.Pink,
-				size = UDim2.new(0.98, 0, 0, 44),
+				size = UDim2.new(1, 0, 0, BANNER_PX),
 				parent = scroller,
 				onClick = function()
 					promptPass("neonPack")
@@ -1099,42 +1343,53 @@ local function buildShop(): PanelEntry
 			})
 			banner.Name = "NeonBanner"
 			banner.TextColor3 = INK
-			banner.LayoutOrder = 0
+			banner.LayoutOrder = order
 		end
-		if #specs == 0 then
+		local total = 0
+		for _, sec in sections do
+			total += #sec.specs
+		end
+		if total == 0 then
 			local empty = UiKit.label({
 				Name = "Empty",
 				Text = S.emptyTab,
-				Size = UDim2.fromScale(0.8, 0.12),
+				Size = UDim2.new(0.8, 0, 0, BANNER_PX),
 				TextTransparency = 0.3,
+				LayoutOrder = order + 1,
 				parent = scroller,
 			})
-			empty.LayoutOrder = 1
+			empty.TextScaled = true
 			return
 		end
-		local rowCount = math.ceil(#specs / CARDS_PER_ROW)
-		for r = 1, rowCount do
-			local row = UiKit.frame({
-				Name = "Row" .. r,
+		for _, sec in sections do
+			if #sec.specs == 0 then
+				continue
+			end
+			if sec.tier then
+				order += 1
+				sectionHeader(sec.tier, #sec.specs, order)
+			end
+			order += 1
+			local gridFrame = UiKit.frame({
+				Name = "Grid_" .. (sec.tier or tab),
 				BackgroundTransparency = 1,
-				Size = UDim2.fromScale(1, 0),
-				LayoutOrder = r,
+				Size = UDim2.new(1, 0, 0, 0),
+				LayoutOrder = order,
 				parent = scroller,
 			})
-			-- Default FitWithinMaxSize would clamp the zero-height row to 0x0; size from the canvas width instead.
-			local rowAspect = UiKit.aspect(row, 1 / (CARD_WIDTH * CARD_HEIGHT_PER_WIDTH))
-			rowAspect.AspectType = Enum.AspectType.ScaleWithParentSize
-			rowAspect.DominantAxis = Enum.DominantAxis.Width
-			UiKit.list(row, { FillDirection = Enum.FillDirection.Horizontal, Padding = UDim.new((1 - CARD_WIDTH * CARDS_PER_ROW) / (CARDS_PER_ROW - 1), 0) })
-			for c = 1, CARDS_PER_ROW do
-				local spec = specs[(r - 1) * CARDS_PER_ROW + c]
-				if spec then
-					makeCard(row, spec, c)
-				end
+			local layoutObj = UiKit.grid(gridFrame, { CellPadding = UDim2.fromOffset(CARD_GAP_PX, CARD_GAP_PX) })
+			table.insert(grids, { frame = gridFrame, layout = layoutObj, count = #sec.specs })
+			for i, spec in sec.specs do
+				local card = makeCard(gridFrame, spec, i)
+				cards[spec.key] = card
+				updateCard(card, spec)
 			end
 		end
+		layoutGrids()
+		-- Same tab rebuilt (an item bought under Owned, the starter pack gone): keep the place.
 		task.defer(function()
-			scroller.CanvasPosition = canvasPos
+			local maxY = math.max(0, scroller.AbsoluteCanvasSize.Y - scroller.AbsoluteWindowSize.Y)
+			scroller.CanvasPosition = Vector2.new(0, math.min(keep.Y, maxY))
 		end)
 	end
 

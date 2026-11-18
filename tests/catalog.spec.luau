@@ -22,9 +22,10 @@ for _, item in Catalog.items do
 	end
 end
 local expect = {
-	["skin:common"] = 12, ["skin:rare"] = 9, ["skin:epic"] = 7, ["skin:legendary"] = 3, ["skin:crown"] = 4,
-	["trail:common"] = 2, ["trail:rare"] = 3, ["trail:epic"] = 3, ["trail:legendary"] = 1,
-	["effect:rare"] = 2, ["effect:epic"] = 1, ["effect:legendary"] = 1,
+	-- owner 2026-11-17: colours common, patterns rare, animated (effects) and 3D (biomes) legendary
+	["skin:common"] = 8, ["skin:rare"] = 23, ["skin:legendary"] = 1, ["skin:crown"] = 4,
+	["trail:common"] = 2, ["trail:rare"] = 7,
+	["effect:legendary"] = 4,
 	["skin:exclusive"] = 10, ["trail:exclusive"] = 3, -- skin +streak_month (T-RET-02, departs from GDD G3.6)
 }
 for k, v in expect do
@@ -35,7 +36,16 @@ for k, v in counts do
 end
 eq(#Catalog.ofType("effect"), 5, "effects incl default") -- sparkle + 4
 eq(#Catalog.ofType("trail"), 8 + 1 + 2, "trails")
-eq(#Catalog.ofType("skin"), 1 + 33 + 10, "skins")
+eq(#Catalog.ofType("skin"), 1 + 34 + 10, "skins")
+for _, item in Catalog.items do
+	if item.default ~= true and item.source == nil and item.crownsRequired == nil then
+		local want = if item.biome or item.type == "effect" then "legendary" elseif item.colorB == nil then "common" else "rare"
+		eq(item.rarity, want, "tier " .. item.id)
+	end
+end
+local woodland = Catalog.byId("biome_woodland") :: Catalog.Item
+eq(Catalog.priceTier(woodland), "biome", "woodland price tier")
+eq(Catalog.isPurchasable(woodland), true, "woodland for sale")
 eq((Catalog.byId("default") :: any).default, true, "default flag")
 eq(Catalog.byId("nope"), nil, "missing")
 eq((Catalog.byId("sparkle") :: any).type, "effect", "sparkle")
@@ -56,7 +66,7 @@ eq((Catalog.byId("starter_spark") :: any).source, "starterPack", "starter src")
 
 for _, item in Catalog.items do
 	if item.default ~= true then
-		local price = Formulas.itemPrice(item.rarity, false)
+		local price = Formulas.itemPrice(Catalog.priceTier(item), false)
 		if item.rarity == "crown" or item.rarity == "exclusive" then
 			eq(price, nil, "no price " .. item.id)
 		else

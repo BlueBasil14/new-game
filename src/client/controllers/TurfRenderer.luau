@@ -17,8 +17,6 @@ local ClientState = require(script.Parent.Parent.ClientState)
 
 local TurfRenderer = {}
 
--- pattern name -> image asset id; empty until pattern textures exist.
-TurfRenderer.patternImages = {} :: { [string]: number }
 
 local CHUNK = 16
 local BUDGET = 6
@@ -219,7 +217,7 @@ local function styleOf(owner: number): Style
 		pattern = pattern,
 		trail = trail,
 		edge = edge,
-		image = TurfRenderer.patternImages[pattern],
+		image = if (Config.ShopArt.Patterns[pattern] or 0) ~= 0 then Config.ShopArt.Patterns[pattern] else nil,
 	}
 	styles[owner] = s
 	return s
