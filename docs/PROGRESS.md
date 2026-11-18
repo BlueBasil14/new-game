@@ -294,3 +294,11 @@ Owner direction in chat: captured land itself becomes the cosmetic; 3D biome ski
 - **Seen in Studio** (cloud place, temporary gallery, removed after): all 11 load, scale to brief sizes (round tree 9.7, pine 12.1, tall 12.8, log 5.0 studs), palette colours apply, they sit on the grass. Picture: `assets/biomes/woodland/renders/_studio_gallery.jpg`. Rocks take a slight blue tint from the sky light.
 - Not checked: the full grow-in with real meshes in a playtest (BiomeService + BiomeRenderer together), phone performance, the shop item (still blocked on the other session's Catalog work).
 - Checks: 49 compile, specs pass, xref 0, headless 17/17.
+
+## Lead session, 2026-11-17: Woodland playtest with the real props
+Built a separate test place in the scratchpad (not `build/TurfLoop.rbxlx`, which holds another session's uncommitted changes), opened it in a second Studio window, solo play with bots, `workspace.BiomeProps.Debug:Fire("biome_woodland")`.
+- **Seen in Studio:** the server loaded all 11 real props from the owner's account at brief size. Scenery grew across the bots' territory (123 props after 4 s, 337 as the bots spread): trees only deep inside land, bushes/logs/rocks nearer edges, pebbles on thin strips and the player's start square. Everything sits on the floor. Switching the biome off cleared it; switching it back on regrew the same props in the same places. Picture: `assets/biomes/woodland/renders/_playtest.jpg`.
+- **Grow-in measured** (round tree, part heights every 0.1 s): trunk at 0.3 s, lower leaves 0.45 s, middle leaves 0.65 s, top highlights 0.88 s, each overshooting ~10% then settling; done in ~1.3 s.
+- No script errors (only older unrelated asset warnings).
+- Notes: the debug hook only adds scenery; the ground keeps the runner's own colour because the Woodland turf colour comes with the shop item (still blocked). Model pivots stay at the origin because the renderer moves parts, not models (harmless; use bounding boxes when locating props).
+- Not checked: phone frame rate with ~340+ props, low-detail mode, the shop item.
