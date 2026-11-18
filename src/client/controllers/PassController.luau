@@ -48,7 +48,10 @@ local S = {
 	unlockNamed = "GET %s\nR$ %d",
 	plusJump = "+10 TIERS R$ %d\n%s now!",
 	odds = "Sky Chest odds: ",
-	firstTitle = "Tier 1 unlocked! %s is waiting",
+	firstTitle = "%s is waiting!",
+	waitingWords = "%d Legendary · %d Rare · %s gems",
+	plusOne = "+10 TIERS  R$ %d",
+	jumpTag = "%s now!",
 	waitingTile = "WAITING!",
 	waitingShort = "waiting for you!",
 	alsoWaiting = "Waiting: %d Legendary, %d Rare, %d gems",
@@ -496,32 +499,30 @@ local function build()
 	local buy = UiKit.frame({ Name = "BuyZone", BackgroundTransparency = 1, Position = UDim2.fromScale(0.838, 0.22), Size = UDim2.fromScale(0.15, 0.76), parent = surface })
 	local unlockBtn = UiKit.button({ text = "", color = GREEN, size = UDim2.fromScale(1, 0.17), position = UDim2.fromScale(0, 0.53), parent = buy })
 	local hookItem = Catalog.byId(BattlePass.tiers[1].prem[1].id :: string) :: Catalog.Item
-	local thumb = UiKit.frame({ Name = "Thumb", Position = UDim2.fromScale(0.04, 0.12), Size = UDim2.fromScale(0.3, 0.76), parent = unlockBtn })
+	local thumb = UiKit.frame({ Name = "Thumb", Position = UDim2.fromScale(0.03, 0.14), Size = UDim2.fromScale(0.22, 0.72), parent = unlockBtn })
 	UiKit.corner(thumb, 8)
 	UiKit.stroke(thumb, INK, 2)
 	thumb.ZIndex = unlockBtn.ZIndex + 2
 	skinPreview(thumb, hookItem)
-	local unlockL = label(unlockBtn, "", { Size = UDim2.fromScale(0.62, 0.84), Position = UDim2.fromScale(0.36, 0.08), TextColor3 = WHITE })
+	local unlockL = label(unlockBtn, "", { Size = UDim2.fromScale(0.72, 0.84), Position = UDim2.fromScale(0.27, 0.08), TextColor3 = WHITE })
 	outlined(unlockL, INK, 2)
 	unlockL.ZIndex = unlockBtn.ZIndex + 6
 	shine(unlockBtn, 1.8)
 	local unlockPulse = bob(unlockBtn, 0.06, 0.55)
 	local ownerCrown = UiKit.icon("economy_crown", { AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.1, 0.1), Size = UDim2.fromScale(0.36, 0.6), Rotation = -18, Visible = false, parent = unlockBtn })
 	ownerCrown.ZIndex = unlockBtn.ZIndex + 7
-	local valuePill = UiKit.frame({ Name = "Value", Position = UDim2.fromScale(0, 0.715), Size = UDim2.fromScale(1, 0.15), BackgroundColor3 = WHITE, parent = buy })
+	local valuePill = UiKit.frame({ Name = "Value", Position = UDim2.fromScale(0, 0.71), Size = UDim2.fromScale(1, 0.14), BackgroundColor3 = WHITE, parent = buy })
 	UiKit.corner(valuePill, 10)
 	UiKit.stroke(valuePill, GOLD_DEEP, 2)
-	local valueRow = UiKit.frame({ BackgroundTransparency = 1, Position = UDim2.fromScale(0.03, 0.04), Size = UDim2.fromScale(0.94, 0.52), parent = valuePill })
-	UiKit.list(valueRow, { FillDirection = Enum.FillDirection.Horizontal, HorizontalAlignment = Enum.HorizontalAlignment.Center, VerticalAlignment = Enum.VerticalAlignment.Center, Padding = UDim.new(0.02, 0) })
-	local valueNums: { TextLabel } = {}
-	for k, icon in { "gameplay_cosmetics", "economy_star", "economy_gem_cluster" } do
-		local ic = UiKit.icon(icon, { Size = UDim2.fromScale(0.13, 1), LayoutOrder = k * 2 - 1, parent = valueRow })
-		UiKit.aspect(ic, 1)
-		local n = label(valueRow, "0", { Size = UDim2.fromScale(if k == 3 then 0.24 else 0.12, 1), LayoutOrder = k * 2, TextColor3 = INK, TextXAlignment = Enum.TextXAlignment.Left })
-		valueNums[k] = n
-	end
+	local valueRow = label(valuePill, "", { Position = UDim2.fromScale(0.04, 0.06), Size = UDim2.fromScale(0.92, 0.5), TextColor3 = INK })
 	local valueL = label(valuePill, "", { Position = UDim2.fromScale(0.04, 0.56), Size = UDim2.fromScale(0.92, 0.38), TextColor3 = GOLD_DEEP })
 	local plusBtn = UiKit.button({ text = "", color = GOLD, size = UDim2.fromScale(1, 0.12), position = UDim2.fromScale(0, 0.88), parent = buy })
+	local jumpTag = UiKit.frame({ Name = "JumpTag", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0), Size = UDim2.fromScale(0.8, 0.34), BackgroundColor3 = theme.Pink, Visible = false, parent = plusBtn })
+	UiKit.corner(jumpTag, 6)
+	UiKit.stroke(jumpTag, INK, 2)
+	jumpTag.ZIndex = plusBtn.ZIndex + 4
+	local jumpL = label(jumpTag, "", { Size = UDim2.fromScale(0.92, 0.8), Position = UDim2.fromScale(0.04, 0.1), TextColor3 = WHITE })
+	jumpL.ZIndex = jumpTag.ZIndex + 1
 	local tierBtn = UiKit.button({ text = "", color = Color3.fromHex("C9B7FF"), size = UDim2.fromScale(1, 0.12), position = UDim2.fromScale(0, 0.88), parent = buy })
 	tierBtn.Visible = false
 
@@ -678,9 +679,9 @@ local function build()
 			local scrim = UiKit.frame({ Name = "Locked", Size = UDim2.fromScale(1, 1), BackgroundColor3 = INK, BackgroundTransparency = 0.8, parent = f })
 			UiKit.corner(scrim, 14)
 			scrim.ZIndex = f.ZIndex + 8
-			local l = UiKit.icon("gameplay_lock", { AnchorPoint = Vector2.new(1, 1), Position = UDim2.new(1, 6, 1, 6), Size = UDim2.fromOffset(42, 42), parent = scrim })
+			local l = UiKit.icon("gameplay_lock", { AnchorPoint = Vector2.new(1, 0), Position = UDim2.new(1, -3, 0, 3), Size = UDim2.fromOffset(34, 34), parent = scrim })
 			l.ZIndex = scrim.ZIndex + 2
-			local waiting = UiKit.frame({ Name = "Waiting", AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.5), Size = UDim2.fromOffset(TILE - 12, 26), BackgroundColor3 = GOLD, Rotation = -8, Visible = false, parent = scrim })
+			local waiting = UiKit.frame({ Name = "Waiting", AnchorPoint = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, -10), Size = UDim2.fromOffset(TILE - 30, 22), BackgroundColor3 = GOLD, Visible = false, parent = scrim })
 			UiKit.corner(waiting, 8)
 			UiKit.stroke(waiting, INK, 2)
 			waiting.ZIndex = scrim.ZIndex + 3
@@ -983,6 +984,8 @@ local function build()
 				if w and w:IsA("GuiObject") then
 					w.Visible = lockedHere and reached
 				end
+				-- reached-but-locked tiles read brighter than tiers not reached yet
+				(t.lock :: Frame).BackgroundTransparency = if reached then 0.92 else 0.78
 			end
 			if t.lock then
 				(t.lock :: GuiObject).Visible = not st.premium
@@ -1005,16 +1008,17 @@ local function build()
 			ownerCrown.Visible = true
 			valuePill.Visible = false
 			-- owners: a fair +10 (not Premium+ again) and the single tier, filling the space under the badge
-			plusBtn.Text = string.format(S.plus, CFG.Robux.tiers10)
+			plusBtn.Text = string.format(S.plusOne, CFG.Robux.tiers10)
 			plusBtn.Visible = tier < CFG.Tiers
 			plusBtn.Position = UDim2.fromScale(0, 0.72)
+			jumpTag.Visible = false
 			tierBtn.Text = string.format(S.tierSkip, CFG.Robux.tier)
 			tierBtn.Visible = tier < CFG.Tiers
 		else
 			local secsLeft = math.max(0, (sp.endsAt or 0) - ClientState.serverNow())
 			unlockL.Text = if plusHidden then string.format(S.unlockLate, CFG.Robux.premium, secsLeft // 3600) else string.format(S.unlockNamed, string.upper(hookItem.name), CFG.Robux.premium)
-			unlockL.Size = UDim2.fromScale(0.62, 0.84)
-			unlockL.Position = UDim2.fromScale(0.36, 0.08)
+			unlockL.Size = UDim2.fromScale(0.72, 0.84)
+			unlockL.Position = UDim2.fromScale(0.27, 0.08)
 			thumb.Visible = true
 			tierBtn.Visible = false
 			unlockBtn.BackgroundColor3 = GREEN
@@ -1027,9 +1031,7 @@ local function build()
 			end)
 			local any = got.legendary + got.rare + got.gems > 0
 			valueRow.Visible = any
-			valueNums[1].Text = tostring(got.legendary)
-			valueNums[2].Text = tostring(got.rare)
-			valueNums[3].Text = UiKit.formatNumber(got.gems)
+			valueRow.Text = string.format(S.waitingWords, got.legendary, got.rare, UiKit.formatNumber(got.gems))
 			valueL.Text = if any then S.waitingShort else S.worth
 			valueL.Position = if any then UDim2.fromScale(0.04, 0.56) else UDim2.fromScale(0.04, 0.2)
 			valueL.Size = if any then UDim2.fromScale(0.92, 0.38) else UDim2.fromScale(0.92, 0.6)
@@ -1041,8 +1043,12 @@ local function build()
 					break
 				end
 			end
-			plusBtn.Text = if jump then string.format(S.plusJump, CFG.Robux.plus, jump.name) else string.format(S.plus, CFG.Robux.plus)
+			plusBtn.Text = string.format(S.plusOne, CFG.Robux.plus)
 			plusBtn.Visible = not plusHidden
+			jumpTag.Visible = jump ~= nil
+			if jump then
+				jumpL.Text = string.format(S.jumpTag, jump.name)
+			end
 		end
 
 		-- missions
@@ -1224,7 +1230,7 @@ end
 
 function PassController.passedPopup(item: Catalog.Item, title: string?)
 	popup(function(card, close)
-		local t = label(card, if title then string.format(title, item.name) else string.format(S.popupTitle, item.name), { Position = UDim2.fromScale(0.05, 0.04), Size = UDim2.fromScale(0.9, 0.12), TextColor3 = VIOLET, ZIndex = 93 })
+		local t = label(card, if title then string.format(title, item.name) else string.format(S.popupTitle, item.name), { Position = UDim2.fromScale(0.05, 0.035), Size = UDim2.fromScale(0.9, 0.1), TextColor3 = VIOLET, ZIndex = 93 })
 		local _ = t
 		local art = UiKit.frame({ Position = UDim2.fromScale(0.15, 0.18), Size = UDim2.fromScale(0.7, 0.42), ZIndex = 93, parent = card })
 		UiKit.corner(art, 14)
@@ -1235,16 +1241,17 @@ function PassController.passedPopup(item: Catalog.Item, title: string?)
 			local it = Catalog.byId(id)
 			return if it and it.type == "skin" then it.rarity else nil
 		end)
-		local strip = UiKit.frame({ Position = UDim2.fromScale(0.08, 0.715), Size = UDim2.fromScale(0.84, 0.065), BackgroundColor3 = GOLD_LIGHT, ZIndex = 93, parent = card })
+		local strip = UiKit.frame({ Position = UDim2.fromScale(0.06, 0.705), Size = UDim2.fromScale(0.88, 0.075), BackgroundColor3 = GOLD_LIGHT, ZIndex = 93, parent = card })
 		UiKit.corner(strip, 8)
 		UiKit.stroke(strip, GOLD_DEEP, 2)
-		label(strip, string.format(S.alsoWaiting, got.legendary, got.rare, got.gems), { Size = UDim2.fromScale(0.94, 0.8), Position = UDim2.fromScale(0.03, 0.1), TextColor3 = INK, ZIndex = 94 })
+		label(strip, string.format(S.waitingWords, got.legendary, got.rare, UiKit.formatNumber(got.gems)), { Size = UDim2.fromScale(0.94, 0.8), Position = UDim2.fromScale(0.03, 0.1), TextColor3 = INK, ZIndex = 94 })
 		local tag = UiKit.frame({ AnchorPoint = Vector2.new(0.5, 0.5), Position = UDim2.fromScale(0.5, 0.18), Size = UDim2.fromScale(0.42, 0.06), BackgroundColor3 = GOLD, ZIndex = 95, parent = card })
 		UiKit.corner(tag, 6)
 		UiKit.stroke(tag, INK, 2)
 		label(tag, "LEGENDARY", { Size = UDim2.fromScale(0.9, 0.8), Position = UDim2.fromScale(0.05, 0.1), TextColor3 = INK, ZIndex = 96 })
 		shine(art, 2)
-		local buy = UiKit.button({ text = string.format(S.unlockTwo, CFG.Robux.premium), color = GREEN, size = UDim2.fromScale(0.6, 0.13), position = UDim2.fromScale(0.2, 0.79), parent = card })
+		local hook = Catalog.byId(BattlePass.tiers[1].prem[1].id :: string)
+		local buy = UiKit.button({ text = string.format(S.unlockNamed, string.upper(if hook then hook.name else ""), CFG.Robux.premium), color = GREEN, size = UDim2.fromScale(0.6, 0.13), position = UDim2.fromScale(0.2, 0.79), parent = card })
 		buy.ZIndex = 94
 		buy.TextColor3 = WHITE
 		bob(buy, 0.06, 0.5)
@@ -1346,6 +1353,11 @@ function PassController.close()
 		(root :: Frame).Visible = false
 	end
 	isOpen = false
+end
+
+-- True while missions give double XP (shown on the HUD Pass button).
+function PassController.isBehind(): boolean
+	return PassController.isOpenSeason() and sessionPass().behind == true
 end
 
 function PassController.isOpen(): boolean

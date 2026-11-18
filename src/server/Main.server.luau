@@ -267,6 +267,7 @@ local handlers: { [string]: Handler } = {
 	ClaimDaily = function(player: Player): (boolean, any)
 		local ok, result = RewardService.claimDaily(player)
 		if ok then
+			BattlePassService.addXp(player, if result.streak >= #Catalog.daily then Config.BattlePass.DailyXpDay7 else Config.BattlePass.DailyXp, "daily")
 			AnalyticsService.log(player, "daily_claim", { day = result.streak })
 			if result.streak >= #Catalog.daily then
 				BadgeService.award(player, "streak7")

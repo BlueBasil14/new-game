@@ -93,6 +93,9 @@ if game:GetService("RunService"):IsStudio() then
 			PanelController.openShopTab(arg) -- e.g. ("shopTab", "passes")
 		elseif action == "close" then
 			PanelController.close()
+		elseif action == "death" then
+			PanelController.holdDeath = arg ~= "release"
+			ClientState.death:Fire({ coins = 240, cells = 180, lifeSeconds = 95, kills = 1, canSecondChance = false, killerName = "TestBot" })
 		elseif action == "cut" then
 			-- Replays the local "I cut someone" feedback (hit-stop, punch, cubes); nothing reaches the server.
 			local myId = ClientState.arena.myId

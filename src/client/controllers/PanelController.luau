@@ -177,6 +177,7 @@ local S = {
 	deathPass = "+%s Pass XP",
 	deathPassNext = "%d tier%s to %s!",
 	deathPassTier = "Tier %d",
+	deathPassBtn = "Get %s in the Turf Pass  >",
 	deathKiller = "Cut by %s",
 	respawn = "Respawn",
 	secondChance = "Second Chance  R$ %d  (%d)",
@@ -189,7 +190,8 @@ local S = {
 	starterNo = "No thanks",
 
 	neonBanner = "Neon Pack: 5 neon skins + trail  R$ %d",
-	passBanner = "TURF PASS: 4 animated Legendaries + 6 Rares, from R$ %d  >",
+	passBanner = "TURF PASS Premium: 4 animated Legendaries + 4 Rares, R$ %d  >",
+	getInPass = "Get in Pass",
 	boostQuest = "%dx Coins %d min",
 	awayTitle = "Welcome back",
 	awayStreak = "Daily streak: %d",
@@ -287,6 +289,7 @@ local PanelController = {}
 PanelController.onSound = nil :: ((name: string) -> ())?
 -- Opens the Turf Pass screen (set by Main; PassController requires this module, so no direct require).
 PanelController.onOpenPass = nil :: (() -> ())?
+PanelController.holdDeath = false -- Studio test hook only (Main "death"): keep the death panel open while alive
 
 local function passOpen(): boolean
 	local sp = (ClientState.session :: any).pass
@@ -1147,8 +1150,11 @@ local function buildShop(): PanelEntry
 		elseif item.source then
 			local source = item.source
 			local label = S.sources[source] or source
-			spec.action = label
-			spec.dim = true
+			spec.action = if source == "pass" then S.getInPass else label
+			spec.dim = source ~= "pass"
+			if source == "pass" then
+				spec.actionColor = theme.Success
+			end
 			spec.onAction = function()
 				if source == "vip" or source == "neonPack" then
 					promptPass(source)
@@ -1370,7 +1376,7 @@ local function buildShop(): PanelEntry
 		local sections = buildSections(p)
 		passPulse = false
 		local showNeon = tab == "skins" and not ownedOnly and neonOffered()
-		local showPass = (tab == "featured" or tab == "skins" or tab == "trails") and not ownedOnly and passOpen()
+		local showPass = (tab == "featured" or tab == "skins" or tab == "trails" or tab == "passes") and not ownedOnly and passOpen()
 		local keys = { tab, if ownedOnly then "own" else "all", if showNeon then "neon" else "", if showPass then "pass" else "" }
 		for _, sec in sections do
 			table.insert(keys, "#" .. (sec.tier or ""))
@@ -1938,6 +1944,10 @@ type DeathUi = {
 	killer: TextLabel,
 	respawn: TextButton,
 	second: TextButton,
+	passRow: Frame,
+	passFill: Frame,
+	passText: TextLabel,
+	passBtn: TextButton,
 }
 
 local death = {
@@ -1948,6 +1958,8 @@ local death = {
 	token = 0,
 	shownAt = 0,
 	justClosed = false,
+	passXpAtSpawn = nil :: number?,
+	wasAlive = false,
 }
 local starterShown = false
 
@@ -2029,7 +2041,21 @@ local function buildDeath(): PanelEntry
 		end,
 	})
 	second.TextColor3 = INK
-	death.ui = { stats = stats, killer = killer, respawn = respawn, second = second, passRow = passRow, passFill = passFill, passText = passText }
+	-- Free players close to a Legendary get a way into the pass from the most frequent screen in the game.
+	local passBtn = button({
+		text = "",
+		color = Color3.fromHex("9C7DFF"),
+		size = UDim2.fromScale(0.8, 0.14),
+		position = UDim2.fromScale(0.1, 0.81),
+		parent = body,
+		onClick = function()
+			finishDeath()
+			openPass()
+		end,
+	})
+	passBtn.TextColor3 = Color3.new(1, 1, 1)
+	passBtn.Visible = false
+	death.ui = { stats = stats, killer = killer, respawn = respawn, second = second, passRow = passRow, passFill = passFill, passText = passText, passBtn = passBtn }
 	return { panel = panel, refresh = function() end }
 end
 
@@ -2083,8 +2109,11 @@ local function showDeath(payload: any)
 		ui.passFill.Size = UDim2.fromScale(before, 1)
 		TweenService:Create(ui.passFill, TweenInfo.new(0.9, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), { Size = UDim2.fromScale(frac, 1) }):Play()
 		ui.passRow.Visible = true
+		ui.passBtn.Visible = not st.premium and nextName ~= nil and away <= 3 and payload.canSecondChance ~= true
+		ui.passBtn.Text = string.format(S.deathPassBtn, nextName or "")
 	else
 		ui.passRow.Visible = false
+		ui.passBtn.Visible = false
 	end
 	local eligible = payload.canSecondChance == true
 	ui.second.Visible = eligible
@@ -2198,7 +2227,7 @@ end
 
 local function closeDeath()
 	local entry = built.Death
-	if entry == nil or not entry.panel.isOpen() then
+	if entry == nil or not entry.panel.isOpen() or PanelController.holdDeath then
 		return
 	end
 	if os.clock() - death.shownAt < DEATH_GUARD_SECONDS then

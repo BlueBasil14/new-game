@@ -594,9 +594,14 @@ local function buildRail(gui: ScreenGui): (() -> ())
 			UiKit.aspect(count, 1)
 			UiKit.stroke(count, theme.UiLight, 2)
 			local countL = UiKit.label({ Text = "", Size = UDim2.fromScale(0.8, 0.8), Position = UDim2.fromScale(0.1, 0.1), TextColor3 = Color3.new(1, 1, 1), parent = count })
+			local boostTag = UiKit.frame({ Name = "CatchUp", AnchorPoint = Vector2.new(0, 0.5), Position = UDim2.fromScale(1.04, 0.5), Size = UDim2.fromScale(0.42, 0.62), BackgroundColor3 = theme.Success, Visible = false, parent = b })
+			UiKit.corner(boostTag, 8)
+			UiKit.stroke(boostTag, theme.UiDark, 2)
+			UiKit.label({ Text = "2x XP", Size = UDim2.fromScale(0.9, 0.8), Position = UDim2.fromScale(0.05, 0.1), parent = boostTag })
 			PassController.onDot(function(n: number)
 				count.Visible = n > 0
 				countL.Text = if n > 9 then "9+" else tostring(n)
+				boostTag.Visible = PassController.isBehind()
 			end)
 		end
 		if def.panel == "Daily" or def.panel == "Quests" then
