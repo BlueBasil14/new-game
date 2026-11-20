@@ -1,19 +1,17 @@
-s02_avatar_hype: 14.4s, 108 BPM, 1080x1920 30fps
- 0.00- 1.11s  scene: HOOK: big green retro screen, you are a little square; your loop closes and fills at 0.28 s
- 0.00- 1.11s  text: IN PAPER.IO YOU WERE A SQUARE.
- 1.11- 2.78s  scene: hard cut at 1.1 s: the square grows and morphs into a big blocky Roblox-style avatar (6x), walking in place
- 1.11- 2.78s  text: IN TURF LOOP
- 1.11- 2.78s  text: YOU'RE YOU.
- 2.78- 3.61s  text: DRAW A LOOP...
- 2.78- 9.44s  scene: 24x24 match with avatars, camera zoomed 1.6x following YOU (Neon Pulse turf, solid cyan trail): your loop is half drawn, yellow (red DANGER! tag) charges and arrives one beat too late, claim, pink draws a trail (CUT IT! tag), you cut it (K.O.), claim again, crown
- 3.61- 5.00s  text: ...BEFORE THEY CATCH YOU
- 5.00- 6.57s  text: LOOP HOME = IT'S YOURS
- 5.00s  STAMP: MINE! (+shake, flash)
- 6.57- 8.24s  text: CUT THEIR TRAIL = THEY'RE OUT
- 6.85s  STAMP: K.O.! (+shake, flash)
- 8.24- 9.44s  text: MOST TURF = THE CROWN
- 8.24s  STAMP: KING! (+shake, flash)
- 9.44-12.78s  scene: wardrobe: the same YOU avatar on a pad that swaps skin on every beat (Galaxy Swirl, Magma Surge, Prism Storm, Starfall)
- 9.44-12.78s  text: YOUR AVATAR. ANY SKIN.
-12.78-14.44s  scene: end card: logo, COMING SOON TO ROBLOX, two avatars (one crowned) on an animated skin pad, pulsing FOLLOW TO PLAY FIRST
-sound effects: 23 cues; music: {'mode': 'major', 'root': 62, 'seed': 88, 'prog': [0, 4, 5, 3], 'sections': [(0, 1.5, {'kick', 'hat', 'arp'}), (1.5, 2, set()), (2, 23, {'hat', 'arp', 'bass', 'snare', 'kick', 'lead'}), (23, 27, {'hat', 'bass', 'snare', 'kick', 'lead'})]}
+s02_avatar_hype: 11.9s, 108 BPM, 1080x1920 30fps
+ 0.00- 0.89s  text: REMEMBER PAPER.IO?
+ 0.00- 6.11s  scene: HOOK on the game: 24x24 match, camera zoomed 1.6x following YOU (Neon Pulse turf, solid cyan trail): your loop is 4 steps from closing (claim +N at ~0.9 s), yellow (DANGER! tag) arrives a beat too late, pink draws a trail (CUT IT! tag), you cut it (K.O.), claim again, crown
+ 0.89- 1.78s  text: LOOP HOME = IT'S YOURS
+ 0.89s  STAMP: MINE! (+shake, flash)
+ 1.78- 3.11s  text: CUT THEIR TRAIL = THEY'RE OUT
+ 3.11- 4.72s  text: LOOP HOME AGAIN
+ 3.11s  STAMP: K.O.! (+shake, flash)
+ 4.72- 6.11s  text: MOST TURF = THE CROWN
+ 4.72s  STAMP: KING! (+shake, flash)
+ 6.11- 6.94s  text: PAPER.IO: A SQUARE.
+ 6.11- 8.06s  scene: hard cut: a green square grows (Paper.io), then morphs into a big blocky Roblox-style avatar (6x), walking in place
+ 6.94- 8.06s  text: TURF LOOP: YOU'RE YOU.
+ 8.06-10.28s  scene: wardrobe: the same YOU avatar on a pad that swaps skin on every beat (Galaxy Swirl, Magma Surge, Prism Storm, Starfall)
+ 8.06-10.28s  text: YOUR AVATAR. ANY SKIN.
+10.28-11.94s  scene: end card: logo, COMING SOON TO ROBLOX, two avatars (one crowned) on an animated skin pad, pulsing FOLLOW TO PLAY FIRST
+sound effects: 22 cues; music: {'mode': 'major', 'root': 62, 'seed': 88, 'prog': [0, 4, 5, 3], 'sections': [(0, 10.5, {'lead', 'snare', 'kick', 'bass', 'hat', 'arp'}), (10.5, 11, set()), (11, 19, {'lead', 'snare', 'kick', 'bass', 'hat', 'arp'}), (19, 22, {'lead', 'snare', 'kick', 'bass', 'hat'})]}

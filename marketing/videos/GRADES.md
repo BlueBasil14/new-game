@@ -343,3 +343,23 @@ Next fixes:
 5. Footer repeats the end card and is in the bottom UI zone: remove on the end card. Add "DRAW A LOOP. CLAIM THE TURF." to the mid captions.
 
 **Next run priorities (s02 5 rounds, s03 4, s04 3):** s02 is one round from parking. Shared: footer off on end cards and for most of the video, a hook with a visible threat in frame 0 for s02/s03, wardrobe and bait sections about 1.2 s. Then build the next unbuilt idea (#9 Head-On).
+
+## Run 2026-11-20 18:53 (weekend task): s02 R6, s03 R5, s04 R4 reworked, s05 (idea #9 Head-On) new. All 6 again.
+**Applied:** s02: opens ON the game (loop 4 steps from closing, +55 at ~0.9 s, "REMEMBER PAPER.IO?"), the square-to-avatar morph is now the payoff after the match, 4-skin wardrobe at 1 beat each, stamps raised clear of the footer, no red captions, footer only on the last scene. s03: hook is 1.5 beats of full-frame animated legendaries plus big avatar, then loop+claim; the track is now one big centred card per stop (tiers 1/10/20/30, progress bar, FREE reward line, name card); new 4-beat cut/K.O. scene; the missions scene was shifted; the comment card was cut to 3 beats; footer only on the last card. s04: bracket and "1 CELL" label 2x, red danger arrow on yellow, OUT plate and red X on the ghost, wardrobe 2 beats, animated bait, footer removed. s05: new video, 108 BPM, ~12 s: head-on race (both K.O.) -> "DRAW." -> rewind -> take 2 loop home first, Fireworks, cut -> WINNER! -> YOU vs THEM bait -> avatar end card.
+
+| Video | R | Overall | hook | clarity | style | pacing | readability | cta |
+|---|---|---|---|---|---|---|---|---|
+| s02 | R6 | 6 | 5 | 7 | 7 | 6 | 7 | 6 |
+| s03 | R5 | 6 | 5 | 6 | 7 | 6 | 6 | 6 |
+| s04 | R4 | 6 | 7 | 5 | 7 | 6 | 7 | 6 |
+| s05 | R1 | 6 | 6 | 6 | 7 | 6 | 7 | 6 |
+
+**s02: PARKED after 6 rounds (all 6).** Style 7 and readability 7 every time; the hook is the stuck point: a nostalgia-only line ("REMEMBER PAPER.IO?") over a quiet board, claim at 0.9 s. Last fix list if reopened: first frame already mid-claim with +55 at 0-0.3 s ("PAPER.IO, BUT YOU'RE YOU"), cut the repeated "LOOP HOME AGAIN" beat (game segment about 4.5 s), K.O. zoom plus "K.O." on the victim, show square and avatar in one frame (arena behind the morph), a 2.5 s end card, a corner brand tag from frame 1.
+
+**s03 R5 (6):** 1) The hook is a static avatar on a pink pattern. Open mid-fill with Prism Storm and a +55 in the first 0.3 s, caption "4 LEGENDARY SKINS. FREE TRACK.", drop the tiny corner badge. 2) Tier cards take about 5 s before gameplay. Cut each stop to ~0.8-1 beat and caption once; move the K.O. to about 3.5 s. 3) The FREE subtitle sat too close to the TIER number (moved 5 px down this run, not re-graded); PREMIUM tag and FAST FORWARD / CROWN HELD lines are too small. 4) The loop needs a 1-2 s trail-drawn-and-closed beat before the cut; zoom the 16x16 event boards. 5) Comment card is crowded: give "COMMENT 1-4" its own beat, make FOLLOW the biggest element, drop the footer on the card.
+
+**s04 R4 (6):** 1) Hook: "TRAIL HIT = OUT" is tiny and the grey ghost plus X is ambiguous; show the loop being drawn first, make the trail flash at impact, move yellow closer so the K.O. lands by ~0.7 s, and cut the clutter on frame 1 (bar, arrow, bracket, tag all compete). 2) Take 2 repeats captions: shorten "TAKE 2" to ~1 s, claim by ~3.5 s, a 2x bigger +35, a longer REVENGE freeze. 3) The skins and bait beats are off-topic filler: merge the bait into the end card and use the time for a second action beat. 4) The end card shows no gameplay: put a 1 s loop behind the logo, a bigger COMING SOON line, wording "HOW MANY CELLS?".
+
+**s05 R1 (6):** 1) The hook shows no collision before the K.O.; by 1.45 s the board is empty, so the crash is never seen. Open on the near-collision, K.O. at ~0.8-1.0 s, and keep the two avatars visible for 0.5 s before DRAW. 2) "DRAW." over an empty board is dead air for ~1.7 s: cut to ~0.6 s or add ghost avatars and "BOTH OUT" icons; trim the rewind. 3) Slow the claim to a clean frame (loop closing, flash, +18), show the rival trail being snipped (red X) before K.O. 4) The bait card has empty black bars and small avatars; drop the footer there. 5) Corner TURF LOOP tag from 0 s; a 1 s gameplay loop behind the end CTA.
+
+**Next run priorities (s03 5 rounds, s04 4, s05 1; s02 parked):** s03, s04, s05. Shared: a corner brand tag from frame 0 (engine overlay), a gameplay loop behind the end card (`avatar_end`), drop the footer on bait cards, merge bait into the end card. Then build idea #10.

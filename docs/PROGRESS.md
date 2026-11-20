@@ -450,3 +450,8 @@ Owner asked in chat for a top-down camera to record short-form clips (research i
 
 ## 2026-11-20 (weekend task): Turf Loop shorts, s02/s03/s04 reworked
 Reworked s04 (hook geometry, ghost, music sections), s03 (hook, track, comment card, no K.O. zoom in events) and s02 (beat punch-in, taller camera, longer wardrobe) in `tools/video/hype.py`; re-rendered and graded by fresh subagents: all three 6/10 (s02 R5, s03 R4, s04 R3). Fix lists and next priorities are in `marketing/videos/GRADES.md`. No new video this run. Nothing posted or uploaded. The game code was not touched.
+
+## 2026-11-20 evening: promo shorts, weekend task run (s02-s05)
+- Reworked s02 (R6), s03 (R5), s04 (R4) and built s05 "Head-On" (idea #9) in `tools/video/hype.py`. All four graded 6/10 by fresh subagents. Details and fix lists are in `marketing/videos/GRADES.md`.
+- s02 is parked after 6 rounds (hook never passed 5-6). s03, s04, s05 still have rounds left.
+- Not verified: only contact sheets and grader reports; no one has watched the mp4s with sound. Nothing posted or uploaded.
