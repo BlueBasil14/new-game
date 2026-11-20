@@ -40,6 +40,7 @@ A new empty place also needs: the default Baseplate and SpawnLocation removed, `
 - **Automated clicks do not register** on the game's buttons (device emulator). Use the Studio-only hooks instead.
 - Client hook, a BindableEvent under the client `Main` script (`LocalPlayer.PlayerScripts.Client.Main.Debug`):
   `Fire("open", "Shop")`, `Fire("shopTab", "passes")`, `Fire("close")`, `Fire("cut")`, `Fire("capture", "7.5")`, `Fire("waveTime", "5")`.
+  `Fire("rec", "map")` / `Fire("rec", "sky")` / `Fire("rec")`: recording cameras (also the V key in a playtest).
 - Server hook (`ServerScriptService.Server.Main.DebugGrantPass`): `Fire(player, "doubleSpeed")` runs the same path as a finished purchase.
 - Requests can be sent directly from the Client datamodel: `ReplicatedStorage.Remotes.Request:InvokeServer("ClaimDaily")`.
 - Move the character from the Server datamodel with `Humanoid:MoveTo` and `MoveToFinished:Wait()`. **Never teleport it**: the movement check kicks.

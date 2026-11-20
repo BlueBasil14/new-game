@@ -116,6 +116,8 @@ if game:GetService("RunService"):IsStudio() then
 				local cx, cy = grid:worldToCell(root.Position.X, root.Position.Z)
 				ClientState.arenaEvent:Fire({ kind = "claim", id = myId, cells = cells, neutral = cells, stolen = 0, cx = cx, cy = cy })
 			end
+		elseif action == "rec" then
+			CameraController.setRecMode(arg or "game") -- ("rec", "map") / ("rec", "sky") / ("rec")
 		elseif action == "waveTime" and arg then
 			-- Slows the claim wave so a screenshot can catch it.
 			local Config = require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Config")) :: any
@@ -123,4 +125,14 @@ if game:GetService("RunService"):IsStudio() then
 		end
 	end)
 	debugEvent.Parent = script
+
+	-- Recording cameras for marketing clips: the key cycles game -> map (whole arena from above) -> sky (steep follow) -> game.
+	local recKey = (Enum.KeyCode :: any)[require(game:GetService("ReplicatedStorage"):WaitForChild("Shared"):WaitForChild("Config")).RecCamera.Key]
+	local recOrder = { game = "map", map = "sky", sky = "game" }
+	game:GetService("ContextActionService"):BindAction("TurfLoopRecCamera", function(_, state: Enum.UserInputState)
+		if state == Enum.UserInputState.Begin then
+			CameraController.setRecMode(recOrder[CameraController.getRecMode()] or "game")
+		end
+		return Enum.ContextActionResult.Sink
+	end, false, recKey)
 end

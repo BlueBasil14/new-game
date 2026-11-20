@@ -346,3 +346,12 @@ Owner direction in chat: a horizontal battle pass in the game's style, free trac
 - Built from a clean checkout of 99fd590 (so another session's uncommitted ProfileTemplate edit was not included), loaded Shared/Server/Client into the cloud place 80441552680451, play-tested (HUD, Turf Pass GUI, bots, woodland props loaded; Output only the usual Studio DataStore and asset noise), saved as version 11 and published via File > Publish. Output: "Published new changes in TurfLoop Main to Roblox."
 - The experience is still **Private** (visibility not changed). The Turf Pass is still hidden live until `Config.BattlePass.Start` is set.
 - Not checked: a live server join, a real Robux purchase.
+
+## Lead session, 2026-11-19: recording cameras for marketing clips (Studio only)
+Owner asked in chat for a top-down camera to record short-form clips (research in `docs/SHORT_FORM_RESEARCH.md`).
+- **Press V in a Studio playtest** to cycle: normal camera → **map** (straight down on the whole arena, narrow FOV so it looks flat, north at the top, fits the screen's shorter side so it also works in a tall 9:16 window) → **sky** (steep 80° follow camera on your runner) → normal. In map and sky, every ScreenGui and the decorative clouds are hidden on this client; they come back on normal.
+- Code: `CameraController.setRecMode/getRecMode`, the V binding and a `Debug:Fire("rec", "map"|"sky")` hook in the Studio-only block of `Main.client.luau` (never exists on a live server). Numbers in `Config.RecCamera`.
+- F7 was tried first: Roblox marks it as already handled, so the key never reached the game. V arrives clean.
+- **Seen in Studio** (scratch build, solo with bots): real V key presses cycled map → sky → normal; map shows the whole 640-stud arena with every bot's turf and trails, no UI, no clouds; sky follows the runner; normal restores UI, clouds, 55° pitch and FOV 70. Output only the usual DataStore/asset noise.
+- Known limits: a ScreenGui that is *created* while recording (a toast or popup) is not hidden. No automatic 0→100% capture: record a long match in map view and speed it up in the editor.
+- Checks: 51 compile, specs pass, xref 0, headless 17/17. `build/TurfLoop.rbxlx` not rebuilt (holds another session's uncommitted changes).

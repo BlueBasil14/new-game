@@ -75,6 +75,9 @@ Config.CaptureFx = {
 
 -- WallFade: local transparency of the south wall when it hides the runner; WallFadeMargin: studs over which it fades in.
 Config.Camera = { Pitch = 55, MinDistance = 45, MaxDistance = 70, FieldOfView = 70, WallFade = 0.85, WallFadeMargin = 6 }
+-- Studio-only recording cameras for marketing clips (key cycles game -> map -> sky -> game; UI hidden while recording).
+-- Map: straight down on the whole arena, narrow FOV so it looks flat. Sky: steep follow camera on the player.
+Config.RecCamera = { Key = "V", MapFov = 30, MapMargin = 16, SkyPitch = 80, SkyDistance = 130, SkyFov = 50 }
 
 -- G3.2 income
 Config.Income = {

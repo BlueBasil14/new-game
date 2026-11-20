@@ -21,6 +21,45 @@ local shakeStrength = 0
 local shakeTime = 0
 local shakeTotal = 0
 local holdUntil = 0
+local recMode = "game" -- "game" | "map" | "sky"; only changed by the Studio-only recording key
+
+-- Studio-only recording cameras (Main.client binds the key). Hides every ScreenGui while not "game".
+local hiddenGuis: { ScreenGui } = {}
+function CameraController.setRecMode(mode: string)
+	if mode ~= "map" and mode ~= "sky" then
+		mode = "game"
+	end
+	recMode = mode
+	-- Decorative clouds float over the arena and block the overhead shots; hide them on this client only.
+	local world = workspace:FindFirstChild("World")
+	local decor = world and world:FindFirstChild("Decor")
+	local clouds = decor and decor:FindFirstChild("Clouds")
+	if clouds then
+		for _, p in clouds:GetDescendants() do
+			if p:IsA("BasePart") then
+				p.LocalTransparencyModifier = if mode == "game" then 0 else 1
+			end
+		end
+	end
+	local gui = Players.LocalPlayer:FindFirstChildOfClass("PlayerGui")
+	if mode == "game" then
+		for _, g in hiddenGuis do
+			g.Enabled = true
+		end
+		table.clear(hiddenGuis)
+	elseif gui and #hiddenGuis == 0 then
+		for _, g in gui:GetChildren() do
+			if g:IsA("ScreenGui") and g.Enabled then
+				g.Enabled = false
+				table.insert(hiddenGuis, g)
+			end
+		end
+	end
+end
+
+function CameraController.getRecMode(): string
+	return recMode
+end
 
 function CameraController.setTurfShare(s: number)
 	share = math.clamp(s, 0, 1)
@@ -90,6 +129,19 @@ local function step(dt: number)
 		return
 	end
 
+	if recMode == "map" then
+		-- Fit the whole arena (centred on the origin) in the shorter screen side, north at the top.
+		local rc = Config.RecCamera
+		local half = Config.Arena.GridSize * Config.Arena.CellSize / 2 + rc.MapMargin
+		local view = cam.ViewportSize
+		local aspect = if view.Y > 0 then view.X / view.Y else 1
+		local tanV = math.tan(math.rad(rc.MapFov) / 2)
+		local height = half / (tanV * math.min(1, aspect))
+		cam.FieldOfView = rc.MapFov
+		cam.CFrame = CFrame.lookAt(Vector3.new(0, height, 0), Vector3.zero, Vector3.new(0, 0, -1))
+		return
+	end
+
 	local root = getRoot()
 	if root then
 		local target = root.Position
@@ -101,10 +153,13 @@ local function step(dt: number)
 		return
 	end
 
-	local wanted = Config.Camera.MinDistance + (Config.Camera.MaxDistance - Config.Camera.MinDistance) * math.clamp(share / FULL_SHARE, 0, 1)
+	local sky = recMode == "sky"
+	local wanted = if sky
+		then Config.RecCamera.SkyDistance
+		else Config.Camera.MinDistance + (Config.Camera.MaxDistance - Config.Camera.MinDistance) * math.clamp(share / FULL_SHARE, 0, 1)
 	distance += (wanted - distance) * (1 - math.exp(-2 * dt))
 
-	local pitch = math.rad(Config.Camera.Pitch)
+	local pitch = math.rad(if sky then Config.RecCamera.SkyPitch else Config.Camera.Pitch)
 	-- Camera sits south (+Z) of the focus looking north (-Z), so +X is screen-right.
 	local pos = f + Vector3.new(0, math.sin(pitch), math.cos(pitch)) * distance
 	local cf = CFrame.lookAt(pos, f)
@@ -118,7 +173,7 @@ local function step(dt: number)
 	cam.CFrame = cf
 
 	fovPunch -= fovPunch * (1 - math.exp(-10 * dt))
-	cam.FieldOfView = Config.Camera.FieldOfView - fovPunch
+	cam.FieldOfView = (if sky then Config.RecCamera.SkyFov else Config.Camera.FieldOfView) - fovPunch
 end
 
 function CameraController.start()
