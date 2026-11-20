@@ -336,3 +336,8 @@ Owner direction in chat: a horizontal battle pass in the game's style, free trac
 - **Seen in Studio** (scratch build, solo): XP grant, claim and claim-all, premium unlock via the debug receipt path, Neon Pulse equipped and animating on captured turf (seamless across rects), every screen state above at desktop size and a 790x335 phone-size window, shop banner, first-open and tier-10 popups. UI reviews: round 1 6.5, round 2 7.5 and 7.5; round 3 pending.
 - **Not seen**: the Eliminated-panel Pass XP row (no way to die on demand in a solo test), the Legendary reveal popup (needs a real GET click), real purchases (product ids are 0), phone performance with many animated owners.
 - **Owner actions**: create developer products Turf Pass (399), Turf Pass+ (799), +1 Tier (49), +10 Tiers (399) and send the ids (or approve creating them), and set `Config.BattlePass.Start` to the season start time when ready to go live.
+
+## 2026-11-19 — Turf Pass developer products created
+- Owner approved in chat ("You create them"). Created via Open Cloud on universe 10776297454: Turf Pass 399 R$ (3733791218), Turf Pass+ 799 R$ (3733791274), +1 Tier 49 R$ (3733791296), +10 Tiers 399 R$ (3733791343). Icons are placeholder shop art (sparkle, fireworks, lightning, stars) — swap on the dashboard if wanted.
+- Ids filled in `Config.Ids.Products`. check.mjs, xref, headless 17/17 pass. Purchase flow not tested with a real Robux purchase (Studio test purchases only, not run this turn).
+- Note: the products API needs multipart/form-data (an imageFile part), not JSON.

@@ -141,10 +141,10 @@ Config.Ids = {
 		gemsM = 3731883784,
 		gemsL = 3731883882,
 		gemsXL = 3731883942,
-		battlePass = 0, -- 399 R$ Turf Pass Premium (owner creates; 0 = "Coming soon")
-		battlePassPlus = 0, -- 799 R$ Premium + 10 tiers
-		battlePassTier = 0, -- 49 R$ +1 tier
-		battlePassTiers10 = 0, -- 399 R$ +10 tiers (offered to Premium owners instead of Premium+)
+		battlePass = 3733791218, -- 399 R$ Turf Pass Premium
+		battlePassPlus = 3733791274, -- 799 R$ Premium + 10 tiers
+		battlePassTier = 3733791296, -- 49 R$ +1 tier
+		battlePassTiers10 = 3733791343, -- 399 R$ +10 tiers (offered to Premium owners instead of Premium+)
 	},
 	Badges = {
 		firstLoop = 0,

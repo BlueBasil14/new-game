@@ -3,7 +3,7 @@
 Heartbeat: 2026-11-18 05:25 local, lead session (interactive)
 
 Design: `docs/BATTLEPASS.md`. Owner decisions: Premium 399 R$, Premium+ 799 R$ (+10 tiers), 14-day seasons, 30 tiers.
-Product ids stay 0 until the owner creates them on the dashboard or approves creation (paid items).
+Product ids are live (created 2026-11-19 with owner approval): battlePass 3733791218, battlePassPlus 3733791274, battlePassTier 3733791296, battlePassTiers10 3733791343.
 
 ## Checklist
 - [x] Design written
