@@ -355,3 +355,16 @@ Owner asked in chat for a top-down camera to record short-form clips (research i
 - **Seen in Studio** (scratch build, solo with bots): real V key presses cycled map → sky → normal; map shows the whole 640-stud arena with every bot's turf and trails, no UI, no clouds; sky follows the runner; normal restores UI, clouds, 55° pitch and FOV 70. Output only the usual DataStore/asset noise.
 - Known limits: a ScreenGui that is *created* while recording (a toast or popup) is not hidden. No automatic 0→100% capture: record a long match in map view and speed it up in the editor.
 - Checks: 51 compile, specs pass, xref 0, headless 17/17. `build/TurfLoop.rbxlx` not rebuilt (holds another session's uncommitted changes).
+
+## Lead session, 2026-11-19/20: pixel-art promo shorts (owner request in chat)
+- Owner asked for 25 short-form video ideas in the 8-bit, beat-synced chiptune "satisfying explainer" style, with nostalgia hooks, then for the videos themselves, graded by subagents and remade until each scores 7/10.
+- Ideas and brainstorm: `marketing/videos/IDEAS.md`. The research behind them is `docs/SHORT_FORM_RESEARCH.md`.
+- Built `tools/video/engine.py`, a free local pipeline with no paid tools (Pillow + ffmpeg):
+  - 270x480 pixel canvas, scaled x4 to 1080x1920 at 30 fps.
+  - A grid simulation of the Turf Loop rules (claims, cuts, own-trail safe).
+  - A pixel font, captions on plates, impact stamps with shake, a watermark and a live end card.
+  - A chiptune synthesiser (square, triangle, noise) and sound effects on the same beat grid, so every step lands on a 16th note and the music is original.
+- `tools/video/videos.py` has v01–v05: Computer Lab, 0%→100%, How to Play, Own Line Can't Kill You, Loop Math. MP4s are in `marketing/videos/out/` (git-ignored). Contact sheets and timelines are in `marketing/videos/sheets/`.
+- Grades (`marketing/videos/GRADES.md`, fresh grader subagent each round, using `GRADER_PROMPT.md`): round 1 = 5,5,5,5,6; round 2 = all 6; round 3 = all 6. None passes yet. The round-4 to-do is in GRADES.md.
+- Scheduled task `turf-loop-shorts-weekend` (every 3 h, Nov 20–22) continues: rework under 7, then v06+.
+- Not posted anywhere. Graders see contact sheets and timelines, not the moving video or the audio; nobody has watched the MP4s with sound yet.

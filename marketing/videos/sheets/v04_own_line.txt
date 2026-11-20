@@ -1,0 +1,14 @@
+v04_own_line: 13.0s, 120 BPM, 1080x1920 30fps
+ 0.00- 0.75s  scene: OLD .IO GAMES: green retro CRT; the figure-8 crosses its own line at 0.5s -> red X
+ 0.00- 2.25s  text: OLD .IO GAMES: CROSS YOUR OWN LINE = DEAD
+ 0.75- 2.25s  scene: GAME OVER card
+ 2.25- 2.62s  text: IN TURF LOOP?
+ 2.25-11.00s  scene: TURF LOOP: same figure-8, slow-mo 20% for 1.5s over the crossing with a green ring + SAFE!, both lobes claimed at beat 8.78, then keeps looping
+ 2.62- 4.39s  text: CROSS IT. KEEP GOING.
+ 2.62s  STAMP: SAFE! (+shake, flash)
+ 4.39- 5.64s  text: BOTH LOOPS ARE YOURS
+ 5.64- 7.42s  text: LOOP ANY SHAPE.
+ 7.42- 9.21s  text: NO FEAR.
+ 9.21-11.00s  text: TAKE THE WHOLE MAP.
+11.00-13.00s  scene: end card: logo, live mini-match, COMING SOON TO ROBLOX / WHAT WAS YOUR .IO NAME? / FOLLOW TO PLAY FIRST
+sound effects: 23 cues; music: {'mode': 'minor', 'root': 55, 'seed': 44, 'sections': [(0, 1.5, {'hat', 'kick', 'arp', 'bass'}), (1.5, 4.5, set()), (4.5, 22, {'snare', 'lead', 'kick', 'arp', 'bass', 'hat'}), (22, 26, {'snare', 'lead', 'kick', 'bass', 'hat'})]}

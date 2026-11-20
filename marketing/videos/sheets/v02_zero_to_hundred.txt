@@ -1,0 +1,15 @@
+v02_zero_to_hundred: 15.0s, 120 BPM, 1080x1920 30fps
+ 0.00- 1.00s  scene: cold open: the finished, fully blue 100% map
+ 0.00- 1.00s  text: HOW FAST CAN YOU TAKE THE WHOLE MAP?
+ 0.00s  STAMP: 100% (+shake, flash)
+ 1.00- 3.00s  text: LOOP BACK = IT'S YOURS
+ 1.00-11.00s  scene: rewind to 0%: 2x zoom on your first loop, full map from beat 6; timelapse seed 8, max dip 2.2%, first cut at beat 6.3; % + game clock; 100% on beat 22 at 1:50
+ 3.00- 4.13s  text: NOW STEAL EVERYTHING
+ 3.13s  STAMP: CUT! (+shake, flash)
+ 4.13- 7.50s  text: THEY'RE RUNNING OUT OF ROOM
+ 7.50- 9.50s  text: DON'T GET GREEDY...
+ 9.50-11.00s  text: LAST CORNER
+11.00-12.50s  scene: 100% stamp, my time 1:50, +5,000 coins
+11.00s  STAMP: 100% (+shake, flash)
+12.50-15.00s  scene: end card: logo, live mini-match, COMING SOON TO ROBLOX / BEAT 1:50? / COMMENT YOUR TIME
+sound effects: 75 cues; music: {'mode': 'major', 'root': 60, 'seed': 22, 'sections': [(0, 2, {'kick', 'hat'}), (2, 24, {'bass', 'kick', 'snare', 'hat', 'lead', 'arp'}), (24, 30, {'bass', 'kick', 'snare', 'lead', 'hat'})]}
