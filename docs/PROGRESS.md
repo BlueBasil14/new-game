@@ -341,3 +341,8 @@ Owner direction in chat: a horizontal battle pass in the game's style, free trac
 - Owner approved in chat ("You create them"). Created via Open Cloud on universe 10776297454: Turf Pass 399 R$ (3733791218), Turf Pass+ 799 R$ (3733791274), +1 Tier 49 R$ (3733791296), +10 Tiers 399 R$ (3733791343). Icons are placeholder shop art (sparkle, fireworks, lightning, stars) — swap on the dashboard if wanted.
 - Ids filled in `Config.Ids.Products`. check.mjs, xref, headless 17/17 pass. Purchase flow not tested with a real Robux purchase (Studio test purchases only, not run this turn).
 - Note: the products API needs multipart/form-data (an imageFile part), not JSON.
+
+## 2026-11-19 — Synced and published TurfLoop Main (owner asked in chat)
+- Built from a clean checkout of 99fd590 (so another session's uncommitted ProfileTemplate edit was not included), loaded Shared/Server/Client into the cloud place 80441552680451, play-tested (HUD, Turf Pass GUI, bots, woodland props loaded; Output only the usual Studio DataStore and asset noise), saved as version 11 and published via File > Publish. Output: "Published new changes in TurfLoop Main to Roblox."
+- The experience is still **Private** (visibility not changed). The Turf Pass is still hidden live until `Config.BattlePass.Start` is set.
+- Not checked: a live server join, a real Robux purchase.

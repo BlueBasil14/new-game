@@ -3,7 +3,7 @@
 Learned the hard way over the first sessions. Read before the first Studio call.
 
 ## Which place
-- **Current cloud place:** "BlazeHawks's Place: 11132026_2", **placeId 80441552680451** (universe 10776297454). Saved, never published.
+- **Current cloud place:** "TurfLoop Main", **placeId 80441552680451** (universe 10776297454). Published (v11, 2026-11-19); experience still Private.
 - An older place with the same name, placeId 122808046982168, holds an old build. Do not use it.
 - `build/TurfLoop.rbxlx` is the local build. It is committed and must match the tree.
 - "Studio Access to API Services" is off in the cloud place, so DataStores are rejected in Studio and the game uses its in-memory store. That is the owner's setting to change.
