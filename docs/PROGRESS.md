@@ -368,3 +368,22 @@ Owner asked in chat for a top-down camera to record short-form clips (research i
 - Grades (`marketing/videos/GRADES.md`, fresh grader subagent each round, using `GRADER_PROMPT.md`): round 1 = 5,5,5,5,6; round 2 = all 6; round 3 = all 6. None passes yet. The round-4 to-do is in GRADES.md.
 - Scheduled task `turf-loop-shorts-weekend` (every 3 h, Nov 20–22) continues: rework under 7, then v06+.
 - Not posted anywhere. Graders see contact sheets and timelines, not the moving video or the audio; nobody has watched the MP4s with sound yet.
+
+## Scheduled run, 2026-11-20 00:53: promo shorts round 4
+- **Engine** (`tools/video/engine.py`, every video):
+  - Score pops sit beside the runner instead of on the YOU tag.
+  - Stamps sit above the brand bar on a dark plate.
+  - The % counter has white/yellow digits that blip when they change.
+  - The end card has a 1.5x mini-match in the video's colors and a beat-pulsing CTA.
+  - Stamps now have an optional hard cut (no flash).
+- **Reworked v01, v03, v04** with the round-3 fixes:
+  - All three show the threat instead of telling it, with DANGER! / CUT IT! boxes.
+  - v03: a leaderboard strip.
+  - v04: a zoom hook, plus a rival cut in the back half, at 11 s.
+- **Built v06 Greed Meter (idea #6)**, 13 s:
+  - A cold-open cut, then small → bigger → giant loops.
+  - The greed bar fills on the beat, red waits beside your trail, then K.O. and 0%.
+  - End card: "HOW BIG DO YOU GO?".
+- **Re-rendered v02 and v05** for the engine changes. Not regraded.
+- **Grades** (fresh subagent each): v01 6, v03 6, v04 6, v06 6. None passes 7 yet. The round-5 to-do in `marketing/videos/GRADES.md` lists the shared fixes graders keep asking for: brand bar size, CTA size and position, label overlaps, count-up %, hook zoom, K.O. freeze.
+- **Not done:** nobody has watched the MP4s with sound. Nothing posted.

@@ -745,7 +745,7 @@ class Video:
             self.sfx.append((t0, "pop", 0))
         self.log.append(f"{t0:5.2f}-{t1:5.2f}s  text: {text}")
 
-    def stamp(self, b, text, color=RED, y=432, beats=2, size=5, sound="hit"):
+    def stamp(self, b, text, color=RED, y=418, beats=2, size=5, sound="hit", flash=True):
         """Impact stamp: text slams in big, white flash, screen shake."""
         t0 = self.b(b)
 
@@ -753,12 +753,17 @@ class Video:
             age = t - t0
             sz = max(size, int(size * 2 - age / 0.1 * size)) if age < 0.1 else size
             rot = 3 if age < 0.15 else 0
-            draw_text(img, text, W / 2 + rot, y - sz * 3.5, sz, color, DARK, 1)
+            tim = text_img(text, sz, color, DARK, 1)
+            x0, y0 = int(W / 2 + rot - tim.width / 2), int(y - sz * 3.5)
+            plate = Image.new("RGBA", (tim.width + 12, tim.height + 8), (14, 16, 26, 235))  # hides particles behind the stamp
+            img.paste(plate, (x0 - 6, y0 - 4), plate)
+            img.paste(tim, (x0, y0), tim)
 
         self.overlays.append((t0, t0 + self.b(beats), fn))
         self.stamp_windows = getattr(self, "stamp_windows", []) + [(t0, t0 + self.b(beats))]
         self.shake(b, 0.3, 5)
-        self.flash(b, WHITE, 0.08)
+        if flash:
+            self.flash(b, WHITE, 0.08)
         if sound:
             self.sfx.append((t0, sound, 0))
         self.log.append(f"{t0:5.2f}s  STAMP: {text} (+shake, flash)")
@@ -877,6 +882,7 @@ def arena_scene(video, ar, b0, x0, y0, cp, view=None, hero=None, fx=None, sim_sp
     fx = fx or FX()
     t0 = video.b(b0)
     seen = [0]
+    last_pct = [-1, -9.0]
 
     def fn(img, tl, tg):
         if steps_fn:
@@ -903,7 +909,8 @@ def arena_scene(video, ar, b0, x0, y0, cp, view=None, hero=None, fx=None, sim_sp
                         video.sfx.append((ge + 0.12, "coin", 0))
                 if (pops(tl) if callable(pops) else pops) and (hero is None or data["id"] == hero):
                     fx.coins(cx, cy, min(24, 4 + data["cells"] // 6), tg)
-                    fx.pop(max(30, min(W - 30, cx)), max(yy0 + 4, cy - 44), f"+{data['cells']}", tg, YELLOW, 3)
+                    px_ = cx + 54 if cx + 54 < W - 28 else cx - 54  # beside the runner, clear of the YOU tag
+                    fx.pop(px_, max(yy0 + 4, cy - 4), f"+{data['cells']}", tg, YELLOW, 3)
             elif kind == "cut":
                 if sounds:
                     video.sfx.append((ge, "cut", 0))
@@ -912,30 +919,41 @@ def arena_scene(video, ar, b0, x0, y0, cp, view=None, hero=None, fx=None, sim_sp
         fx.draw(img, tg)
         if pct is not None and not any(a <= tg < b for (a, b) in getattr(video, "stamp_windows", [])):
             by = pct_y if pct_y is not None else yy0 + rows * cpx + 8
-            draw_text(img, f"YOUR TURF {int(ar.share(pct) * 100 + 0.0001)}%", W / 2, by, 3, ar.runners[pct].color, DARK)
+            val = int(ar.share(pct) * 100 + 0.0001)
+            if val != last_pct[0]:
+                last_pct[:] = [val, tg]
+            blip = tg - last_pct[1] < 0.12
+            lab = text_img("YOUR TURF ", 3, WHITE, DARK)
+            num = text_img(f"{val}%", 4 if blip else 3, WHITE if blip else YELLOW, DARK)
+            x = int(W / 2 - (lab.width + num.width) / 2)
+            img.paste(lab, (x, int(by)), lab)
+            img.paste(num, (x + lab.width, int(by) - (3 if blip else 0)), num)
 
     return fn
 
 
-def end_card(video, b0, b1, line1="COMING SOON TO ROBLOX", line2="FOLLOW TO PLAY FIRST", line3=None):
+def end_card(video, b0, b1, line1="COMING SOON TO ROBLOX", line2="FOLLOW TO PLAY FIRST", line3=None,
+             colors=(PLAYERS[7], PLAYERS[0])):
     t0 = video.b(b0)
     demo = Arena(18, seed=12)
     demo.dt = video.spb / 4
-    h = demo.add(1, PLAYERS[7], 4, 4, 3)
+    h = demo.add(1, colors[0], 4, 4, 3)
     h.hungry, h.reach = True, (3, 6)
-    demo.add(2, PLAYERS[0], 13, 12, 3).reach = (2, 4)
+    demo.add(2, colors[1], 13, 12, 3).reach = (2, 4)
 
     def fn(img, tl, tg):
         bg_checker(img, tg)
         k = ease_back(tl / 0.3)
-        logo(img, 40 - (1 - k) * 40, 4, tg)
-        draw_lines(img, line1, 102, 2, YELLOW)
+        logo(img, 26 - (1 - k) * 40, 4, tg)
+        draw_lines(img, line1, 80, 2, YELLOW)
         demo.update(tl)
-        draw_arena(img, demo, tl, 63, 128, 8, None, None)
-        draw_lines(img, line2, 306, 3, WHITE)
+        draw_arena(img, demo, tl, 27, 98, 12, None, None)  # 216 px board, 1.5x the old one
+        draw_lines(img, line2, 360, 3, WHITE)
         if line3:
-            ImageDraw.Draw(img).rectangle((10, 360, W - 11, 392), fill=GREEN)
-            draw_lines(img, line3, 376, 2, DARK, None)
+            ph = (tl / video.spb) % 1.0
+            g = 3 if ph < 0.15 else 0  # CTA pulses on every beat
+            ImageDraw.Draw(img).rectangle((10 - g, 404 - g, W - 11 + g, 440 + g), fill=GREEN, outline=DARK, width=2)
+            draw_lines(img, line3, 422, 2, DARK, None)
 
     video.scene(b0, b1, fn, "end card: logo, live mini-match, " + line1 + " / " + line2 + (" / " + line3 if line3 else ""))
     video.sound(b0, "hit")

@@ -12,4 +12,4 @@ v02_zero_to_hundred: 15.0s, 120 BPM, 1080x1920 30fps
 11.00-12.50s  scene: 100% stamp, my time 1:50, +5,000 coins
 11.00s  STAMP: 100% (+shake, flash)
 12.50-15.00s  scene: end card: logo, live mini-match, COMING SOON TO ROBLOX / BEAT 1:50? / COMMENT YOUR TIME
-sound effects: 75 cues; music: {'mode': 'major', 'root': 60, 'seed': 22, 'sections': [(0, 2, {'kick', 'hat'}), (2, 24, {'bass', 'kick', 'snare', 'hat', 'lead', 'arp'}), (24, 30, {'bass', 'kick', 'snare', 'lead', 'hat'})]}
+sound effects: 75 cues; music: {'mode': 'major', 'root': 60, 'seed': 22, 'sections': [(0, 2, {'hat', 'kick'}), (2, 24, {'bass', 'lead', 'hat', 'kick', 'arp', 'snare'}), (24, 30, {'bass', 'lead', 'hat', 'kick', 'snare'})]}

@@ -1,0 +1,13 @@
+v06_greed_meter: 13.1s, 128 BPM, 1080x1920 30fps
+ 0.00- 0.94s  scene: cold open: the greedy loop at max greed, red steps onto it, CUT at 0.59 s, all your turf vanishes
+ 0.00- 0.94s  text: HOW BIG IS TOO BIG?
+ 0.59s  STAMP: CUT! (+shake, flash)
+ 0.94- 2.11s  text: SMALL LOOP. SAFE.
+ 0.94-10.31s  scene: rewind: small loop (claim beat 4.5), bigger loop (claim beat 10.0), then a giant loop while the greed bar fills on every beat; red waits beside your trail (red box from beat 14.5) and steps on it at beat 19.00: K.O., 0%
+ 2.11- 4.69s  text: BIGGER LOOP. BIGGER REWARD.
+ 4.69- 6.80s  text: BIGGER. BIGGER!!
+ 6.80- 8.91s  text: GO HOME. GO HOME. GO HOME.
+ 8.91-10.31s  text: KNOW WHEN TO GO HOME.
+ 8.91s  STAMP: K.O.! (+shake, flash)
+10.31-13.12s  scene: end card: logo, live mini-match, COMING SOON TO ROBLOX / HOW BIG DO YOU GO? / FOLLOW TO PLAY FIRST
+sound effects: 31 cues; music: {'mode': 'minor', 'root': 52, 'seed': 66, 'sections': [(0, 2, {'hat', 'arp', 'bass', 'kick'}), (2, 19.5, {'kick', 'snare', 'bass', 'lead', 'hat', 'arp'}), (19.5, 22, {'bass'}), (22, 28, {'snare', 'bass', 'lead', 'hat', 'kick'})]}

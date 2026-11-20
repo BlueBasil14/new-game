@@ -1,16 +1,17 @@
 # Turf Loop shorts: grades
 
-Running: 
+Running: 2026-11-20 00:53
 
 Pass mark 7/10 overall from a fresh grader subagent (`GRADER_PROMPT.md`). Max 6 rework rounds per video (raised from 3 on 2026-11-20: all five plateaued at 6 and the owner asked for 7+), then parked with reasons.
 
-| Video | Idea | R1 | R2 | R3 | Status |
-|---|---|---|---|---|---|
-| v01_computer_lab | #1 | 5 | 6 | 6 | rework |
-| v02_zero_to_hundred | #2 | 5 | 6 | 6 | rework |
-| v03_how_to_play | #3 | 5 | 6 | 6 | rework |
-| v04_own_line | #4 | 5 | 6 | 6 | rework |
-| v05_loop_math | #5 | 6 | 6 | 6 | rework |
+| Video | Idea | R1 | R2 | R3 | R4 | Status |
+|---|---|---|---|---|---|---|
+| v01_computer_lab | #1 | 5 | 6 | 6 | 6 | rework (4 rounds) |
+| v02_zero_to_hundred | #2 | 5 | 6 | 6 | – | rework (3 rounds; re-rendered with round-4 engine fixes, not regraded) |
+| v03_how_to_play | #3 | 5 | 6 | 6 | 6 | rework (4 rounds) |
+| v04_own_line | #4 | 5 | 6 | 6 | 6 | rework (4 rounds) |
+| v05_loop_math | #5 | 6 | 6 | 6 | – | rework (3 rounds; re-rendered with round-4 engine fixes, not regraded) |
+| v06_greed_meter | #6 | 6 | | | | rework (1 round) |
 
 ## Round 1 (2026-11-19): shared problems
 Every grader raised the same five things:
@@ -95,3 +96,56 @@ Graders then found the next layer. **Round 4 to-do, in priority order:**
    - v03: a mini leaderboard (YOU / YELLOW / PINK) at the crown.
    - v04: hold "IN TURF LOOP?" 0.75 s, bring the music back under the slow-mo, a thicker ring on the runner.
    - v05: fill the claim on the beat with counting-up numbers (needs fractional steps in `steps_fn` mode, so the board doesn't flash grey for one 16th). Small loops must be clean squares that keep risk under 35%, with a running counter "+N vs GREEDY 0". Keep YOU visible where you died.
+
+## Round 4 (2026-11-20 01:00-01:45): v01, v03, v04 reworked, v06 new. All 6 again.
+**What changed (engine, affects every video):**
+- Score pops sit about 54 px beside the runner, so they no longer cover the YOU tag.
+- Stamps sit above the brand bar on a dark plate that hides particles.
+- The YOUR TURF counter has white/yellow digits that pop when they change.
+- The end card's mini-match is 1.5x bigger and uses the video's own colors, and the CTA button pulses on every beat.
+- `stamp(..., flash=False)` gives a hard cut.
+
+**What changed (per video):**
+- Shared demo: yellow creeps in with a red DANGER! box, and pink's trail gets a CUT IT! box before the K.O.
+- v01: size-4 hook captions, flood at 0.5 s, ALT+TAB as a hard cut, "LEAVE YOUR TURF... / ...DON'T GET CAUGHT".
+- v03: a YOU / YEL / PINK leaderboard strip at the crown.
+- v04: 1.5x zoom and a red flash on the old-game crossing, "IN TURF LOOP?" held 0.75 s, a thicker ring, a yellow rival cut in the back half (K.O. at 6.3 s), cut to 11 s.
+
+**Scores:**
+- **v01 (6)** hook 6, clarity 7, style 7, pacing 6, readability 5, cta 6.
+  - The 0.5 s MINE! stamp is huge on its first frames, runs off the left edge and hides the flood.
+  - The teacher is just a blob, and the spreadsheet never shows in the sampled frames.
+  - 3.5-5 s: "NOW IT'S ON ROBLOX" plays over a near-empty board. Start mid-action with 4-6 territories.
+  - About 7.5 s: TOO LATE / +55 / YOU / CUT IT! overlap. Stagger them and drop the YOU tag after about 6 s.
+- **v03 (6)** hook 6, clarity 7, style 7, pacing 7, readability 6, cta 6.
+  - The cold-open board is too small: zoom it to about 70% of the height in the first second and put MINE! on the board.
+  - "CUT IT!" overlaps YOU at the K.O. Freeze 2-3 frames on contact.
+  - The leaderboard strip is still clipped at the right. KING! on 16% feels small, so count the % up live.
+  - Step 2's danger never pays off: add a "PHEW" beat or a ghost of the cut, plus a "crossing your own trail = fine" flash.
+- **v04 (6)** hook 6, clarity 7, style 7, pacing 5, readability 6, cta 6.
+  - The GAME OVER card is too long: hard-cut to Turf Loop by about 1.4 s, and show a flash of the bright board at 0-0.3 s.
+  - 6.3-9 s is filler under one caption. Trim it to about 9.5 s total.
+  - The K.O. rival is tiny: zoom 1.3-1.5x on the cut and freeze-frame it.
+  - +24 and +28 stack, and YOU is clipped at the board edge.
+- **v06 (6)** hook 6, clarity 6, style 7, pacing 7, readability 5, cta 6.
+  - The cold open's CUT passes too fast (0.59 s, rewind at 0.94 s). Make the open about 1.6 s with "100% -> 0%" and a freeze.
+  - The greed bar empties after each claim, so it looks like greed falls as rewards grow. Fill it only while trailing, and add a TURF % counter beside it.
+  - DANGER! and WATCHING. are clipped at the right edge.
+  - Red sits still: animate it edging toward the trail on each beat.
+  - "GREED GREEDY!" reads oddly. Use "TOO GREEDY!".
+
+**Round 5 to-do, in priority order:**
+1. **Shared engine work:**
+   - Brand bar to about 3.5% of the height, with readable "SOON ON ROBLOX" text.
+   - CTA button about 1.3-1.5x bigger, placed higher (out of the TikTok bottom-UI zone) and above the comment-bait line.
+   - Only one score pop on screen at a time.
+   - Hide the YOU tag after the first claim, or whenever another label is near it.
+   - Clamp danger and other labels inside the board.
+   - YOUR TURF % counts up over about 0.5 s instead of jumping.
+   - Stamp pop-in capped near 1.4x so the first frames don't overflow the frame.
+2. **Hooks:** zoom the board to about 70% of the height for the first second (v03, v06), and keep every hook payoff on screen for at least 0.8 s before a cut.
+3. **Freeze plus zoom on every K.O.:** 2-3 frames of freeze and a 1.3x zoom on the contact point.
+4. **Per video:**
+   - v01: a teacher silhouette, the spreadsheet held 0.4 s, and a mid-action board at 3.5 s.
+   - v04: shorten the GAME OVER card and trim the tail.
+   - v06: the meter fills only while trailing, red edges in on each beat, a longer cold open.
