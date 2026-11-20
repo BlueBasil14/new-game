@@ -208,3 +208,16 @@ Graders then found the next layer. **Round 4 to-do, in priority order:**
 2. Every hook: start mid-action, 1 beat before the payoff, with a stake caption (not a tutorial title). One short line, with a small tag above it.
 3. Add a visible REWIND cue (scanlines plus a "<<" stamp and SFX) wherever a video jumps back after a cold open (v06, v07).
 4. v03: drop TOO LATE!, shorten step 2, bigger crown payoff. v04: hook rewrite, a visible rival trail, YOU off the ring. v06: a meter ladder that only climbs, and 0% on the CUT! frame.
+
+## s01_skins_hype (2026-11-20, owner request: Paper.io callback + every cosmetic, 108 BPM). Script: tools/video/hype.py
+| Round | Overall | hook | clarity | style | pacing | readability | cta |
+|---|---|---|---|---|---|---|---|
+| R1 | 6 | 7 | 5 | 7 | 6 | 6 | 6 |
+| R2 | 6 | 7 | 5 | 7 | 6 | 6 | 7 |
+
+Status: rework. R2 fixes for the next run:
+1. Make the green CRT playfield 2x bigger with lighter scanlines, and put the +33 burst on screen by 0.6 s. Turn "IT GREW UP..." into a CRT power-off before the logo slam.
+2. Hold "LOOP HOME = IT'S YOURS" for 2 beats over one clear loop and claim. Add one visible cut around the trails section ("CUT THEIR TRAIL = THEY'RE OUT").
+3. Show 4 contrasting rare skins at 1 beat or more each instead of 6. Remove the leftover white wipe line.
+4. Safe zones: move the footer and name cards up about 120 px, and put "WHICH ONE ARE YOU GETTING?" above the tile grid.
+5. On the end card, pulse "FOLLOW TO PLAY FIRST" on the beat and make "COMING SOON TO ROBLOX" bigger.

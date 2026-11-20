@@ -404,3 +404,18 @@ Owner asked in chat for a top-down camera to record short-form clips (research i
   - A visible rewind cue.
 - v03 and v04 have one rework round left before they are parked.
 - Not posted anywhere. Nobody has watched the MP4s with sound.
+
+## Lead session, 2026-11-20: s01 skins hype video + owner feedback
+- Owner on v01–v07: "those are good, good job". New asks:
+  - A Paper.io callback.
+  - Show off all the skins and animations.
+  - Super hype, but a little slower.
+- Built `tools/video/hype.py` with cosmetics helpers: the 7 skin patterns as tiles, the 4 legendary animations (pulse, flow, drift, rainbow), wipes, name cards, the 4 capture effects, and Living Woodland trees. All names, colours and patterns come from `Catalog.luau`.
+- `s01_skins_hype` (24 s, 108 BPM):
+  - A retro "PAPER.IO IN CLASS?" hook, then the logo drop.
+  - Six rare skins and four animated legendaries on a live match.
+  - Two trails, capture effects, then the Woodland forest.
+  - "Comment a number" tiles and the end card.
+- Grades: R1 6, R2 6. Fixes are in GRADES.md.
+- Weekend task prompt updated with the owner feedback: 108 BPM, Paper.io name allowed, cosmetics in most videos.
+- Note for the owner: naming Paper.io is a trademark reference. Fine as a nostalgic mention, but some ad platforms reject competitor names in paid ads.

@@ -1,0 +1,15 @@
+s01_skins_hype: 24.4s, 108 BPM, 1080x1920 30fps
+ 0.00- 1.22s  text: REMEMBER PLAYING PAPER.IO IN CLASS?
+ 0.00- 2.22s  scene: HOOK: green retro school-computer screen, a runner closes a square loop on beat 1
+ 1.22- 2.22s  text: IT GREW UP...
+ 2.22- 3.33s  scene: DROP: TURF LOOP logo slams in, ON ROBLOX, WITH SKINS. SO MANY SKINS.
+ 3.33- 4.17s  text: LOOP HOME = IT'S YOURS
+ 3.33-20.56s  scene: live 16x16 match; your turf wears 6 rare skins (1.5 beats each, wipe + name card), 4 animated legendaries (2 beats each), 2 trails, capture effects on each claim, then Living Woodland trees
+ 4.17- 8.33s  text: RARE SKINS
+ 8.33-12.78s  text: LEGENDARY. THEY MOVE.
+12.78-15.00s  text: TRAILS
+15.00-18.33s  text: CAPTURE EFFECTS
+18.33-20.56s  text: YOUR TURF GROWS A FOREST
+20.56-22.22s  scene: comment bait: all 10 skins tiled, WHICH ONE ARE YOU GETTING? COMMENT BELOW
+22.22-24.44s  scene: end card: logo, live mini-match, COMING SOON TO ROBLOX /   / FOLLOW TO PLAY FIRST
+sound effects: 46 cues; music: {'mode': 'major', 'root': 60, 'seed': 77, 'prog': [0, 5, 3, 4], 'sections': [(0, 3.5, {'hat', 'kick', 'arp'}), (3.5, 4, set()), (4, 18, {'snare', 'bass', 'lead', 'arp', 'hat', 'kick'}), (18, 26, {'snare', 'bass', 'lead', 'arp', 'hat', 'kick'}), (26, 40, {'snare', 'bass', 'lead', 'arp', 'hat', 'kick'}), (40, 44, {'bass', 'lead', 'snare', 'hat', 'kick'})]}
