@@ -317,3 +317,29 @@ Next fixes:
 5. Bait: grey cells with a dashed trail and a "? CELLS" gap, or fold it into the end card.
 
 **Pattern across 23 grades:** every s-video sits at 6 with style 7-8. The ceiling is clarity and hook (5-6): graders want one instantly readable mechanic shot in the first 2 s and threats and cuts that are visible in stills. The next run should spend its rounds on those, not on more cosmetics.
+
+## Run 2026-11-20 15:52 (weekend task): s02 R5, s03 R4, s04 R3 reworked. All 6 again. No new video this run.
+**Applied:** s04: hook starts with YOU already one cell from home (stalls there, yellow steps on the trail at ~1 s), grey ghost + "TRAIL HIT = OUT", kick+arp kept under the rewind and the full band at TAKE 2, bait shows "? CELLS". s03: hook caption "FREE TRACK + 4 LEGENDARIES", bigger hook board, track hides far tiers while skipping, bigger tier numbers on the comment card (now 4.5 beats), end card 3 beats, no K.O. zoom in the events scene (`kozoom=False` in `match_scene`). s02: avatar punch-in on every beat, taller 290 px camera, wardrobe 1.5 beats per skin.
+
+**s02 R5 (6)** hook 6, clarity 7, style 6, pacing 6, readability 7, cta 6.
+1. Hook: "IN PAPER.IO YOU WERE A SQUARE." is a dull 3-line opener on a green CRT that doesn't look like the game. Open on the avatar mid-loop with a +55 pop and keep the square-to-avatar morph as the payoff.
+2. 1.1-2.8 s is a static idle avatar and the first claim lands at 5 s. Compress the reveal and move the claim under 2 s.
+3. Gameplay is small, grey and flat. Bigger flood and +N, and a 0.3 s hold on the K.O.
+4. Use one high-contrast caption color (the red on navy is hard to read) and keep stamps clear of the footer.
+5. Wardrobe repeats one caption and only swaps the pad behind the avatar. Cut to about 1.8 s or recolor the avatar's own turf and trail. The end card is cluttered.
+
+**s03 R4 (6)** hook 5, clarity 5, style 7, pacing 6, readability 6, cta 6.
+1. Hook board is still a tiny grey 3x3 look with a +23 pop and no game name. Open on a full-frame Prism Storm fill or a flash of all 4 legendaries, with TURF LOOP in a corner badge.
+2. Track: mid-scroll tier numbers still collide ("38", "128") and "KEY X1" is clipped. One big reward card per beat, no ticker.
+3. No threat or K.O. anywhere. Add a 1.5 s trail/cut beat at about 1.7 s, taking time from Crown Rush or the comment card.
+4. Second half drags (comment card 2.5 s, small Crown Rush board). Fix the LIMITED TRAIL! stamp overlapping the faded "7" counter.
+5. The permanent footer is wallpaper by the end.
+
+**s04 R3 (6)** hook 6, clarity 6, style 7, pacing 6, readability 7, cta 7.
+1. Hook: enlarge the bracket and "1 CELL" label 2x, add a red danger arrow on yellow's path, a bigger SO CLOSE.
+2. The ghost and red particles confuse: show an explicit "YOU'RE OUT"/X, and put "TRAIL HIT = OUT" on a dark plate at about 0.6 s, before the K.O.
+3. Wardrobe (2.2 s) is off-topic: cut to about 1.2 s or move it after the bait. Use the time for a second claim or kill.
+4. Comment-bait card is static: shorten to 1.2 s, animate it, larger text on a plate.
+5. Footer repeats the end card and is in the bottom UI zone: remove on the end card. Add "DRAW A LOOP. CLAIM THE TURF." to the mid captions.
+
+**Next run priorities (s02 5 rounds, s03 4, s04 3):** s02 is one round from parking. Shared: footer off on end cards and for most of the video, a hook with a visible threat in frame 0 for s02/s03, wardrobe and bait sections about 1.2 s. Then build the next unbuilt idea (#9 Head-On).

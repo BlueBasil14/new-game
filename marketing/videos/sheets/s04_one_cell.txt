@@ -14,4 +14,4 @@ s04_one_cell: 13.1s, 108 BPM, 1080x1920 30fps
  6.94- 9.17s  text: LOSE A ROUND. KEEP YOUR SKINS.
  9.17-10.83s  scene: comment bait: WHAT'S YOUR CLOSEST CALL? a home pad, a 1-cell gap with your avatar, COMMENT HOW MANY CELLS
 10.83-13.06s  scene: end card: logo, COMING SOON TO ROBLOX, two avatars (one crowned) on an animated skin pad, pulsing FOLLOW TO PLAY FIRST
-sound effects: 22 cues; music: {'mode': 'major', 'root': 60, 'seed': 123, 'prog': [0, 5, 3, 4], 'sections': [(0, 1.75, {'kick', 'arp', 'hat'}), (1.75, 4, set()), (4, 20, {'lead', 'bass', 'hat', 'kick', 'snare', 'arp'}), (20, 24, {'lead', 'bass', 'hat', 'kick', 'snare'})]}
+sound effects: 22 cues; music: {'mode': 'major', 'root': 60, 'seed': 123, 'prog': [0, 5, 3, 4], 'sections': [(0, 1.75, {'arp', 'hat', 'kick'}), (1.75, 5, {'arp', 'kick'}), (5, 20, {'lead', 'hat', 'kick', 'arp', 'bass', 'snare'}), (20, 24, {'lead', 'hat', 'kick', 'bass', 'snare'})]}

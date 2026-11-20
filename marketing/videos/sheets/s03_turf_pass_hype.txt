@@ -1,6 +1,6 @@
-s03_turf_pass_hype: 16.1s, 108 BPM, 1080x1920 30fps
+s03_turf_pass_hype: 16.9s, 108 BPM, 1080x1920 30fps
  0.00- 1.67s  scene: HOOK: your avatar closes a loop on beat 1 and its turf fills with the animated PRISM STORM legendary (+N pop)
- 0.00- 1.67s  text: THE TURF PASS IS COMING
+ 0.00- 1.67s  text: FREE TRACK + 4 LEGENDARIES
  1.67- 3.11s  text: TURF PASS. SEASON 1.
  1.67- 6.67s  scene: battle pass track: big tier numbers, tiers fly past with a >> SKIP >> marker and whoosh; stops on each animated legendary (tiers 1, 10, 20, 30) with a name card
  3.11- 4.44s  text: 30 TIERS. FREE + PREMIUM.
@@ -13,7 +13,7 @@ s03_turf_pass_hype: 16.1s, 108 BPM, 1080x1920 30fps
  9.72-11.11s  text: HOLD THE CROWN 5 MIN = LIMITED TRAIL
 10.56s  STAMP: LIMITED TRAIL! (+shake, flash)
 11.11-12.78s  text: WEEKENDS = 2X COINS
-12.78-13.89s  scene: all 4 legendaries animating with an avatar on each, 14 DAYS PER SEASON, SEASON 1 STARTS AT LAUNCH
-12.78-13.89s  text: WHICH ARE YOU GRINDING FOR? COMMENT 1-4
-13.89-16.11s  scene: end card: logo, COMING SOON TO ROBLOX, two avatars (one crowned) on an animated skin pad, pulsing FOLLOW TO PLAY FIRST
-sound effects: 35 cues; music: {'mode': 'minor', 'root': 57, 'seed': 99, 'prog': [0, 5, 2, 6], 'sections': [(0, 2.5, {'hat', 'kick', 'arp'}), (2.5, 3, set()), (3, 25, {'bass', 'lead', 'hat', 'snare', 'kick', 'arp'}), (25, 29, {'bass', 'lead', 'hat', 'snare', 'kick'})]}
+12.78-15.28s  scene: all 4 legendaries animating with an avatar on each, 14 DAYS PER SEASON, SEASON 1 STARTS AT LAUNCH
+12.78-15.28s  text: WHICH ARE YOU GRINDING FOR? COMMENT 1-4
+15.28-16.94s  scene: end card: logo, COMING SOON TO ROBLOX, two avatars (one crowned) on an animated skin pad, pulsing FOLLOW TO PLAY FIRST
+sound effects: 35 cues; music: {'mode': 'minor', 'root': 57, 'seed': 99, 'prog': [0, 5, 2, 6], 'sections': [(0, 2.5, {'kick', 'arp', 'hat'}), (2.5, 3, set()), (3, 25, {'hat', 'lead', 'arp', 'bass', 'kick', 'snare'}), (25, 29, {'hat', 'lead', 'bass', 'kick', 'snare'})]}

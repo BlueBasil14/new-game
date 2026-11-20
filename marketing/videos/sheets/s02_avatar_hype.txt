@@ -1,4 +1,4 @@
-s02_avatar_hype: 13.9s, 108 BPM, 1080x1920 30fps
+s02_avatar_hype: 14.4s, 108 BPM, 1080x1920 30fps
  0.00- 1.11s  scene: HOOK: big green retro screen, you are a little square; your loop closes and fills at 0.28 s
  0.00- 1.11s  text: IN PAPER.IO YOU WERE A SQUARE.
  1.11- 2.78s  scene: hard cut at 1.1 s: the square grows and morphs into a big blocky Roblox-style avatar (6x), walking in place
@@ -13,7 +13,7 @@ s02_avatar_hype: 13.9s, 108 BPM, 1080x1920 30fps
  6.85s  STAMP: K.O.! (+shake, flash)
  8.24- 9.44s  text: MOST TURF = THE CROWN
  8.24s  STAMP: KING! (+shake, flash)
- 9.44-11.67s  scene: wardrobe: the same YOU avatar on a pad that swaps skin on every beat (Galaxy Swirl, Magma Surge, Prism Storm, Starfall)
- 9.44-11.67s  text: YOUR AVATAR. ANY SKIN.
-11.67-13.89s  scene: end card: logo, COMING SOON TO ROBLOX, two avatars (one crowned) on an animated skin pad, pulsing FOLLOW TO PLAY FIRST
-sound effects: 23 cues; music: {'mode': 'major', 'root': 62, 'seed': 88, 'prog': [0, 4, 5, 3], 'sections': [(0, 1.5, {'kick', 'arp', 'hat'}), (1.5, 2, set()), (2, 23, {'lead', 'bass', 'hat', 'kick', 'snare', 'arp'}), (23, 27, {'lead', 'bass', 'hat', 'kick', 'snare'})]}
+ 9.44-12.78s  scene: wardrobe: the same YOU avatar on a pad that swaps skin on every beat (Galaxy Swirl, Magma Surge, Prism Storm, Starfall)
+ 9.44-12.78s  text: YOUR AVATAR. ANY SKIN.
+12.78-14.44s  scene: end card: logo, COMING SOON TO ROBLOX, two avatars (one crowned) on an animated skin pad, pulsing FOLLOW TO PLAY FIRST
+sound effects: 23 cues; music: {'mode': 'major', 'root': 62, 'seed': 88, 'prog': [0, 4, 5, 3], 'sections': [(0, 1.5, {'kick', 'hat', 'arp'}), (1.5, 2, set()), (2, 23, {'hat', 'arp', 'bass', 'snare', 'kick', 'lead'}), (23, 27, {'hat', 'bass', 'snare', 'kick', 'lead'})]}

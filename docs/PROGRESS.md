@@ -447,3 +447,6 @@ Owner asked in chat for a top-down camera to record short-form clips (research i
 - s01 (R4), s02 (R3, R4), s03 (R3) applied their GRADES.md fix lists. New s04 (idea #8, R1 and R2): a slow-mo near-miss, then a rewind, then go home first and a revenge cut, then the Turf Pass legendaries.
 - Grades: all 6, from fresh grader subagents. s02's clarity and pacing reached 7. The common ceiling is hook and clarity: graders want one readable mechanic shot in the first 2 s and threats and cuts visible in stills. Fix lists are in `marketing/videos/GRADES.md`.
 - I checked every contact sheet myself before grading. Nobody has watched the MP4s with sound. Nothing was posted.
+
+## 2026-11-20 (weekend task): Turf Loop shorts, s02/s03/s04 reworked
+Reworked s04 (hook geometry, ghost, music sections), s03 (hook, track, comment card, no K.O. zoom in events) and s02 (beat punch-in, taller camera, longer wardrobe) in `tools/video/hype.py`; re-rendered and graded by fresh subagents: all three 6/10 (s02 R5, s03 R4, s04 R3). Fix lists and next priorities are in `marketing/videos/GRADES.md`. No new video this run. Nothing posted or uploaded. The game code was not touched.
