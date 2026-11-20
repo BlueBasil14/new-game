@@ -13,4 +13,4 @@ v05_loop_math: 16.0s, 120 BPM, 1080x1920 30fps
  8.75-14.00s  scene: the meta: 3 quick small squares [23, 22, 50], risk bar stays low
  8.75-14.00s  text: SMALL + OFTEN: +95 SAFE VS 0
 14.00-16.00s  scene: end card: logo, live mini-match, COMING SOON TO ROBLOX / SQUARE OR GREEDY? / FOLLOW TO PLAY FIRST
-sound effects: 20 cues; music: {'mode': 'major', 'root': 60, 'seed': 55, 'prog': [0, 3, 4, 3], 'sections': [(0, 4, {'hat', 'kick', 'arp'}), (4, 28, {'bass', 'lead', 'hat', 'kick', 'arp', 'snare'}), (28, 32, {'bass', 'lead', 'hat', 'kick', 'snare'})]}
+sound effects: 20 cues; music: {'mode': 'major', 'root': 60, 'seed': 55, 'prog': [0, 3, 4, 3], 'sections': [(0, 4, {'arp', 'hat', 'kick'}), (4, 28, {'hat', 'snare', 'bass', 'lead', 'arp', 'kick'}), (28, 32, {'hat', 'snare', 'bass', 'lead', 'kick'})]}

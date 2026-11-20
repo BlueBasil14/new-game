@@ -79,7 +79,8 @@ def danger(img, ar, rid, x0, y0, cp, t, label="DANGER!", vx=0, vy=0):
     d = ImageDraw.Draw(img)
     g = cp + (2 if int(t * 8) % 2 else 0)
     d.rectangle((cx - g, cy - g, cx + g, cy + g), outline=RED, width=2)
-    lx = max(30, min(W - 30, cx))
+    half = len(label) * 6 + 2  # keep the whole label on screen
+    lx = max(half + 2, min(W - half - 2, cx))
     ly = cy + g + 3 if cy - g - 20 < y0 else cy - g - 18
     draw_text(img, label, lx, ly, 2, RED, WHITE if int(t * 8) % 2 else DARK)
 
@@ -358,11 +359,12 @@ def v03():
         (16, 20, {"kick", "snare", "hat", "bass", "lead"})]))
     dt = v.spb / 4
     cold = demo_arena(dt)
-    cold_in = arena_scene(v, cold, 0, 3, 140, 11, hero=1, fx=FX(), t_offset=(DEMO_CLAIM - 1) * dt, sounds=True)
+    cold_in = arena_scene(v, cold, 0, 3, 140, 11, hero=1, fx=FX(), t_offset=(DEMO_CLAIM - 1) * dt, sounds=True,
+                          view_fn=lambda tl: (3, 0, 19, 24, 14, 2, 96))
     v.scene(0, 2, lambda img, tl, tg: (bg_checker(img, tg), cold_in(img, tl, tg)),
-            "cold open: the big loop closes and floods at 0.12s")
+            "cold open, zoomed so the board fills 70% of the height: the big loop closes and floods at 0.12s")
     v.caption(0, 2, "TURF LOOP IN 10 SECONDS", color=YELLOW)
-    v.stamp(0.25, "MINE!", GREEN, beats=1.75, sound=None)
+    v.stamp(0.25, "MINE!", GREEN, y=250, beats=1.75, sound=None)
 
     ar = demo_arena(dt)
     inner = arena_scene(v, ar, 2, 3, 140, 11, hero=1, fx=FX(), pct=1)
@@ -375,11 +377,12 @@ def v03():
         demo_threats(img, ar, tl, v.spb)
         if tl >= v.b(DEMO_CLAIM2 / 4 + 0.5):  # mini leaderboard under the crown
             ImageDraw.Draw(img).rectangle((4, 96, W - 5, 118), fill=(14, 16, 26))
-            x = 10
-            for rid, nm in ((1, "YOU"), (2, "YEL"), (3, "PINK")):
-                val = f"{int(ar.share(rid) * 100)}%" if ar.runners[rid].alive else "OUT"
-                tw, _ = draw_text(img, f"{nm} {val}", x, 100, 2, ar.runners[rid].color, DARK, align="left")
-                x += tw + 14
+            items = [(f"{nm} {int(ar.share(rid) * 100)}%" if ar.runners[rid].alive else f"{nm} KO", ar.runners[rid].color)
+                     for rid, nm in ((1, "YOU"), (2, "YEL"), (3, "PINK"))]
+            x = W / 2 - (sum(len(s_) * 12 - 2 for s_, _ in items) + 16) / 2
+            for s_, col in items:
+                tw, _ = draw_text(img, s_, x, 100, 2, col, DARK, align="left")
+                x += tw + 8
 
     v.scene(S, 16, game, "rewind: the same match from the start: leave, loop (yellow just too late), claim, K.O. pink, crown")
     v.flash(S)
@@ -401,8 +404,7 @@ def v03():
 # ============================================================ v04 Your own line can't kill you
 def v04():
     v = Video("v04_own_line", 120, 22, music=dict(mode="minor", root=55, seed=44, sections=[
-        (0, 1.5, {"kick", "hat", "bass", "arp"}), (1.5, 4.5, set()), (4.5, 18, {"kick", "snare", "hat", "bass", "arp", "lead"}),
-        (18, 22, {"kick", "snare", "hat", "bass", "lead"})]))
+        (0, 1.5, {"kick", "hat", "bass", "arp"}), (1.5, 2.75, set())]))  # rest of the sections set once the K.O. beat is known
     loop = [(8, 12), (16, 12), (16, 4), (11, 4), (11, 16), (8, 16), (8, 14)]
     cross_step = 29  # re-enters its own trail at (11, 12)
 
@@ -454,7 +456,7 @@ def v04():
         img.paste(full.crop((x, y, x + cw, y + ch)).resize((W, H), Image.NEAREST))
 
     v.scene(0, 1.5, old_zoom, "OLD .IO GAMES (1.5x zoom on the crossing): green retro CRT; the figure-8 crosses its own line at 0.5s -> red X")
-    v.caption(0, 4.5, "OLD .IO GAMES: CROSS YOUR OWN LINE = DEAD", color=YELLOW)
+    v.caption(0, 2.75, "OLD .IO GAMES: CROSS YOUR OWN LINE = DEAD", color=YELLOW)
     v.sound(0, "hit")
     v.sound(cross_b, "cut")
     v.shake(cross_b, 0.3, 5)
@@ -468,10 +470,10 @@ def v04():
             draw_text(img, "GAME OVER", W / 2, 200, 4, RED, None)
         draw_lines(img, "YOU CROSSED YOUR OWN LINE", 262, 2, WHITE, None)
 
-    v.scene(1.5, 4.5, over, "GAME OVER card")
+    v.scene(1.5, 2.75, over, "GAME OVER card (0.6 s, hard cut)")
     v.sound(1.5, "gameover")
 
-    N0 = 4.5
+    N0 = 2.75
     new = make(False)
     off = (cross_step - 12) * new.dt  # crossing 1.5 beats after the cut to Turf Loop
     cross_tl = v.b(1.5)
@@ -504,7 +506,7 @@ def v04():
         if new.runners[2].alive and new.steps >= rival_step:
             danger(img, new, 2, 3, 140, 13, tl, "CUT IT!")
 
-    v.scene(N0, 18, new_game, f"TURF LOOP: same figure-8, slow-mo 20% for 1.5s over the crossing with a green ring + SAFE!, both lobes claimed at beat {claim_b:.2f}; yellow rival lays a trail across your path (red CUT IT! box), you cut it: K.O. at beat {cut_b:.2f}")
+    v.scene(N0, 40, new_game, f"TURF LOOP: same figure-8, slow-mo 20% for 1.5s over the crossing with a green ring + SAFE!, both lobes claimed at beat {claim_b:.2f}; yellow rival lays a trail across your path (red CUT IT! box), you cut it: K.O. at beat {cut_b:.2f}")
     v.sound(N0, "hit")
     v.overlay(N0, N0 + 1, lambda img, t: logo(img, 116, 3, t))
     v.caption(N0, N0 + 1.5, "IN TURF LOOP?", color=YELLOW, sound=False, size=4)
@@ -513,9 +515,15 @@ def v04():
     v.caption(claim_b, claim_b + 1.5, "BOTH LOOPS ARE YOURS", color=GREEN)
     v.caption(claim_b + 1.5, cut_b, "BUT THEIR LINE?", color=RED)
     v.stamp(cut_b, "K.O.!", RED, beats=1.5)
-    v.caption(cut_b, 18, "YOUR LINE: SAFE. THEIRS: K.O.", color=YELLOW)
-    v.watermark(N0, 18)
-    end_card(v, 18, 22, "COMING SOON TO ROBLOX", "WHAT WAS YOUR .IO NAME?", "FOLLOW TO PLAY FIRST", colors=(PLAYERS[0], PLAYERS[2]))
+    END = round((cut_b + 2.5) * 2) / 2
+    v.caption(cut_b, END, "YOUR LINE: SAFE. THEIRS: K.O.", color=YELLOW)
+    v.watermark(N0, END)
+    end_card(v, END, END + 4, "COMING SOON TO ROBLOX", "WHAT WAS YOUR .IO NAME?", "FOLLOW TO PLAY FIRST", colors=(PLAYERS[0], PLAYERS[2]))
+    v.dur = v.b(END + 4)
+    v.scenes = [(a, v.b(END) if b == v.b(40) else b, f) for (a, b, f) in v.scenes]
+    v.log = [ln.replace(f"{v.b(40):5.2f}s", f"{v.b(END):5.2f}s") for ln in v.log]
+    v.music["sections"] += [(2.75, END, {"kick", "snare", "hat", "bass", "arp", "lead"}),
+                            (END, END + 4, {"kick", "snare", "hat", "bass", "lead"})]
     return v
 
 
@@ -641,9 +649,9 @@ def v05():
 
 # ============================================================ v06 The Greed Meter
 def v06():
-    v = Video("v06_greed_meter", 128, 28, music=dict(mode="minor", root=52, seed=66, sections=[
-        (0, 2, {"kick", "hat", "bass", "arp"}), (2, 19.5, {"kick", "snare", "hat", "bass", "arp", "lead"}),
-        (19.5, 22, {"bass"}), (22, 28, {"kick", "snare", "hat", "bass", "lead"})]))
+    v = Video("v06_greed_meter", 128, 29.5, music=dict(mode="minor", root=52, seed=66, sections=[
+        (0, 3.5, {"kick", "hat", "bass", "arp"}), (3.5, 21, {"kick", "snare", "hat", "bass", "arp", "lead"}),
+        (21, 23.5, {"bass"}), (23.5, 29.5, {"kick", "snare", "hat", "bass", "lead"})]))
     HERO, RIVAL = PLAYERS[6], PLAYERS[0]
     X0, Y0, CP = 3, 132, 11
 
@@ -656,48 +664,59 @@ def v06():
                               (8, 9), (14, 9), (14, 16), (11, 16),  # bigger loop
                               (11, 21), (21, 21), (21, 1), (17, 1)])  # the greedy one
         h.respawn = False
-        e = ar.add(2, RIVAL, 19, 12, 3)
-        e.script = waits(e, 50) + deque([(20, 12)] * 17) + deque([(21, 12), (20, 12)])  # cut near the top of the giant loop
+        e = ar.add(2, RIVAL, 16, 12, 3)
+        e.script = waits(e, 52)  # then edges one cell toward your trail on every beat and steps on it
+        for x in (17, 18, 19, 20):
+            e.script += deque([(x, 12)] * 4)
+        e.script.append((21, 12))
         e.respawn = False
         return ar
 
     pre = run_events(make, 20)
     claims = [t for (t, k, d) in pre.events if k == "claim" and d["id"] == 1]
     cut_t = next(t for (t, k, d) in pre.events if k == "cut")
-    S = 2  # main run starts at beat 2
+    S = 3.5  # main run starts at beat 3.5 (1.6 s cold open)
     c1, c2, cut_b = (S + claims[0] / v.spb, S + claims[1] / v.spb, S + cut_t / v.spb)
     out_b = S + 12.5  # roughly when the greedy loop starts laying trail (step ~50)
 
     def meter(img, ar, tl):
+        """Greed = how much trail is out right now (fills only while trailing). TURF % sits beside it."""
         h = ar.runners[1]
         n = len(h.trail) if h.alive else 40
         b = int(tl / v.spb)  # the bar fills on the beat, not on every step
         if not hasattr(meter, "q") or meter.q[0] != b:
             meter.q = (b, n)
-        risk = min(1.0, meter.q[1] / 36)
-        lab, col = ("SAFE", GREEN) if risk < 0.35 else ("RISKY", YELLOW) if risk < 0.7 else ("GREEDY!", RED)
+        risk = min(1.0, meter.q[1] / 26)  # the giant loop must read TOO GREEDY before the cut
+        home = h.alive and not h.trail
+        lab, col = ("HOME", GREEN) if home else ("SAFE", GREEN) if risk < 0.35 else ("RISKY", YELLOW) if risk < 0.7 else ("TOO GREEDY!", RED)
         d = ImageDraw.Draw(img)
-        d.rectangle((14, 404, 256, 426), fill=DARK, outline=WHITE, width=1)
-        d.rectangle((16, 406, 16 + int(238 * risk), 424), fill=mix(GREEN, RED, risk))
-        for i in range(1, 10):
-            d.line((16 + i * 238 // 10, 406, 16 + i * 238 // 10, 424), fill=DARK)
-        draw_text(img, f"GREED {lab}", W / 2, 432, 2, col, DARK)
+        d.rectangle((14, 406, 162, 424), fill=DARK, outline=WHITE, width=1)
+        d.rectangle((16, 408, 16 + int(144 * risk), 422), fill=mix(GREEN, RED, risk))
+        for i in range(1, 6):
+            d.line((16 + i * 144 // 6, 408, 16 + i * 144 // 6, 422), fill=DARK)
+        pct = int(ar.share(1) * 100) if h.alive else 0
+        draw_text(img, f"TURF {pct}%", 214, 409, 2, YELLOW, DARK)
+        draw_text(img, f"GREED: {lab}", 14, 432, 2, col, DARK, align="left")
 
     # cold open: the cut, at full greed
     cold = make()
-    cold_in = arena_scene(v, cold, 0, X0, Y0, CP, hero=1, fx=FX(), t_offset=cut_t - v.b(1.25), sounds=True, pops=False)
+    cold_in = arena_scene(v, cold, 0, X0, Y0, CP, hero=1, fx=FX(), t_offset=cut_t - v.b(1.25), sounds=True, pops=False,
+                          view_fn=lambda tl: (5, 0, 19, 21, 14, 2, 104))
 
     def cold_scene(img, tl, tg):
         bg_checker(img, tg, c1=(48, 18, 22), c2=(62, 24, 28))
         cold_in(img, tl, tg)
         if cold.runners[1].alive:
-            danger(img, cold, 2, X0, Y0, CP, tl)
-            meter(img, cold, 99)
+            danger(img, cold, 2, 2, 104, 14, tl, vx=5)
+        meter(img, cold, 99)
+        if not cold.runners[1].alive and tl > v.b(1.6):
+            draw_text(img, "0%", W / 2, 230, 9, RED, DARK)
 
-    v.scene(0, S, cold_scene, "cold open: the greedy loop at max greed, red steps onto it, CUT at 0.59 s, all your turf vanishes")
-    v.caption(0, S, "HOW BIG IS TOO BIG?", color=YELLOW, size=4)
+    v.scene(0, S, cold_scene, "cold open (board zoomed to 70% of the height): the greedy loop at max greed, red steps onto it, CUT at 0.59 s (freeze + zoom), turf goes to 0%, held to 1.6 s")
+    v.caption(0, 1.75, "HOW BIG IS TOO BIG?", color=YELLOW, size=4)
+    v.caption(1.75, S, "MAX GREED = 0% TURF", color=RED, size=4)
     v.sound(0, "hit")
-    v.stamp(1.25, "CUT!", RED, beats=0.75, size=6, sound=None)
+    v.stamp(1.25, "CUT!", RED, y=300, beats=0.75, size=6, sound=None)
 
     ar = make()
     inner = arena_scene(v, ar, S, X0, Y0, CP, hero=1, fx=FX())
@@ -706,16 +725,16 @@ def v06():
         bg_checker(img, tg)
         inner(img, tl, tg)
         if ar.runners[1].alive and ar.steps >= 50:
-            danger(img, ar, 2, X0, Y0, CP, tl, "WATCHING...")
+            danger(img, ar, 2, X0, Y0, CP, tl, "DANGER!")
         if not any(a <= tg < b for (a, b) in getattr(v, "stamp_windows", [])):
             meter(img, ar, tl)
         if not ar.runners[1].alive:  # the ghost of what you had
             draw_text(img, "0%", W / 2, Y0 + 100, 8, RED, DARK)
 
-    v.scene(S, 22, game, f"rewind: small loop (claim beat {c1:.1f}), bigger loop (claim beat {c2:.1f}), then a giant loop while the greed bar fills on every beat; red waits beside your trail (red box from beat {out_b:.1f}) and steps on it at beat {cut_b:.2f}: K.O., 0%")
+    v.scene(S, 23.5, game, f"rewind: small loop (claim beat {c1:.1f}), bigger loop (claim beat {c2:.1f}), then a giant loop while the greed bar fills on every beat; red waits beside your trail (red box from beat {out_b:.1f}) and steps on it at beat {cut_b:.2f}: K.O., 0%")
     v.flash(S)
     v.sound(S, "whoosh")
-    for b in range(int(c2) + 1, int(cut_b) + 1):  # tension ticks: one click per beat while the bar climbs
+    for b in range(int(c2) + 1, int(cut_b) + 1):  # noqa  # tension ticks: one click per beat while the bar climbs
         v.sound(b, "click")
     v.caption(S, c1, "SMALL LOOP. SAFE.", color=GREEN)
     v.caption(c1, c2, "BIGGER LOOP. BIGGER REWARD.", color=YELLOW)
@@ -723,13 +742,132 @@ def v06():
     v.caption(out_b, cut_b, "GO HOME. GO HOME. GO HOME.", color=RED)
     v.stamp(cut_b, "K.O.!", RED, beats=2, size=6)
     v.sound(cut_b + 0.5, "fail")
-    v.caption(cut_b, 22, "KNOW WHEN TO GO HOME.", color=WHITE)
-    v.watermark(0, 22)
-    end_card(v, 22, 28, "COMING SOON TO ROBLOX", "HOW BIG DO YOU GO?", "FOLLOW TO PLAY FIRST", colors=(HERO, RIVAL))
+    v.caption(cut_b, 23.5, "KNOW WHEN TO GO HOME.", color=WHITE)
+    v.watermark(0, 23.5)
+    end_card(v, 23.5, 29.5, "COMING SOON TO ROBLOX", "HOW BIG DO YOU GO?", "FOLLOW TO PLAY FIRST", colors=(HERO, RIVAL))
+    return v
+
+# ============================================================ v07 POV: you cut the King
+def v07():
+    v = Video("v07_cut_the_king", 120, 20, music=dict(mode="major", root=57, seed=77, sections=[
+        (0, 3.5, {"kick", "hat", "bass", "arp"}), (3.5, 5.5, {"kick", "hat", "bass", "arp"}), (5.5, 7.5, {"hat", "bass"}),
+        (7.5, 14, {"kick", "snare", "hat", "bass", "arp", "lead"}), (14, 20, {"kick", "snare", "hat", "bass", "lead"})]))
+    YOU, KING = PLAYERS[7], PLAYERS[11]
+    CUT_STEP = 24  # you step on the King's trail at (8, 17)
+
+    def make():
+        ar = Arena(24, seed=7)
+        ar.dt = v.spb / 4
+        k = ar.add(2, KING, 16, 8, 9)  # big turf, crown on
+        place(k, 16, 12)
+        k.king, k.respawn = True, False
+        k.script = path_from([(16, 12), (16, 20), (8, 20), (8, 14), (12, 14), (12, 12)])  # the greedy loop
+        h = ar.add(1, YOU, 5, 17, 6)  # 6% of the map: big enough to take the crown (KingMinShare 3%)
+        place(h, 7, 17)
+        h.script = waits(h, CUT_STEP - 1) + deque([(8, 17), (7, 17)])
+        h.after_script, h.hungry, h.reach, h.shield = "bot", True, (3, 6), True
+        return ar
+
+    def crown_fx(ar, state, tg, x0, y0, cp, vx=0, vy=0):
+        """After the K.O. the crown arcs from the King to you, then sits on your head."""
+        cut = next((d for (t, k_, d) in ar.events if k_ == "cut"), None)
+        if cut is None:
+            return
+        if "tc" not in state:
+            state["tc"] = tg
+        k = (tg - state["tc"]) / 0.6
+        h = ar.runners[1]
+        if k >= 1:
+            h.king = True
+            return
+        fx_, fy_ = x0 + (cut["at"][0] - vx + 0.5) * cp, y0 + (cut["at"][1] - vy - 1) * cp
+        tx, ty = x0 + (h.x - vx + 0.5) * cp, y0 + (h.y - vy - 1) * cp
+        e = ease_out(k)
+        crown(img_ref[0], int(fx_ + (tx - fx_) * e), int(fy_ + (ty - fy_) * e - 40 * math.sin(k * math.pi)), 4)
+
+    img_ref = [None]
+
+    def board_box(img, cx, cy, cp, t, label):
+        d = ImageDraw.Draw(img)
+        g = cp + (2 if int(t * 8) % 2 else 0)
+        d.rectangle((cx - g, cy - g, cx + g, cy + g), outline=RED, width=2)
+        half = len(label) * 6 + 2
+        draw_text(img, label, cx + g + 4, cy - 7, 2, RED if int(t * 8) % 2 else YELLOW, DARK, align="left")  # right of the box, clear of YOU
+
+    # cold open: the cut itself, zoomed in, at 0.5 s
+    cold = make()
+    CV = (2, 2, 19, 21, 14, 2, 104)
+    cold_in = arena_scene(v, cold, 0, 0, 0, 14, hero=1, fx=FX(), t_offset=CUT_STEP * cold.dt - v.b(1), view_fn=lambda tl: CV)
+    cst = {}
+
+    def cold_scene(img, tl, tg):
+        bg_checker(img, tg, c1=(46, 20, 40), c2=(60, 26, 52))
+        img_ref[0] = img
+        cold_in(img, tl, tg)
+        crown_fx(cold, cst, tg, CV[5], CV[6], CV[4], CV[0], CV[1])
+
+    v.scene(0, 3.5, cold_scene, "cold open (board at 70% of the height): you step on the pink King's long trail at 0.5 s (freeze + zoom), the King's whole turf vanishes, the crown arcs onto your head")
+    v.caption(0, 1.75, "POV: THE KING GOT GREEDY", color=YELLOW)
+    v.caption(1.75, 3.5, "AND YOU WERE WAITING", color=GREEN)
+    v.sound(0, "hit")
+    v.stamp(1.1, "KING K.O.!", RED, y=300, beats=1.2, size=5)
+    v.sound(1.5, "crown")
+
+    X0, Y0, CP = 3, 124, 11
+    S = 3.5
+    ar = make()
+    SKIP = 8  # rewind starts 2 beats into the King's loop (round 6: the rewind dragged)
+    inner = arena_scene(v, ar, S, X0, Y0, CP, hero=1, fx=FX(), t_offset=SKIP * ar.dt)  # the strip is the only % readout
+    st = {}
+
+    def game(img, tl, tg):
+        bg_checker(img, tg)
+        img_ref[0] = img
+        inner(img, tl, tg)
+        crown_fx(ar, st, tg, X0, Y0, CP)
+        b = tl / v.spb
+        k = ar.runners[2]
+        if k.alive and b < 2:
+            danger(img, ar, 2, X0, Y0, CP, tl, "GREEDY!")
+        if k.alive and 2 <= b:
+            board_box(img, X0 + 8 * CP + CP / 2, Y0 + 17 * CP + CP / 2, CP, tl, "CUT HERE!")
+        if any(z[0] <= tg < z[0] + 0.5 for z in getattr(v, 'zooms', [])):
+            return  # the K.O. zoom would push the strip under the caption
+        # leaderboard strip: who holds the crown right now
+        ImageDraw.Draw(img).rectangle((4, 98, W - 5, 118), fill=(14, 16, 26))
+        rows = sorted(((ar.share(r.id), r) for r in ar.runners.values() if r.alive), key=lambda x: -x[0])
+        items = [(("YOU " if r.id == 1 else "KING ") + f"{int(sh * 100)}%", r.color, r.king) for sh, r in rows]
+        if not k.alive:
+            items.append(("KING KO", KING, False))
+        x = W / 2 - (sum(len(s_) * 12 - 2 for s_, _, _ in items) + 22 * len(items)) / 2
+        for s_, col, has in items:
+            if has:
+                crown(img, int(x + 7), 102, 2)
+            tw, _ = draw_text(img, s_, x + 18, 101, 2, col, DARK, align="left")
+            x += tw + 22 + 8
+
+    cut_b = S + (CUT_STEP - SKIP) / 4
+    v.scene(S, 14, game, f"rewind: the pink King (crown, 14% of the map) leaves home on a huge loop; GREEDY! box on the King, then a blinking CUT HERE! box on the King's trail; you step on it at beat {cut_b}: K.O., the King's turf vanishes, crown flies to you; you then flood the empty space; leaderboard strip on top")
+    v.flash(S)
+    v.sound(S, "whoosh")
+    v.caption(S, S + 1, "WATCH THE KING...", color=YELLOW)
+    v.caption(S + 1, S + 2.5, "LEFT HOME. HUGE TRAIL.", color=RED)
+    v.caption(S + 2.5, cut_b, "WAIT FOR IT...", color=WHITE)
+    for b in (S + 2.5, S + 3, S + 3.5):
+        v.sound(b, "click")
+    v.stamp(cut_b, "KING K.O.!", RED, beats=1.5, size=5)
+    v.caption(cut_b, cut_b + 2.5, "CUT THE KING = TAKE THE CROWN", color=GREEN)
+    v.sound(cut_b + 0.5, "crown")
+    v.caption(cut_b + 2.5, 14, "KING K.O. = 2X COINS", color=YELLOW)
+    v.stamp(cut_b + 2.5, "2X COINS!", YELLOW, beats=1.5, size=5, sound="coin")
+    v.sound(cut_b + 2.75, "coin")
+    v.sound(cut_b + 3, "coin")
+    v.watermark(0, 14)
+    end_card(v, 14, 20, "COMING SOON TO ROBLOX", "WHO WAS KING IN YOUR CLASS?", "FOLLOW TO PLAY FIRST", colors=(YOU, KING))
     return v
 
 
-ALL = {"v01": v01, "v02": v02, "v03": v03, "v04": v04, "v05": v05, "v06": v06}
+ALL = {"v01": v01, "v02": v02, "v03": v03, "v04": v04, "v05": v05, "v06": v06, "v07": v07}
 
 if __name__ == "__main__":
     names = sys.argv[1:] or list(ALL)

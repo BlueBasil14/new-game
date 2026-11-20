@@ -387,3 +387,20 @@ Owner asked in chat for a top-down camera to record short-form clips (research i
 - **Re-rendered v02 and v05** for the engine changes. Not regraded.
 - **Grades** (fresh subagent each): v01 6, v03 6, v04 6, v06 6. None passes 7 yet. The round-5 to-do in `marketing/videos/GRADES.md` lists the shared fixes graders keep asking for: brand bar size, CTA size and position, label overlaps, count-up %, hook zoom, K.O. freeze.
 - **Not done:** nobody has watched the MP4s with sound. Nothing posted.
+
+## Scheduled run, 2026-11-20 12:00: promo shorts round 5
+- **Recovered work from the 03:53 run**, which had stopped before grading and left its work uncommitted. That work:
+  - Round-5 engine fixes: a slimmer brand bar, a bigger and higher CTA, one score pop at a time, YOU hides after the first claim, the % counts up, a stamp size cap, and a freeze + 1.3x zoom on every K.O.
+  - Reworks of v03, v04 and v06.
+  - New v07 Cut the King (idea #7).
+- **Graded** with a fresh subagent each: v03 6, v04 6, v06 6, v07 6.
+- **Then fixed:**
+  - Engine: stamps now draw on top of a weaker, shorter flash. Three graders said the K.O. frames were washed out. All 7 videos were re-rendered.
+  - v07: a shorter rewind, the strip as the single % readout, CUT HERE! moved off YOU, 10 s total. Regraded: still 6.
+- Still nothing at 7. The next round's to-do in `marketing/videos/GRADES.md` covers:
+  - The "+1" pop on K.O.
+  - A "coming soon" footer.
+  - Mid-action stake hooks.
+  - A visible rewind cue.
+- v03 and v04 have one rework round left before they are parked.
+- Not posted anywhere. Nobody has watched the MP4s with sound.

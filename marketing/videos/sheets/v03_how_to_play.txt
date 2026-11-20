@@ -1,5 +1,5 @@
 v03_how_to_play: 10.0s, 120 BPM, 1080x1920 30fps
- 0.00- 1.00s  scene: cold open: the big loop closes and floods at 0.12s
+ 0.00- 1.00s  scene: cold open, zoomed so the board fills 70% of the height: the big loop closes and floods at 0.12s
  0.00- 1.00s  text: TURF LOOP IN 10 SECONDS
  0.12s  STAMP: MINE! (+shake, flash)
  1.00- 2.00s  text: 1. LEAVE YOUR TURF
@@ -12,4 +12,4 @@ v03_how_to_play: 10.0s, 120 BPM, 1080x1920 30fps
  6.50- 8.00s  text: 5. MOST TURF = THE CROWN
  6.50s  STAMP: KING! (+shake, flash)
  8.00-10.00s  scene: end card: logo, live mini-match, COMING SOON TO ROBLOX / WHICH STEP DO YOU FORGET? / FOLLOW TO PLAY FIRST
-sound effects: 20 cues; music: {'mode': 'major', 'root': 62, 'seed': 33, 'sections': [(0, 2, {'kick', 'arp', 'hat'}), (2, 16, {'lead', 'kick', 'arp', 'hat', 'snare', 'bass'}), (16, 20, {'lead', 'kick', 'hat', 'snare', 'bass'})]}
+sound effects: 20 cues; music: {'mode': 'major', 'root': 62, 'seed': 33, 'sections': [(0, 2, {'arp', 'hat', 'kick'}), (2, 16, {'hat', 'snare', 'bass', 'lead', 'arp', 'kick'}), (16, 20, {'hat', 'snare', 'bass', 'lead', 'kick'})]}

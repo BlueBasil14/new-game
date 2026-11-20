@@ -1,17 +1,18 @@
 # Turf Loop shorts: grades
 
-Running: 
+Running:
 
 Pass mark 7/10 overall from a fresh grader subagent (`GRADER_PROMPT.md`). Max 6 rework rounds per video (raised from 3 on 2026-11-20: all five plateaued at 6 and the owner asked for 7+), then parked with reasons.
 
-| Video | Idea | R1 | R2 | R3 | R4 | Status |
-|---|---|---|---|---|---|---|
-| v01_computer_lab | #1 | 5 | 6 | 6 | 6 | rework (4 rounds) |
-| v02_zero_to_hundred | #2 | 5 | 6 | 6 | – | rework (3 rounds; re-rendered with round-4 engine fixes, not regraded) |
-| v03_how_to_play | #3 | 5 | 6 | 6 | 6 | rework (4 rounds) |
-| v04_own_line | #4 | 5 | 6 | 6 | 6 | rework (4 rounds) |
-| v05_loop_math | #5 | 6 | 6 | 6 | – | rework (3 rounds; re-rendered with round-4 engine fixes, not regraded) |
-| v06_greed_meter | #6 | 6 | | | | rework (1 round) |
+| Video | Idea | R1 | R2 | R3 | R4 | R5 | R6 | Status |
+|---|---|---|---|---|---|---|---|---|
+| v01_computer_lab | #1 | 5 | 6 | 6 | 6 | | | rework (4 rounds; re-rendered with round-5/6 engine, not regraded) |
+| v02_zero_to_hundred | #2 | 5 | 6 | 6 | – | | | rework (3 rounds; re-rendered, not regraded) |
+| v03_how_to_play | #3 | 5 | 6 | 6 | 6 | 6 | | rework (5 rounds: one left before parking) |
+| v04_own_line | #4 | 5 | 6 | 6 | 6 | 6 | | rework (5 rounds: one left before parking) |
+| v05_loop_math | #5 | 6 | 6 | 6 | – | | | rework (3 rounds; re-rendered, not regraded) |
+| v06_greed_meter | #6 | 6 | 6 | | | | | rework (2 rounds) |
+| v07_cut_the_king | #7 | 6 | 6 | | | | | rework (2 rounds) |
 
 ## Round 1 (2026-11-19): shared problems
 Every grader raised the same five things:
@@ -149,3 +150,61 @@ Graders then found the next layer. **Round 4 to-do, in priority order:**
    - v01: a teacher silhouette, the spreadsheet held 0.4 s, and a mid-action board at 3.5 s.
    - v04: shorten the GAME OVER card and trim the tail.
    - v06: the meter fills only while trailing, red edges in on each beat, a longer cold open.
+
+## Round 5 (2026-11-20 12:00): engine round-5 fixes, v03/v04/v06 reworked, v07 new. All 6 again.
+**What changed (engine, every video):**
+- Brand bar slimmer, with "ON ROBLOX" at full size.
+- End card: a bigger CTA placed higher, above the comment line.
+- One score pop at a time. The YOU tag hides after the first claim.
+- The % counter counts up over 0.5 s.
+- Stamps pop in at 1.4x at most.
+- Every K.O. freezes for 3 frames and zooms 1.3x on the contact point.
+
+**Per video:**
+- v03: cold open zoomed to about 70% of the height, MINE! on the board, a centered leaderboard strip.
+- v04: the GAME OVER card cut to 0.6 s, with a hard cut, and the tail trimmed (about 9 s).
+- v06: 1.6 s cold open ending in a big red 0%, greed bar beside a TURF % counter, red edging in on each beat, "TOO GREEDY!".
+- v07 Cut the King (idea #7, new): a cold open where you cut the greedy King and the crown arcs onto you, a rewind, CUT HERE!, KING K.O. = 2X COINS (true in game: `KingKillMultiplier = 2`), and an end card asking "WHO WAS KING IN YOUR CLASS?".
+
+**Scores:**
+- **v03 (6)** hook 6, clarity 7, style 7, pacing 5, readability 6, cta 7.
+  - The hook reads as a tutorial. Start mid-trail with the loop 1 beat from closing, land MINE! at 0.5 s, and use a stake line such as "STEAL THE MAP IN 10 SECONDS".
+  - Step 2 holds 1.75 s with a 3-line caption. Cut it to 1 s, "2. TRAIL = WEAK SPOT", with DANGER! right away.
+  - TOO LATE! and SAFE! clash. Drop TOO LATE!.
+  - The leaderboard strip is too small. The crown payoff (16%) feels small, so count it up toward 40%.
+  - The HUD and footer sit in the platform UI zone.
+- **v04 (6)** hook 6, clarity 6, style 7, pacing 7, readability 6, cta 6.
+  - The opening caption is too wordy. Use "CROSS YOUR LINE = DEAD" with a small "OLD .IO GAMES" tag, a bigger GAME OVER line, and "LIVES: 0" as the joke.
+  - The yellow rival trail isn't visible before the cut. Show 3+ tiles held for 2 beats.
+  - The K.O. flash washes out the frame. (Fixed in the engine this round, see below.)
+  - YOU sits on the green ring and reads "YOL". Fill the second lobe on the beat at 4.0 s.
+  - The end card is long. The footer says "ON ROBLOX" while the card says "COMING SOON".
+- **v06 (6)** hook 6, clarity 7, style 7, pacing 6, readability 5, cta 6.
+  - Show the 0% on the same frame as CUT!, and the caption "MAX GREED = 0% TURF" from frame 0.
+  - Add a visible REWIND cue.
+  - The K.O. flash washes out the frame. (Fixed in the engine.)
+  - The greed labels go up and down. Use one ladder that only climbs, and a bar 2x taller under the caption.
+  - "BIGGER LOOP" drags for 2.6 s. Bring the +44 earlier.
+- **v07 (6)** hook 7, clarity 6, style 7, pacing 7, readability 5, cta 7.
+  - The cut frame is cluttered (the strip shows under the caption during the zoom) and the K.O. stamp is washed out.
+  - The strip % and the bottom % disagree.
+  - CUT HERE! overlaps YOU.
+  - The rewind repeats the cold open.
+  - The end card is static.
+
+**Applied after grading (round 6, this run):**
+- Engine: the stamp now draws on top of its flash, and the flash is 40% max and 0.07 s. Every K.O. and payoff frame was washed out before. All videos re-rendered.
+- v07: the rewind starts 2 beats later, so the K.O. lands at 3.75 s instead of 4.75 s. The strip is the only % readout and hides during the K.O. zoom. CUT HERE! sits to the right of the box, clear of YOU. 10 s total.
+
+**v07 regrade after those fixes: 6** (hook 7, clarity 6, style 7, pacing 6, readability 6, cta 6).
+- The payoff happens twice: the cold open shows the whole cut, then the rewind shows it again. Make the cold open a 0.8 s freeze on contact with a hard cut, and save the turf-vanish and crown-steal for 3.75 s. The cold-open board leaves the bottom 30% empty.
+- The "+1" pop after a K.O. is cryptic. Use "+CROWN", and keep number pops for territory.
+- CUT HERE! and GREEDY! are too small. Put them on a yellow plate with an arrow, at 2x size.
+- The end card is 30% of the video. Use about 2 s.
+- Drop the 2X COINS beat and teach "LOOP HOME = IT'S YOURS" instead.
+
+**Round 6 to-do (next run), shared first:**
+1. Engine: a K.O. pop should read "+CROWN"/"K.O." rather than "+1" (claim pops only for territory). Footer: make it read as "coming soon" so it matches the end card (graders flagged "ON ROBLOX" vs "COMING SOON"). Consider raising the HUD out of the bottom ~15%.
+2. Every hook: start mid-action, 1 beat before the payoff, with a stake caption (not a tutorial title). One short line, with a small tag above it.
+3. Add a visible REWIND cue (scanlines plus a "<<" stamp and SFX) wherever a video jumps back after a cold open (v06, v07).
+4. v03: drop TOO LATE!, shorten step 2, bigger crown payoff. v04: hook rewrite, a visible rival trail, YOU off the ring. v06: a meter ladder that only climbs, and 0% on the CUT! frame.

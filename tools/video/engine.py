@@ -352,6 +352,7 @@ class Arena:
                 stolen += self.owner[y][x] != 0
                 self._set(x, y, r.id, origin)
         r.trail = []
+        r.claims = getattr(r, "claims", 0) + 1  # YOU tag hides after the first claim (round 5)
         seen = bytearray(n * n)
         q = deque()
         for i in range(n):
@@ -474,7 +475,7 @@ def draw_arena(img, ar, t, x0, y0, cp, view=None, hero=None, frac=None, labels=F
             cs = max(2, cp // 3)
             top -= 5 * cs + 2
             crown(img, int(px + s / 2), int(top), cs)
-        if hero is not None and r.id == hero and not getattr(ar, "hide_label", False):
+        if hero is not None and r.id == hero and not getattr(ar, "hide_label", False) and not getattr(r, "claims", 0):
             bob = int(math.sin(t * 8) * 2)
             if top - 22 < y0:  # no room above: label goes under the runner
                 draw_text(img, "YOU", lx, py + s + 4 + bob, 2, WHITE, DARK)
@@ -501,7 +502,7 @@ class FX:
             self.parts.append([x, y, math.cos(a) * sp, math.sin(a) * sp, t, color, rng.choice((2, 3, 4))])
 
     def pop(self, x, y, s, t, color=YELLOW, size=2):
-        self.pops.append((x, y, s, t, color, size))
+        self.pops = [(x, y, s, t, color, size)]  # one score pop on screen at a time
 
     def draw(self, img, t):
         d = ImageDraw.Draw(img)
@@ -751,7 +752,9 @@ class Video:
 
         def fn(img, t):
             age = t - t0
-            sz = max(size, int(size * 2 - age / 0.1 * size)) if age < 0.1 else size
+            sz = max(size, int(round(size * 1.4 - age / 0.1 * size * 0.4))) if age < 0.1 else size
+            while sz > 2 and len(text) * 6 * sz + 2 * sz > W - 16:
+                sz -= 1
             rot = 3 if age < 0.15 else 0
             tim = text_img(text, sz, color, DARK, 1)
             x0, y0 = int(W / 2 + rot - tim.width / 2), int(y - sz * 3.5)
@@ -759,11 +762,11 @@ class Video:
             img.paste(plate, (x0 - 6, y0 - 4), plate)
             img.paste(tim, (x0, y0), tim)
 
+        if flash:  # flash first, so the stamp draws on top of it at full strength (round 6: K.O. frames read washed out)
+            self.flash(b, WHITE, 0.07)
         self.overlays.append((t0, t0 + self.b(beats), fn))
         self.stamp_windows = getattr(self, "stamp_windows", []) + [(t0, t0 + self.b(beats))]
         self.shake(b, 0.3, 5)
-        if flash:
-            self.flash(b, WHITE, 0.08)
         if sound:
             self.sfx.append((t0, sound, 0))
         self.log.append(f"{t0:5.2f}s  STAMP: {text} (+shake, flash)")
@@ -784,13 +787,13 @@ class Video:
     def watermark(self, b0, b1):
         """Persistent brand bar at the bottom: TURF LOOP, readable on a phone."""
         def fn(img, t):
-            ImageDraw.Draw(img).rectangle((0, H - 20, W, H), fill=(14, 16, 26))
+            ImageDraw.Draw(img).rectangle((0, H - 17, W, H), fill=(14, 16, 26))
             cols = [PLAYERS[j] for j in (0, 2, 4, 7, 0, 9, 11, 1, 5)]
-            x = W / 2 - (9 * 12 - 2) / 2 - 30
+            x = W / 2 - (18 * 12 + 10) / 2
             for i, ch in enumerate("TURF LOOP"):
                 tim = text_img(ch, 2, cols[i], None)
-                img.paste(tim, (int(x + i * 12), H - 17), tim)
-            draw_text(img, "ON ROBLOX", x + 116, H - 13, 1, CREAM, None, align="left")
+                img.paste(tim, (int(x + i * 12), H - 15), tim)
+            draw_text(img, "ON ROBLOX", x + 118, H - 15, 2, CREAM, None, align="left")
 
         self.overlays.append((self.b(b0), self.b(b1), fn))
 
@@ -801,7 +804,7 @@ class Video:
             k = 1 - (t - t0) / dur
             if k > 0:
                 ov = Image.new("RGB", (W, H), color)
-                img.paste(Image.blend(img, ov, k * 0.8))
+                img.paste(Image.blend(img, ov, k * 0.4))  # max 40%: a flash, not a white-out
 
         self.overlays.append((t0, t0 + dur, fn))
 
@@ -831,6 +834,18 @@ class Video:
             for (t0, t1, fn) in self.scenes:
                 if t0 <= t < t1:
                     fn(img, t - t0, t)
+            for z in getattr(self, "zooms", []):  # K.O.: 3 frozen frames, then a 1.3x zoom easing back out
+                t0, cx, cy = z[0], z[1], z[2]
+                if t0 <= t < t0 + 0.5:
+                    if t < t0 + 0.1:
+                        if len(z) < 4:
+                            z.append(img.copy())
+                        img.paste(z[3])
+                    k = 1 + 0.3 * (1 - ease_out(max(0.0, t - t0 - 0.25) / 0.25))
+                    cw, ch = W / k, H / k
+                    x = max(0, min(W - cw, cx - cw / 2))
+                    y = max(0, min(H - ch, cy - ch / 2))
+                    img.paste(img.crop((int(x), int(y), int(x + cw), int(y + ch))).resize((W, H), Image.NEAREST))
             for (t0, t1, fn) in self.overlays:
                 if t0 <= t < t1:
                     fn(img, t)
@@ -876,13 +891,13 @@ class Video:
 
 
 def arena_scene(video, ar, b0, x0, y0, cp, view=None, hero=None, fx=None, sim_speed=1.0, pct=None, pops=True,
-                sounds=True, view_fn=None, steps_fn=None, t_offset=0.0, pct_y=None, warp=None):
+                sounds=True, view_fn=None, steps_fn=None, t_offset=0.0, pct_y=None, warp=None, ko_zoom=True):
     """Returns a scene fn that advances `ar` and draws it. view_fn(tl)->(vx,vy,cols,rows,cp,x0,y0) overrides view.
     steps_fn(tl)->target sim step count (for timelapses). Claim/cut events become SFX + particles."""
     fx = fx or FX()
     t0 = video.b(b0)
     seen = [0]
-    last_pct = [-1, -9.0]
+    last_pct = [-1, -9.0, 0]  # target %, time it changed, % shown at that time
 
     def fn(img, tl, tg):
         if steps_fn:
@@ -915,14 +930,19 @@ def arena_scene(video, ar, b0, x0, y0, cp, view=None, hero=None, fx=None, sim_sp
                 if sounds:
                     video.sfx.append((ge, "cut", 0))
                 fx.burst(cx, cy, 26, tg, ar.runners[data["victim"]].color)
+                if ko_zoom and not steps_fn:
+                    video.zooms = getattr(video, "zooms", []) + [[tg, cx, cy]]
         seen[0] = len(ar.events)
         fx.draw(img, tg)
         if pct is not None and not any(a <= tg < b for (a, b) in getattr(video, "stamp_windows", [])):
             by = pct_y if pct_y is not None else yy0 + rows * cpx + 8
-            val = int(ar.share(pct) * 100 + 0.0001)
-            if val != last_pct[0]:
-                last_pct[:] = [val, tg]
-            blip = tg - last_pct[1] < 0.12
+            target = int(ar.share(pct) * 100 + 0.0001)
+            k = min(1.0, (tg - last_pct[1]) / 0.5)
+            shown = int(round(last_pct[2] + (last_pct[0] - last_pct[2]) * k)) if last_pct[0] >= 0 else target
+            if target != last_pct[0]:
+                last_pct[:] = [target, tg, shown]
+            val = shown
+            blip = k < 1.0 and int(tg * 15) % 2 == 0
             lab = text_img("YOUR TURF ", 3, WHITE, DARK)
             num = text_img(f"{val}%", 4 if blip else 3, WHITE if blip else YELLOW, DARK)
             x = int(W / 2 - (lab.width + num.width) / 2)
@@ -945,15 +965,15 @@ def end_card(video, b0, b1, line1="COMING SOON TO ROBLOX", line2="FOLLOW TO PLAY
         bg_checker(img, tg)
         k = ease_back(tl / 0.3)
         logo(img, 26 - (1 - k) * 40, 4, tg)
-        draw_lines(img, line1, 80, 2, YELLOW)
+        draw_lines(img, line1, 76, 2, YELLOW)
         demo.update(tl)
-        draw_arena(img, demo, tl, 27, 98, 12, None, None)  # 216 px board, 1.5x the old one
-        draw_lines(img, line2, 360, 3, WHITE)
-        if line3:
+        draw_arena(img, demo, tl, 45, 92, 10, None, None)  # 180 px board
+        if line3:  # CTA: big, pulsing on the beat, above the comment line and out of the bottom-UI zone
             ph = (tl / video.spb) % 1.0
-            g = 3 if ph < 0.15 else 0  # CTA pulses on every beat
-            ImageDraw.Draw(img).rectangle((10 - g, 404 - g, W - 11 + g, 440 + g), fill=GREEN, outline=DARK, width=2)
-            draw_lines(img, line3, 422, 2, DARK, None)
+            g = 4 if ph < 0.15 else 0
+            ImageDraw.Draw(img).rectangle((14 - g, 277 - g, W - 15 + g, 355 + g), fill=GREEN, outline=DARK, width=3)
+            draw_lines(img, line3, 318, 3, DARK, None, max_chars=12)
+        draw_lines(img, line2, 392, 3 if len(line2) <= 28 else 2, WHITE)
 
     video.scene(b0, b1, fn, "end card: logo, live mini-match, " + line1 + " / " + line2 + (" / " + line3 if line3 else ""))
     video.sound(b0, "hit")
