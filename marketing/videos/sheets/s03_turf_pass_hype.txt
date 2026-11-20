@@ -1,0 +1,18 @@
+s03_turf_pass_hype: 15.6s, 108 BPM, 1080x1920 30fps
+ 0.00- 1.11s  scene: HOOK: animated Prism Storm legendary pops in, red season countdown ticking down fast
+ 0.00- 1.11s  text: LIMITED-TIME SKINS. 14-DAY SEASONS.
+ 1.11- 2.78s  text: TURF PASS. SEASON 1.
+ 1.11- 7.78s  scene: battle pass track: tiers scroll right with the gold rail filling; it stops on each animated legendary (tiers 1, 10, 20, 30) with a name card
+ 2.78- 4.44s  text: 30 TIERS. FREE + PREMIUM.
+ 4.44- 6.11s  text: 4 ANIMATED LEGENDARIES
+ 6.11- 7.78s  text: EARN XP FROM DAILY MISSIONS
+ 7.78- 8.89s  text: LIMITED-TIME EVENTS
+ 7.78-12.22s  scene: events: CROWN RUSH weekend on a 16x16 board (you are King, crown timer fast-forwards to 5:00 -> limited Crown Rush Trail appears on your trail), then 2X COINS weekend with coin rain
+ 8.89- 9.44s  text: CROWN RUSH: KING EARNS 2X
+ 9.44-10.56s  text: HOLD THE CROWN 5 MIN = LIMITED TRAIL
+10.00s  STAMP: LIMITED TRAIL! (+shake, flash)
+10.56-12.22s  text: WEEKENDS = 2X COINS
+12.22-13.33s  scene: all 4 legendaries animating + season countdown: DON'T MISS SEASON 1
+12.22-13.33s  text: WHICH ARE YOU GRINDING FOR? COMMENT 1-4
+13.33-15.56s  scene: end card: logo, COMING SOON TO ROBLOX, two avatars (one crowned) on an animated skin pad, pulsing FOLLOW TO PLAY FIRST
+sound effects: 33 cues; music: {'mode': 'minor', 'root': 57, 'seed': 99, 'prog': [0, 5, 2, 6], 'sections': [(0, 1.5, {'arp', 'hat', 'kick'}), (1.5, 2, set()), (2, 26, {'snare', 'hat', 'kick', 'bass', 'lead', 'arp'}), (26, 30, {'snare', 'hat', 'kick', 'bass', 'lead'})]}

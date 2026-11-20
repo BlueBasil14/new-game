@@ -214,6 +214,7 @@ Graders then found the next layer. **Round 4 to-do, in priority order:**
 |---|---|---|---|---|---|---|---|
 | R1 | 6 | 7 | 5 | 7 | 6 | 6 | 6 |
 | R2 | 6 | 7 | 5 | 7 | 6 | 6 | 7 |
+| R3 | 6 | 7 | 5 | 7 | 6 | 6 | 7 |
 
 Status: rework. R2 fixes for the next run:
 1. Make the green CRT playfield 2x bigger with lighter scanlines, and put the +33 burst on screen by 0.6 s. Turn "IT GREW UP..." into a CRT power-off before the logo slam.
@@ -221,3 +222,40 @@ Status: rework. R2 fixes for the next run:
 3. Show 4 contrasting rare skins at 1 beat or more each instead of 6. Remove the leftover white wipe line.
 4. Safe zones: move the footer and name cards up about 120 px, and put "WHICH ONE ARE YOU GETTING?" above the tile grid.
 5. On the end card, pulse "FOLLOW TO PLAY FIRST" on the beat and make "COMING SOON TO ROBLOX" bigger.
+
+R3 notes for s01:
+- Hold "LOOP HOME" for 2 beats or more, over one full loop and fill.
+- Show 4 rares at 2 beats each, and finish each wipe before its name card.
+- Trails need a long curving trail on open grid. Use half the bubble rings and keep lightning bolts inside the board.
+- Move the footer into the safe zone.
+- Say "COMING TO ROBLOX", not "ON ROBLOX", so the drop text matches the end card.
+
+## s02_avatar_hype (2026-11-20, owner: "you move with your Roblox character, not a square"). Script: tools/video/hype.py
+Blocky avatar sprites are our own art and not Roblox's logo. The Paper.io square morphs into your avatar, avatars play the match with skins, the wardrobe shows the same avatar wearing different skins, and the end card shows avatars.
+| Round | Overall | hook | clarity | style | pacing | readability | cta |
+|---|---|---|---|---|---|---|---|
+| R1 | 6 | 7 | 6 | 7 | 7 | 6 | 6 |
+| R2 | 6 | 7 | 6 | 7 | 6 | 6 | 6 |
+
+Fixed after R2: the wardrobe keeps the same avatar with a YOU tag. Still to do:
+- The in-match avatars are too small. Zoom the camera about 1.8x on YOU (needs a view crop in `skinned()`).
+- Cut "PLAY AS YOUR OWN AVATAR".
+- Give the claim and the K.O. more time.
+- Re-break the caption as "IN TURF LOOP... / YOU'RE YOU.".
+- Use coarser patterns, because diagonal hatching will moiré under compression.
+
+## s03_turf_pass_hype (2026-11-20, owner: "battle pass with limited time events"). Script: tools/video/hype.py
+| Round | Overall | hook | clarity | style | pacing | readability | cta |
+|---|---|---|---|---|---|---|---|
+| R1 | 6 | 5 | 6 | 7 | 7 | 5 | 6 |
+| R2 | 5 | 4 | 5 | 6 | 6 | 5 | 6 |
+
+Fixed after R2: honesty. The pass isn't live, so there's no ticking countdown. The hook is now "LIMITED-TIME SKINS. 14-DAY SEASONS." and the closing line is "SEASON 1 STARTS AT LAUNCH". Still to do:
+- Open on the avatar running a loop with the Prism Storm trail and claiming on beat 1.
+- Tier labels 2x bigger, with a whoosh or skip marker on each jump.
+- Show legendaries as moving trails on a mini board.
+- A 1 s daily-missions panel ("LOOP 3 TIMES +150 XP", a tick, the XP bar filling).
+- Hold Crown Rush for 2 beats or more.
+- Put the LIMITED TRAIL! stamp in the centre over the board.
+- A 1 s core-loop shot by 3 s.
+- Note that graders misread frame boundaries on the contact sheet as overlap ("12/18", "SKINSKIN").

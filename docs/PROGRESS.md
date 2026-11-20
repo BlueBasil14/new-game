@@ -419,3 +419,19 @@ Owner asked in chat for a top-down camera to record short-form clips (research i
 - Grades: R1 6, R2 6. Fixes are in GRADES.md.
 - Weekend task prompt updated with the owner feedback: 108 BPM, Paper.io name allowed, cosmetics in most videos.
 - Note for the owner: naming Paper.io is a trademark reference. Fine as a nostalgic mention, but some ad platforms reject competitor names in paid ads.
+
+## Lead session, 2026-11-20: s02 avatar + s03 Turf Pass hype videos
+- Owner asked for more videos like s01, showing that you play as your Roblox character (not a square) and that there is a battle pass with limited-time events.
+- `tools/video/hype.py` additions:
+  - A blocky avatar sprite (our own art), with walk cycle, crown and YOU label.
+  - `skinned()`, which draws turf and trails in each player's skin, with avatars instead of squares.
+  - The `avatar_end` end card.
+- `s02_avatar_hype`: the Paper.io square morphs into your avatar. The avatar match has a claim, a K.O. and a crown, then the same avatar wears 4 skins. Grades 6, 6.
+- `s03_turf_pass_hype`:
+  - Hook: an avatar on Prism Storm.
+  - The Season 1 "Neon Rush" track uses the real 30-tier rewards from `docs/BATTLEPASS.md` and stops on the 4 legendaries.
+  - Crown Rush weekend shows a crown timer that wins the limited trail, then 2x-coin weekends.
+  - Ends on "comment 1-4".
+  - Grades 6, then 5. The drop came with an honesty note: the pass isn't live, so there's no countdown now.
+- s01 round 3: 6.
+- None of the s-series is at 7 yet. Fix lists are in GRADES.md for the weekend task.
