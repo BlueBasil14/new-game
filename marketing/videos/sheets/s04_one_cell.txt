@@ -1,0 +1,17 @@
+s04_one_cell: 13.1s, 108 BPM, 1080x1920 30fps
+ 0.00- 0.97s  text: 1 CELL FROM HOME...
+ 0.00- 2.22s  scene: HOOK: camera zoomed ~2x on the gap: your avatar (Magma Surge turf) is ONE cell from home (pulsing bracket + '1 CELL' arrow on that cell); yellow walks up toward your trail; slow-mo; yellow steps on your trail at 0.97 s -> K.O. (freeze + zoom), your turf vanishes
+ 0.97- 2.22s  text: WE'VE ALL BEEN HERE.
+ 0.97s  STAMP: SO CLOSE. (+shake, flash)
+ 2.22- 2.78s  REWIND cue: dark scanlines + << REWIND
+ 2.22- 6.94s  scene: take 2 after a REWIND: same board, you head home early -> claim (+N, Fireworks capture effect), then cut yellow's trail (K.O.), loop home again, crowned
+ 2.78- 4.44s  text: TAKE 2: GO HOME FIRST
+ 4.44- 5.56s  text: LOOP HOME = IT'S YOURS
+ 4.44s  STAMP: MINE! (+shake, flash)
+ 5.56- 6.94s  text: CUT THEIR TRAIL = THEY'RE OUT
+ 5.56s  STAMP: REVENGE! (+shake, flash)
+ 6.94- 9.17s  scene: the same YOU avatar on a pad swapping animated legendaries on every beat, each labelled with its Turf Pass tier
+ 6.94- 9.17s  text: LOSE A ROUND. KEEP YOUR SKINS.
+ 9.17-10.83s  scene: comment bait: WHAT'S YOUR CLOSEST CALL? a home pad, a 1-cell gap with your avatar, COMMENT HOW MANY CELLS
+10.83-13.06s  scene: end card: logo, COMING SOON TO ROBLOX, two avatars (one crowned) on an animated skin pad, pulsing FOLLOW TO PLAY FIRST
+sound effects: 22 cues; music: {'mode': 'major', 'root': 60, 'seed': 123, 'prog': [0, 5, 3, 4], 'sections': [(0, 1.75, {'kick', 'arp', 'hat'}), (1.75, 4, set()), (4, 20, {'lead', 'bass', 'hat', 'kick', 'snare', 'arp'}), (20, 24, {'lead', 'bass', 'hat', 'kick', 'snare'})]}

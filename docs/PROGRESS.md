@@ -435,3 +435,15 @@ Owner asked in chat for a top-down camera to record short-form clips (research i
   - Grades 6, then 5. The drop came with an honesty note: the pass isn't live, so there's no countdown now.
 - s01 round 3: 6.
 - None of the s-series is at 7 yet. Fix lists are in GRADES.md for the weekend task.
+
+## Weekend video task, 2026-11-20 13:00: s01-s03 reworked, s04 "1 Cell From Home" new
+- `tools/video/hype.py` shared changes:
+  - Avatars everywhere, including s01, which still used squares.
+  - `match_scene()`: preroll and slow-mo, a zoomed follow camera, and chip-backed +N pops.
+  - A raised "TURF LOOP COMING SOON" footer.
+  - A visible REWIND cue.
+  - Coarser stripes.
+  - A pulsing end-card CTA with a bigger "COMING SOON TO ROBLOX".
+- s01 (R4), s02 (R3, R4), s03 (R3) applied their GRADES.md fix lists. New s04 (idea #8, R1 and R2): a slow-mo near-miss, then a rewind, then go home first and a revenge cut, then the Turf Pass legendaries.
+- Grades: all 6, from fresh grader subagents. s02's clarity and pacing reached 7. The common ceiling is hook and clarity: graders want one readable mechanic shot in the first 2 s and threats and cuts visible in stills. Fix lists are in `marketing/videos/GRADES.md`.
+- I checked every contact sheet myself before grading. Nobody has watched the MP4s with sound. Nothing was posted.

@@ -38,7 +38,7 @@ def tile(a, b, pattern):
         for x in range(T):
             on = False
             if pattern == "stripes":
-                on = ((x + y) // 3) % 2 == 0
+                on = ((x + y) // 6) % 2 == 0  # coarse: thin diagonal hatching moires under compression
             elif pattern == "checker":
                 on = ((x // 6) + (y // 6)) % 2 == 0
             elif pattern == "dots":
@@ -143,12 +143,12 @@ class Effects:
                     a = i / 24 * 2 * math.pi
                     self.items.append(("spark", bx, by, math.cos(a) * 120, math.sin(a) * 120, t + rng.uniform(0, 0.3), col))
         elif kind == "BUBBLES":
-            for _ in range(26):
+            for _ in range(13):
                 self.items.append(("bubble", rng.uniform(x0, x1), rng.uniform(y0, y1), rng.uniform(-8, 8), -rng.uniform(30, 60),
                                    t + rng.uniform(0, 0.4), (124, 196, 255)))
         elif kind == "LIGHTNING":
             for _ in range(5):
-                self.items.append(("bolt", rng.uniform(x0, x1), y0 - 60, rng.uniform(x0, x1), rng.uniform(y0, y1),
+                self.items.append(("bolt", rng.uniform(x0, x1), y0, rng.uniform(x0, x1), rng.uniform(y0, y1),
                                    t + rng.uniform(0, 0.2), rng.randint(0, 999)))
         elif kind == "HEARTS":
             for _ in range(20):
@@ -189,8 +189,10 @@ class Effects:
         self.items = keep
 
 
-def name_card(img, name, tier, t_in, t, y=374):
+def name_card(img, name, tier, t_in, t, y=344):
     """Bottom card: skin name + tier badge, slides up on the beat."""
+    if t < t_in:
+        return
     k = ease_back(min(1.0, (t - t_in) / 0.22))
     yy = y + (1 - k) * 40
     col = GOLD if "LEGENDARY" in tier or "LIMITED" in tier else (RARE_BLUE if tier == "RARE" else GREEN)
@@ -209,111 +211,126 @@ def name_card(img, name, tier, t_in, t, y=374):
 
 
 # ============================================================ s01 Paper.io callback -> every skin
-def s01():
-    v = Video("s01_skins_hype", 108, 44, music=dict(mode="major", root=60, seed=77, prog=[0, 5, 3, 4], sections=[
-        (0, 3.5, {"kick", "hat", "arp"}), (3.5, 4, set()), (4, 18, {"kick", "snare", "hat", "bass", "arp", "lead"}),
-        (18, 26, {"kick", "snare", "hat", "bass", "arp", "lead"}), (26, 40, {"kick", "snare", "hat", "bass", "arp", "lead"}),
-        (40, 44, {"kick", "snare", "hat", "bass", "lead"})]))
-    X0, Y0, CP, N = 7, 112, 16, 16  # 256 px board
+RARES4 = [RARES[0], RARES[1], RARES[2], RARES[3]]  # 4 contrasting rares at 2 beats each (R3: 6 was too many)
 
-    # ---------- hook: the old school-computer game (retro CRT, our own art) ----------
-    old = Arena(20, seed=2)
+
+def s01():
+    v = Video("s01_skins_hype", 108, 43, music=dict(mode="major", root=60, seed=77, prog=[0, 5, 3, 4], sections=[
+        (0, 3.5, {"kick", "hat", "arp"}), (3.5, 4, set()), (4, 18, {"kick", "snare", "hat", "bass", "arp", "lead"}),
+        (18, 26, {"kick", "snare", "hat", "bass", "arp", "lead"}), (26, 39, {"kick", "snare", "hat", "bass", "arp", "lead"}),
+        (39, 43, {"kick", "snare", "hat", "bass", "lead"})]))
+    X0, Y0, CP, N = 15, 96, 15, 16  # 240 px board, clear of the raised name cards and footer
+
+    # ---------- hook: the old school-computer game (big retro CRT, our own art), loop closes on beat 1 ----------
+    old = Arena(12, seed=2)
     old.dt = v.spb / 4
     old.ground = (18, 52, 30)
-    h0 = old.add(1, (90, 255, 140), 7, 11, 5)
-    h0.x, h0.y, h0.px, h0.py = 9, 11, 9, 11
-    h0.script = path_from([(9, 11), (14, 11), (14, 6), (9, 6), (9, 9)])  # claim on step 13 (beat 3.25)
-    old_in = arena_scene(v, old, 0, 6, 130, 13, hero=1, fx=FX(), sounds=True, t_offset=14 * old.dt)  # 18-step loop closes on beat 1
+    h0 = old.add(1, (90, 255, 140), 3, 7, 3)
+    h0.x, h0.y, h0.px, h0.py = 4, 7, 4, 7
+    h0.script = path_from([(4, 7), (8, 7), (8, 3), (4, 3), (4, 6)])  # 14 steps
+    old_in = arena_scene(v, old, 0, 15, 150, 20, hero=1, fx=FX(), t_offset=10 * old.dt)
+    off_t = v.b(4) - 0.3
 
     def retro(img, tl, tg):
         ImageDraw.Draw(img).rectangle((0, 0, W, H), fill=(8, 24, 14))
         old_in(img, tl, tg)
         d = ImageDraw.Draw(img)
-        for y in range(0, H, 3):
-            d.line((0, y, W, y), fill=(0, 0, 0))
+        for y in range(0, H, 4):
+            d.line((0, y, W, y), fill=(4, 14, 8))
+        if tl > off_t:  # CRT power-off: squash to a line, then a dot
+            k = min(1.0, (tl - off_t) / 0.3)
+            hh = max(2, int(H * (1 - k) ** 3))
+            ww = W if k < 0.7 else max(4, int(W * (1 - (k - 0.7) / 0.3)))
+            sq = Image.blend(img.resize((ww, hh)), Image.new("RGB", (ww, hh), WHITE), min(1.0, k * 1.2))
+            img.paste((0, 0, 0), (0, 0, W, H))
+            img.paste(sq, ((W - ww) // 2, (H - hh) // 2))
 
-    v.scene(0, 4, retro, "HOOK: green retro school-computer screen, a runner closes a square loop on beat 1")
-    v.caption(0, 2.2, "REMEMBER PLAYING PAPER.IO IN CLASS?", y=70, size=3, color=YELLOW)
+    v.scene(0, 4, retro, "HOOK: big green retro school-computer screen; a square closes its loop on beat 1 (+N at 0.56 s); CRT powers off at 1.9 s")
+    v.caption(0, 2.5, "REMEMBER PLAYING PAPER.IO IN CLASS?", y=70, size=3, color=YELLOW)
     v.sound(0, "hit")
-    v.caption(2.2, 4, "IT GREW UP...", y=70, size=4, color=WHITE)
-    v.sound(3, "whoosh")
+    v.caption(2.5, 4, "IT GREW UP...", y=70, size=4, color=WHITE)
+    v.sound(3.45, "whoosh")
 
     # ---------- drop: Turf Loop reveal ----------
     def reveal(img, tl, tg):
         bg_checker(img, tg, c1=(40, 18, 60), c2=(58, 26, 86), speed=30)
         k = ease_back(tl / 0.35)
         logo(img, 150 - (1 - k) * 80, 4, tg)
-        draw_lines(img, "ON ROBLOX", 230, 4, YELLOW)
+        draw_lines(img, "COMING TO ROBLOX", 225, 3, YELLOW)
         if tl > v.spb * 0.5:
             draw_lines(img, "WITH SKINS. SO MANY SKINS.", 320, 3, WHITE)
 
-    v.scene(4, 6, reveal, "DROP: TURF LOOP logo slams in, ON ROBLOX, WITH SKINS. SO MANY SKINS.")
+    v.scene(4, 6, reveal, "DROP: TURF LOOP logo slams in, COMING TO ROBLOX, WITH SKINS. SO MANY SKINS.")
     v.flash(4, WHITE, 0.15)
     v.sound(4, "hit")
     v.sound(4.02, "crown")
     v.shake(4, 0.35, 6)
 
-    # ---------- the main board: one live match the skins are worn on ----------
+    # ---------- the main board: one live match, players are avatars, your turf wears the skins ----------
     ar = Arena(N, seed=31)
     ar.dt = v.spb / 4
-    hero = ar.add(1, hexc(RARES[0][1]), 8, 8, 7)
+    hero = ar.add(1, hexc(RARES4[0][1]), 8, 8, 7)
     hero.hungry, hero.reach, hero.shield = True, (3, 5), True
-    rival = ar.add(2, PLAYERS[0], 14, 14, 3)
+    hero.x, hero.y, hero.px, hero.py = 11, 8, 11, 8
+    hero.script = path_from([(11, 8), (14, 8), (14, 3), (9, 3), (9, 5)])  # 15 steps, claim on step 15
+    hero.after_script = "bot"
+    pre = 9 * ar.dt  # trail already out at frame 1, claim 1.5 beats into the board
+    rival = ar.add(2, PLAYERS[2], 14, 14, 3)
     rival.reach = (1, 2)
     efx, tfx = Effects(), FX()
     seen = [0]
 
-    # timeline (beats) of what the hero wears
-    R0, RSTEP = 6, 1.5                       # 6 rares x 1.5 beats
-    L0, LSTEP = R0 + len(RARES) * RSTEP, 2   # 4 legendaries x 2 beats
-    T0, TSTEP = L0 + len(LEGENDS) * LSTEP, 2  # 2 trails x 2 beats
-    E0, E1 = T0 + len(TRAILS) * TSTEP, T0 + len(TRAILS) * TSTEP + 6  # effects, one per claim
-    W0, W1 = E1, E1 + 4                       # Living Woodland
+    G0 = 6                                     # board starts
+    R0, RSTEP = 8.5, 2                         # LOOP HOME held 2.5 beats, then 4 rares x 2 beats
+    L0, LSTEP = R0 + len(RARES4) * RSTEP, 2    # 4 legendaries x 2 beats
+    T0, T1 = L0 + len(LEGENDS) * LSTEP, L0 + len(LEGENDS) * LSTEP + 3  # 1 trail, 3 beats, long trail
+    E0, E1 = T1, T1 + 5                        # capture effects, one per claim
+    W0, W1 = E1, E1 + 3                        # Living Woodland
     END = W1
+    WIPE = 0.2
 
     def skin_at(b):
         if b < L0:
-            i = min(len(RARES) - 1, int((b - R0) / RSTEP))
-            n, a, c, p = RARES[i]
+            i = max(0, min(len(RARES4) - 1, int((b - R0) // RSTEP)))
+            n, a, c, p = RARES4[i]
             return i, (n, a, c, p, None, "RARE"), R0 + i * RSTEP
         i = min(len(LEGENDS) - 1, int((b - L0) / LSTEP))
         n, a, c, p, an = LEGENDS[i]
-        j = len(RARES) + i
-        return j, (n, a, c, p, an, "LEGENDARY"), L0 + i * LSTEP
+        return len(RARES4) + i, (n, a, c, p, an, "LEGENDARY"), L0 + i * LSTEP
 
     eff_i = [0]
-    eff_label = [EFFECTS[0][0], v.b(E0)]
+    eff_label = [None, 0.0]
 
     def board(img, tl, tg):
         b = tg / v.spb
+        st = tl + pre
         bg_checker(img, tg, speed=14)
         ar.dt = v.spb / 8 if E0 <= b < E1 else v.spb / 4  # faster loops while showing capture effects
-        ar.update(tl)
-        draw_arena(img, ar, tl, X0, Y0, CP, None, None)
-        # skin on the hero's turf, with a left-to-right wipe from the previous skin on every change
+        hero.reach = (6, 9) if T0 <= b < T1 else (3, 5)  # long trail for the trail skin
+        ar.update(st)
+        alive = {rid: r.alive for rid, r in ar.runners.items()}
+        for r in ar.runners.values():
+            r.alive = False
+        draw_arena(img, ar, st, X0, Y0, CP, None, None)
+        for rid, a in alive.items():
+            ar.runners[rid].alive = a
         cur = min(b, W0 - 0.001)
-        idx, sk, s_b0 = skin_at(cur)
-        prev = skin_at(s_b0 - 0.01)[1] if idx > 0 else sk
-        wipe = min(1.0, (b - s_b0) / 0.35) if b < W0 else 1.0
+        idx, sk_, s_b0 = skin_at(cur)
+        prev = skin_at(s_b0 - 0.01)[1] if idx > 0 else sk_
+        wipe = min(1.0, (tg - v.b(s_b0)) / WIPE) if b < W0 else 1.0
         colm = int(wipe * N + 0.999)
         w = N * CP
         if b < W0:
-            new_im = skin_board(w, w, sk[1], sk[2], sk[3], sk[4], tg)
-            img.paste(new_im, (X0, Y0), mask_of(ar, 1, CP, col_limit=colm))
+            img.paste(skin_board(w, w, sk_[1], sk_[2], sk_[3], sk_[4], tg), (X0, Y0), mask_of(ar, 1, CP, col_limit=colm))
             if wipe < 1:
-                old_im = skin_board(w, w, prev[1], prev[2], prev[3], prev[4], tg)
-                img.paste(old_im, (X0, Y0), mask_of(ar, 1, CP, col_limit=colm, flip=True))
-                xw = X0 + colm * CP
-                ImageDraw.Draw(img).line((xw, Y0, xw, Y0 + w), fill=WHITE, width=3)
-            hero.color = hexc(sk[1])
-        else:  # Living Woodland: green grass turf + trees growing across it
-            grass = skin_board(w, w, "#A3CF62", "#8DBF4E", "dots", None, tg)
-            img.paste(grass, (X0, Y0), mask_of(ar, 1, CP))
+                img.paste(skin_board(w, w, prev[1], prev[2], prev[3], prev[4], tg), (X0, Y0),
+                          mask_of(ar, 1, CP, col_limit=colm, flip=True))
+            hero.color = hexc(sk_[1])
+        else:  # Living Woodland: grass turf + trees growing across it
+            img.paste(skin_board(w, w, "#A3CF62", "#8DBF4E", "dots", None, tg), (X0, Y0), mask_of(ar, 1, CP))
             hero.color = hexc("#A3CF62")
-        # trail skin
         if T0 <= b < E1:
-            ti = min(len(TRAILS) - 1, int((b - T0) / TSTEP)) if b < E0 else len(TRAILS) - 1
-            tn, ta, tb, tp = TRAILS[ti]
+            tn, ta, tb, tp = TRAILS[0]
             img.paste(skin_board(w, w, ta, tb, tp, "flow", tg), (X0, Y0), mask_of(ar, 1, CP, which="trail"))
         if b >= W0:
             for y in range(N):
@@ -321,7 +338,6 @@ def s01():
                     if ar.owner[y][x] == 1 and (x * 7 + y * 13) % 3 == 0:
                         delay = (abs(x - 8) + abs(y - 8)) * 0.045
                         tree(img, X0 + x * CP + CP // 2, Y0 + y * CP + CP - 2, (tg - v.b(W0) - delay) / 0.4, x * 31 + y)
-        # claims -> capture effects / coins
         for (et, kind, data) in ar.events[seen[0]:]:
             if kind == "claim" and data["id"] == 1 and data["cells"] > 0:
                 cx, cy = X0 + (data["at"][0] + 0.5) * CP, Y0 + (data["at"][1] + 0.5) * CP
@@ -333,67 +349,67 @@ def s01():
                     eff_i[0] += 1
                 else:
                     v.sfx.append((tg, "claim", min(12, data["cells"] / 6)))
-                    tfx.coins(cx, cy, 8, tg)
+                    tfx.coins(cx, cy, 10, tg)
+                    if b < R0:
+                        tfx.pop(cx + 46 if cx + 46 < W - 30 else cx - 46, cy - 20, f"+{data['cells']}", tg, YELLOW, 3)
             elif kind == "cut":
                 v.sfx.append((tg, "cut", 0))
         seen[0] = len(ar.events)
         tfx.draw(img, tg)
         efx.draw(img, tg)
-        runner_sprite(img, ar, 2, X0, Y0, CP, tl, label=False)
-        runner_sprite(img, ar, 1, X0, Y0, CP, tl, label=b < R0 + 2)
-        # name cards
+        draw_avatars(img, ar, st, X0, Y0, CP, hero=1, scale=2, hero_scale=2)
+        if b < R0:
+            return
         if b < W0:
-            if b < T0 or b >= E1:
-                name_card(img, sk[0], sk[5], v.b(s_b0), tg)
+            if b < T0:
+                name_card(img, sk_[0], sk_[5], v.b(s_b0) + WIPE, tg)  # card lands after the wipe finishes
             elif b < E0:
-                ti = min(len(TRAILS) - 1, int((b - T0) / TSTEP))
-                name_card(img, TRAILS[ti][0], "TRAIL", v.b(T0 + ti * TSTEP), tg)
+                name_card(img, TRAILS[0][0], "TRAIL", v.b(T0), tg)
             elif eff_label[0]:
                 name_card(img, eff_label[0], "CAPTURE EFFECT", eff_label[1], tg)
         else:
             name_card(img, "LIVING WOODLAND", "LEGENDARY BIOME", v.b(W0), tg)
 
-    v.scene(6, END, board, f"live 16x16 match; your turf wears {len(RARES)} rare skins (1.5 beats each, wipe + name card), "
-            f"{len(LEGENDS)} animated legendaries (2 beats each), {len(TRAILS)} trails, capture effects on each claim, then Living Woodland trees")
-    v.flash(6)
-    v.sound(6, "hit")
-    # per-skin cues on the beat
-    for i in range(len(RARES)):
+    v.scene(G0, END, board, f"live 16x16 match with avatars; you loop home and claim (+N) under LOOP HOME, then your turf wears "
+            f"{len(RARES4)} rare skins (2 beats each, fast wipe, then name card), {len(LEGENDS)} animated legendaries (2 beats each), "
+            "a long Rainbow Streak trail, capture effects on each claim, then Living Woodland trees")
+    v.flash(G0)
+    v.sound(G0, "hit")
+    for i in range(len(RARES4)):
         v.sound(R0 + i * RSTEP, "pop", i)
     for i in range(len(LEGENDS)):
         v.sound(L0 + i * LSTEP, "crown")
         v.flash(L0 + i * LSTEP, GOLD, 0.1)
-    for i in range(len(TRAILS)):
-        v.sound(T0 + i * TSTEP, "whoosh")
+    v.sound(T0, "whoosh")
     v.sound(W0, "levelup")
     v.flash(W0, (163, 207, 98), 0.15)
-    v.caption(6, 7.5, "LOOP HOME = IT'S YOURS", color=GREEN)
-    v.caption(7.5, L0, "RARE SKINS", color=RARE_BLUE, size=4)
+    v.caption(G0, R0, "LOOP HOME = IT'S YOURS", color=GREEN)
+    v.caption(R0, L0, "RARE SKINS", color=RARE_BLUE, size=4)
     v.caption(L0, T0, "LEGENDARY. THEY MOVE.", color=GOLD)
     v.caption(T0, E0, "TRAILS", color=WHITE, size=4)
     v.caption(E0, E1, "CAPTURE EFFECTS", color=PINK)
     v.caption(W0, END, "YOUR TURF GROWS A FOREST", color=GREEN)
-    v.watermark(0, END)
 
     # comment bait + end card
     def bait(img, tl, tg):
         bg_checker(img, tg, c1=(40, 30, 10), c2=(60, 46, 14), speed=20)
-        allskins = [(n, a, c, p, None) for (n, a, c, p) in RARES] + list(LEGENDS)
+        draw_lines(img, "WHICH ONE ARE YOU GETTING?", 92, 3, YELLOW)
+        allskins = [(n, a, c, p, None) for (n, a, c, p) in RARES4] + list(LEGENDS)
         for i, (n, a, c, p, an) in enumerate(allskins):
-            col, row = i % 5, i // 5
-            x, y = 15 + col * 50, 120 + row * 58
+            col, row = i % 4, i // 4
+            x, y = 21 + col * 60, 150 + row * 66
             k = ease_back(min(1.0, (tl - i * 0.04) / 0.25))
             if k <= 0:
                 continue
-            sz = int(42 * k)
-            img.paste(skin_board(sz, sz, a, c, p, an, tg), (x + (42 - sz) // 2, y + (42 - sz) // 2))
-            ImageDraw.Draw(img).rectangle((x - 1, y - 1, x + 42, y + 42), outline=GOLD if an else WHITE, width=2)
-            draw_text(img, str(i + 1), x + 21, y + 14, 2, WHITE, DARK)
-        draw_lines(img, "WHICH ONE ARE YOU GETTING?", 330, 3, YELLOW)
-        draw_lines(img, "COMMENT A NUMBER", 395, 3, WHITE)
+            sz = int(50 * k)
+            img.paste(skin_board(sz, sz, a, c, p, an, tg), (x + (50 - sz) // 2, y + (50 - sz) // 2))
+            ImageDraw.Draw(img).rectangle((x - 1, y - 1, x + 50, y + 50), outline=GOLD if an else WHITE, width=2)
+            draw_text(img, str(i + 1), x + 25, y + 15, 3, WHITE, DARK)
+        draw_lines(img, "COMMENT A NUMBER", 320, 3, WHITE)
 
-    v.scene(END, END + 3, bait, "comment bait: all 10 skins tiled, WHICH ONE ARE YOU GETTING? COMMENT BELOW")
+    v.scene(END, END + 3, bait, "comment bait: WHICH ONE ARE YOU GETTING? above all 8 skins tiled, COMMENT A NUMBER")
     v.sound(END, "hit")
+    footer(v, 0, END + 3)
     avatar_end(v, END + 3, END + 7)
     v.dur = v.b(END + 7)
     return v
@@ -474,6 +490,11 @@ def skinned(img, ar, t, x0, y0, cp, skins, trails=None, hero=None, kings=(), out
         img.paste(skin_board(w, w, sk[0], sk[1], sk[2], sk[3], t), (x0, y0), mask_ready(ar, rid, cp, t))
     for rid, sk in (trails or {}).items():
         img.paste(skin_board(w, w, sk[0], sk[1], sk[2], "flow", t), (x0, y0), mask_ready(ar, rid, cp, t, "trail"))
+    draw_avatars(img, ar, t, x0, y0, cp, hero, kings, outfits, scale, hero_scale)
+
+
+def draw_avatars(img, ar, t, x0, y0, cp, hero=None, kings=(), outfits=OUTFITS, scale=1, hero_scale=2, label=True):
+    """Every live runner as its blocky avatar (YOU tag on the hero until its first claim)."""
     frac = max(0.0, min(1.0, (t - ar.t) / ar.dt))
     for r in sorted(ar.runners.values(), key=lambda r: r.y):
         if not r.alive:
@@ -482,7 +503,99 @@ def skinned(img, ar, t, x0, y0, cp, skins, trails=None, hero=None, kings=(), out
         fy = r.py + (r.y - r.py) * frac
         avatar(img, x0 + (fx + 0.5) * cp, y0 + (fy + 0.85) * cp, outfits.get(r.id, outfits[1]), t,
                moving=(r.px, r.py) != (r.x, r.y), s=hero_scale if r.id == hero else scale, king=r.id in kings,
-               label="YOU" if r.id == hero else None)
+               label="YOU" if r.id == hero and label and not getattr(r, "claims", 0) else None)
+
+
+FOOT_Y = H - 47  # footer raised ~120 px (at 1080 wide) out of the TikTok/Shorts bottom UI
+
+
+def footer(v, b0, b1):
+    """Brand bar that says COMING SOON, matching the end card (graders flagged ON ROBLOX vs COMING SOON)."""
+    def fn(img, t):
+        ImageDraw.Draw(img).rectangle((0, FOOT_Y, W, FOOT_Y + 17), fill=(14, 16, 26))
+        cols = [PLAYERS[j] for j in (0, 2, 4, 7, 0, 9, 11, 1, 5)]
+        for i, ch in enumerate("TURF LOOP"):
+            tim = text_img(ch, 2, cols[i], None)
+            img.paste(tim, (10 + i * 12, FOOT_Y + 2), tim)
+        draw_text(img, "COMING SOON", 128, FOOT_Y + 2, 2, CREAM, None, align="left")
+
+    v.overlay(b0, b1, fn)
+
+
+def rewind(v, b0, b1):
+    """Visible REWIND cue: dark scanlines + << stamp + whoosh."""
+    def fn(img, t):
+        dark = Image.new("RGB", (W, H), (10, 10, 20))
+        img.paste(Image.blend(img, dark, 0.45))
+        d = ImageDraw.Draw(img)
+        off = int(t * 240) % 6
+        for y in range(off, H, 6):
+            d.line((0, y, W, y), fill=(0, 0, 0))
+        draw_text(img, "<< REWIND", W / 2, 220, 4, WHITE, DARK)
+
+    v.overlay(b0, b1, fn)
+    v.sound(b0, "whoosh")
+    v.log.append(f"{v.b(b0):5.2f}-{v.b(b1):5.2f}s  REWIND cue: dark scanlines + << REWIND")
+
+
+def match_scene(v, ar, x0, y0, cp, skins, trails=None, hero=1, kings=None, sim=None, view=None,
+                scale=1, hero_scale=2, fx=None, on_event=None, bg=None):
+    """Scene fn for a skinned avatar match. sim(tl) -> sim time (preroll / slow-mo); view=(vw, vh) crops a camera
+    that follows the hero (zoom = bigger cp). Claims by the hero pop +N with coins; cuts burst and K.O.-zoom."""
+    fx = fx or FX()
+    seen = [0]
+    n = ar.n
+    pops = []  # score pops on a dark chip (graders: yellow +N got lost on busy skins)
+    cam = [x0, y0]
+
+    def fn(img, tl, tg):
+        (bg or bg_checker)(img, tg)
+        st = sim(tl) if sim else tl
+        ar.update(st)
+        ks = kings(tg) if kings else ()
+        if view:
+            vw, vh = view
+            off = Image.new("RGB", (n * cp, n * cp + cp), (14, 16, 26))
+            skinned(off, ar, st, 0, cp, cp, skins, trails, hero, ks, scale=scale, hero_scale=hero_scale)
+            r = ar.runners[hero]
+            frac = max(0.0, min(1.0, (st - ar.t) / ar.dt))
+            hx = (r.px + (r.x - r.px) * frac + 0.5) * cp
+            hy = (r.py + (r.y - r.py) * frac + 0.5) * cp + cp
+            ox = int(max(0, min(off.width - vw, hx - vw / 2)))
+            oy = int(max(0, min(off.height - vh, hy - vh / 2)))
+            img.paste(off.crop((ox, oy, ox + vw, oy + vh)), (x0, y0))
+            ImageDraw.Draw(img).rectangle((x0 - 2, y0 - 2, x0 + vw + 1, y0 + vh + 1), outline=DARK, width=2)
+            sx, sy = x0 - ox, y0 + cp - oy
+        else:
+            skinned(img, ar, st, x0, y0, cp, skins, trails, hero, ks, scale=scale, hero_scale=hero_scale)
+            sx, sy = x0, y0
+        cam[:] = [sx, sy]
+        for (et, kind, data) in ar.events[seen[0]:]:
+            cx, cy = sx + (data["at"][0] + 0.5) * cp, sy + (data["at"][1] + 0.5) * cp
+            if kind == "claim" and data["cells"] > 0:
+                if data["id"] == hero:
+                    v.sfx.append((tg, "claim", min(12, data["cells"] / 6)))
+                    fx.coins(cx, cy, min(24, 6 + data["cells"] // 4), tg)
+                    pops[:] = [(min(W - 40, max(40, cx + 50 if cx + 50 < W - 40 else cx - 50)), max(y0 + 12, cy - 34), f"+{data['cells']}", tg)]
+            elif kind == "cut":
+                v.sfx.append((tg, "cut", 0))
+                fx.burst(cx, cy, 30, tg, ar.runners[data["victim"]].color)
+                v.zooms = getattr(v, "zooms", []) + [[tg, cx, cy]]
+            if on_event:
+                on_event(kind, data, cx, cy, tg)
+        seen[0] = len(ar.events)
+        fx.draw(img, tg)
+        for (px, py, txt, t0) in pops:
+            age = tg - t0
+            if 0 <= age < 1.0:
+                tim = text_img(txt, 4 if age > 0.08 else 5, YELLOW, DARK)
+                yy = int(py - ease_out(age / 0.4) * 14)
+                ImageDraw.Draw(img).rectangle((px - tim.width // 2 - 4, yy - 3, px + tim.width // 2 + 4, yy + tim.height + 3),
+                                              fill=(14, 16, 26), outline=DARK)
+                img.paste(tim, (int(px - tim.width / 2), yy), tim)
+
+    fn.cam = cam
+    return fn
 
 
 def demo24(dt):
@@ -515,16 +628,17 @@ def avatar_end(v, b0, b1, skin=("#FF2E9A", "#00F0FF", "stripes", "pulse"), line=
     def fn(img, tl, tg):
         bg_checker(img, tg)
         k = ease_back(tl / 0.3)
-        logo(img, 24 - (1 - k) * 40, 4, tg)
-        draw_lines(img, "COMING SOON TO ROBLOX", 86, 2, YELLOW)
-        img.paste(skin_board(200, 150, skin[0], skin[1], skin[2], skin[3], tg), (35, 118))
-        ImageDraw.Draw(img).rectangle((34, 117, 235, 268), outline=GOLD, width=3)
+        logo(img, 22 - (1 - k) * 40, 4, tg)
+        draw_lines(img, "COMING SOON TO ROBLOX", 92, 3, YELLOW, max_chars=12)  # 2 big lines
+        img.paste(skin_board(200, 136, skin[0], skin[1], skin[2], skin[3], tg), (35, 130))
+        ImageDraw.Draw(img).rectangle((34, 129, 235, 266), outline=GOLD, width=3)
         avatar(img, 110, 250, OUTFITS[1], tg, moving=True, s=4, king=True)
         avatar(img, 182, 254, OUTFITS[3], tg + 0.05, moving=True, s=3)
         ph = (tl / v.spb) % 1.0
-        g = 4 if ph < 0.15 else 0
-        ImageDraw.Draw(img).rectangle((14 - g, 300 - g, W - 15 + g, 378 + g), fill=GREEN, outline=DARK, width=3)
-        draw_lines(img, line, 340, 3, DARK, None, max_chars=12)
+        on = ph < 0.2  # pulse on every beat: button grows and the text flashes white
+        g = 6 if on else 0
+        ImageDraw.Draw(img).rectangle((14 - g, 290 - g, W - 15 + g, 368 + g), fill=YELLOW if on else GREEN, outline=DARK, width=3)
+        draw_lines(img, line, 330, 3, DARK, WHITE if on else None, max_chars=12)
 
     v.scene(b0, b1, fn, "end card: logo, COMING SOON TO ROBLOX, two avatars (one crowned) on an animated skin pad, pulsing FOLLOW TO PLAY FIRST")
     v.sound(b0, "hit")
@@ -533,9 +647,9 @@ def avatar_end(v, b0, b1, skin=("#FF2E9A", "#00F0FF", "stripes", "pulse"), line=
 
 # ============================================================ s02 You're not a square anymore
 def s02():
-    v = Video("s02_avatar_hype", 108, 30, music=dict(mode="major", root=62, seed=88, prog=[0, 4, 5, 3], sections=[
-        (0, 3.5, {"kick", "hat", "arp"}), (3.5, 4, set()), (4, 26, {"kick", "snare", "hat", "bass", "arp", "lead"}),
-        (26, 30, {"kick", "snare", "hat", "bass", "lead"})]))
+    v = Video("s02_avatar_hype", 108, 27, music=dict(mode="major", root=62, seed=88, prog=[0, 4, 5, 3], sections=[
+        (0, 1.5, {"kick", "hat", "arp"}), (1.5, 2, set()), (2, 23, {"kick", "snare", "hat", "bass", "arp", "lead"}),
+        (23, 27, {"kick", "snare", "hat", "bass", "lead"})]))
 
     # hook: the old game, you were a square (big CRT, loop closes on beat 1)
     old = Arena(12, seed=2)
@@ -544,99 +658,98 @@ def s02():
     h0 = old.add(1, (90, 255, 140), 3, 7, 3)
     h0.x, h0.y, h0.px, h0.py = 4, 7, 4, 7
     h0.script = path_from([(4, 7), (8, 7), (8, 3), (4, 3), (4, 6)])  # 14 steps
-    old_in = arena_scene(v, old, 0, 15, 140, 20, hero=1, fx=FX(), t_offset=10 * old.dt)
+    old_in = arena_scene(v, old, 0, 15, 140, 20, hero=1, fx=FX(), t_offset=12 * old.dt)  # closes at 0.28 s
 
     def retro(img, tl, tg):
         ImageDraw.Draw(img).rectangle((0, 0, W, H), fill=(8, 24, 14))
         old_in(img, tl, tg)
         d = ImageDraw.Draw(img)
         for y in range(0, H, 4):
-            d.line((0, y, W, y), fill=(0, 0, 0))
+            d.line((0, y, W, y), fill=(4, 14, 8))
 
-    v.scene(0, 3, retro, "HOOK: big green retro screen, you are a little square; your loop closes on beat 1")
-    v.caption(0, 3, "IN PAPER.IO YOU WERE A SQUARE.", y=70, size=3, color=YELLOW)
+    v.scene(0, 2, retro, "HOOK: big green retro screen, you are a little square; your loop closes and fills at 0.28 s")
+    v.caption(0, 2, "IN PAPER.IO YOU WERE A SQUARE.", y=70, size=3, color=YELLOW)
     v.sound(0, "hit")
 
     def morph(img, tl, tg):  # the square grows and turns into your avatar
         bg_checker(img, tg, c1=(40, 18, 60), c2=(58, 26, 86), speed=30)
-        k = min(1.0, tl / v.b(1))
+        k = min(1.0, tl / v.b(0.6))
         if k < 0.6:
             sz = int(20 + 60 * k / 0.6)
             ImageDraw.Draw(img).rectangle((W / 2 - sz / 2, 260 - sz / 2, W / 2 + sz / 2, 260 + sz / 2), fill=(90, 255, 140), outline=DARK, width=3)
         else:
             avatar(img, W / 2, 330, OUTFITS[1], tg, moving=True, s=6)
-        if tl > v.b(1):
-            draw_lines(img, "YOUR ROBLOX AVATAR", 410, 3, YELLOW)
+        if tl > v.b(0.6):
+            draw_lines(img, "YOUR ROBLOX AVATAR", 400, 3, YELLOW)
 
-    v.scene(3, 6, morph, "the square grows and morphs into a big blocky Roblox-style avatar (6x), walking in place")
-    v.caption(3, 6, "IN TURF LOOP... YOU'RE YOU.", y=70, size=3, color=WHITE, sound=False)
-    v.sound(3, "whoosh")
-    v.flash(4, WHITE, 0.15)
-    v.sound(4, "hit")
-    v.sound(4.02, "levelup")
-    v.shake(4, 0.35, 6)
-    v.stamp(4, "THAT'S YOU!", YELLOW, y=150, beats=2, size=4, sound=None)
+    v.scene(2, 5, morph, "hard cut at 1.1 s: the square grows and morphs into a big blocky Roblox-style avatar (6x), walking in place")
+    v.caption(2, 5, "IN TURF LOOP", y=46, size=3, color=WHITE, sound=False)
+    v.caption(2, 5, "YOU'RE YOU.", y=88, size=3, color=YELLOW)
+    v.flash(2, WHITE, 0.15)
+    v.sound(2, "hit")
+    v.sound(2.02, "levelup")
+    v.shake(2, 0.35, 6)
 
-    # gameplay with avatars wearing skins: loop, claim, K.O., crown
-    G = 6
-    dt = v.spb / 4
+    # gameplay with avatars wearing skins; camera zoomed ~1.8x and following YOU
+    G = 5
+    dt = v.spb / 3  # a little slower so the claim and the K.O. get room
     ar = demo24(dt)
-    fx = FX()
-    seen = [0]
-    sk_hero = sk(LEGENDS, "NEON PULSE")
-    skins = {1: sk_hero, 2: ("#FFC83D", "#FF8A3D", "dots", None), 3: sk(RARES, "CANDY STRIPE")}
-    trails = {1: ("#00F0FF", "#FF2E9A", "stripes"), 3: ("#FF9ACB", "#FFFFFF", "stripes")}
-    crown_b = G + 42 / 4 + 0.5
+    pre = 14 * dt  # your loop is half drawn at frame 1: MINE! lands 4 beats in
+    skins = {1: sk(LEGENDS, "NEON PULSE"), 2: ("#FFC83D", "#FF8A3D", "dots", None), 3: sk(RARES, "CANDY STRIPE")}
+    trails = {1: ("#00F0FF", "#00F0FF", "stripes"), 3: ("#FF9ACB", "#FF9ACB", "stripes")}  # solid trails: line != turf
+    claim_b, ko_b, crown_b = G + 12 / 3, G + 22 / 3, G + 28 / 3 + 0.5  # steps 26 / 36 / 42 from step 14
+    pink_go = G + 16 / 3
+    cam_game = match_scene(v, ar, 5, 128, 18, skins, trails, hero=1, sim=lambda tl: tl + pre, view=(260, 262),
+                           scale=2, hero_scale=3, kings=lambda tg: (1,) if tg >= v.b(crown_b) else ())
 
     def game(img, tl, tg):
-        bg_checker(img, tg)
-        ar.update(tl)
-        skinned(img, ar, tl, 3, 130, 11, skins, trails, hero=1, kings=(1,) if tg >= v.b(crown_b) else ())
-        for (et, kind, data) in ar.events[seen[0]:]:
-            cx, cy = 3 + (data["at"][0] + 0.5) * 11, 130 + (data["at"][1] + 0.5) * 11
-            if kind == "claim" and data["id"] == 1:
-                v.sfx.append((tg, "claim", 8))
-                fx.coins(cx, cy, 14, tg)
-                fx.pop(cx, max(140, cy - 46), f"+{data['cells']}", tg, YELLOW, 3)
-            elif kind == "cut":
-                v.sfx.append((tg, "cut", 0))
-                fx.burst(cx, cy, 30, tg, PINK)
-        seen[0] = len(ar.events)
-        fx.draw(img, tg)
+        cam_game(img, tl, tg)
+        sx, sy = cam_game.cam
+        b = tg / v.spb
+        for rid, lab, b0, b1 in ((2, "DANGER!", G, claim_b), (3, "CUT IT!", pink_go, ko_b)):
+            r = ar.runners[rid]
+            if b0 <= b < b1 and r.alive:
+                x, y = sx + (r.x + 0.5) * 18, sy + (r.y - 1.6) * 18
+                if 10 < x < W - 10 and 128 < y < 390:
+                    tim = text_img(lab, 2, WHITE, DARK)
+                    xx = int(min(W - tim.width - 8, max(8, x - tim.width / 2)))
+                    ImageDraw.Draw(img).rectangle((xx - 3, int(y) - 3, xx + tim.width + 3, int(y) + tim.height + 3), fill=RED, outline=DARK)
+                    img.paste(tim, (xx, int(y)), tim)
 
-    v.scene(G, G + 13, game, "24x24 match with avatars: you (Neon Pulse turf) draw a loop as yellow arrives too late, claim, cut pink's trail (K.O.), claim again, crown")
+    v.scene(G, G + 12, game, "24x24 match with avatars, camera zoomed 1.6x following YOU (Neon Pulse turf, solid cyan trail): your loop is half drawn, "
+            "yellow (red DANGER! tag) charges and arrives one beat too late, claim, pink draws a trail (CUT IT! tag), you cut it (K.O.), claim again, crown")
     v.flash(G)
-    v.caption(G, G + 3, "PLAY AS YOUR OWN AVATAR", color=YELLOW)
-    v.caption(G + 3, G + 6.5, "DRAW A LOOP...", color=WHITE)
-    v.caption(G + 6.5, G + 9, "LOOP HOME = IT'S YOURS", color=GREEN)
-    v.stamp(G + 6.5, "MINE!", GREEN, beats=1.5, sound=None)
-    v.caption(G + 9, crown_b, "CUT THEIR TRAIL = THEY'RE OUT", color=RED)
-    v.stamp(G + 9 + 0.25, "K.O.!", RED, beats=1.5)
-    v.caption(crown_b, G + 13, "MOST TURF = THE CROWN", color=YELLOW)
-    v.stamp(crown_b, "KING!", YELLOW, beats=2, sound="crown")
+    v.caption(G, G + 1.5, "DRAW A LOOP...", color=WHITE)
+    v.caption(G + 1.5, claim_b, "...BEFORE THEY CATCH YOU", color=RED)
+    v.caption(claim_b, ko_b - 0.5, "LOOP HOME = IT'S YOURS", color=GREEN)
+    v.stamp(claim_b, "MINE!", GREEN, y=400, beats=1.5, sound=None)
+    v.caption(ko_b - 0.5, crown_b, "CUT THEIR TRAIL = THEY'RE OUT", color=RED)
+    v.stamp(ko_b, "K.O.!", RED, y=400, beats=1.5)
+    v.caption(crown_b, G + 12, "MOST TURF = THE CROWN", color=YELLOW)
+    v.stamp(crown_b, "KING!", YELLOW, y=400, beats=2, sound="crown")
 
     # your avatar + any skin
-    S = G + 13
+    S = G + 12
     fits = [("GALAXY SWIRL", sk(RARES, "GALAXY SWIRL"), "RARE"), ("MAGMA SURGE", sk(LEGENDS, "MAGMA SURGE"), "LEGENDARY"),
             ("PRISM STORM", sk(LEGENDS, "PRISM STORM"), "LEGENDARY"), ("STARFALL", sk(LEGENDS, "STARFALL"), "LEGENDARY")]
 
     def wardrobe(img, tl, tg):
         bg_checker(img, tg, speed=14)
-        i = min(len(fits) - 1, int(tl / v.b(1.5)))
+        i = min(len(fits) - 1, int(tl / v.b(1)))
         name, s_, tier = fits[i]
-        pad = skin_board(240, 170, s_[0], s_[1], s_[2], s_[3], tg)
-        img.paste(pad, (15, 150))
-        ImageDraw.Draw(img).rectangle((14, 149, 255, 320), outline=GOLD if tier == "LEGENDARY" else WHITE, width=3)
-        avatar(img, W / 2, 290, OUTFITS[1], tg, moving=True, s=5, label="YOU")  # same you, only the skin changes
-        name_card(img, name, tier, v.b(S + i * 1.5), tg, y=336)
+        img.paste(skin_board(240, 170, s_[0], s_[1], s_[2], s_[3], tg), (15, 140))
+        ImageDraw.Draw(img).rectangle((14, 139, 255, 310), outline=GOLD if tier == "LEGENDARY" else WHITE, width=3)
+        avatar(img, W / 2, 285, OUTFITS[1], tg, moving=True, s=5, label="YOU")  # same you, only the skin changes
+        name_card(img, name, tier, v.b(S + i), tg, y=330)
 
-    v.scene(S, S + 6, wardrobe, "wardrobe: big avatar on a pad that swaps skin every 1.5 beats (Galaxy Swirl, Magma Surge, Prism Storm, Starfall)")
-    v.caption(S, S + 6, "YOUR AVATAR. ANY SKIN.", color=YELLOW)
+    v.scene(S, S + 4, wardrobe, "wardrobe: the same YOU avatar on a pad that swaps skin on every beat (Galaxy Swirl, Magma Surge, Prism Storm, Starfall)")
+    v.caption(S, S + 4, "YOUR AVATAR. ANY SKIN.", color=YELLOW)
     for i in range(4):
-        v.sound(S + i * 1.5, "crown" if i else "pop")
-        v.flash(S + i * 1.5, WHITE, 0.08)
-    v.watermark(0, S + 6)
-    avatar_end(v, S + 6, S + 10, skin=sk(LEGENDS, "MAGMA SURGE"))
+        v.sound(S + i, "crown" if i else "pop")
+        v.flash(S + i, WHITE, 0.08)
+    footer(v, 0, S + 4)
+    avatar_end(v, S + 4, S + 8, skin=sk(LEGENDS, "MAGMA SURGE"))
+    v.dur = v.b(S + 8)
     return v
 
 
@@ -688,36 +801,34 @@ def reward_card(img, kind_label, x, y, t, premium):
 
 
 def s03():
-    v = Video("s03_turf_pass_hype", 108, 30, music=dict(mode="minor", root=57, seed=99, prog=[0, 5, 2, 6], sections=[
-        (0, 1.5, {"kick", "hat", "arp"}), (1.5, 2, set()), (2, 26, {"kick", "snare", "hat", "bass", "arp", "lead"}),
-        (26, 30, {"kick", "snare", "hat", "bass", "lead"})]))
+    v = Video("s03_turf_pass_hype", 108, 29, music=dict(mode="minor", root=57, seed=99, prog=[0, 5, 2, 6], sections=[
+        (0, 2.5, {"kick", "hat", "arp"}), (2.5, 3, set()), (3, 25, {"kick", "snare", "hat", "bass", "arp", "lead"}),
+        (25, 29, {"kick", "snare", "hat", "bass", "lead"})]))
+    purple = dict(c1=(30, 10, 40), c2=(50, 16, 66))
 
-    def countdown(img, tg, y=118, speed=9000):
-        left = 14 * 86400  # a full season: the pass is not live yet, so no real countdown is implied
-        dd, hh, mm, ss = left // 86400, left % 86400 // 3600, left % 3600 // 60, left % 60
-        txt = "14 DAYS PER SEASON"
-        ImageDraw.Draw(img).rectangle((12, y - 6, W - 13, y + 26), fill=RED, outline=DARK, width=2)
-        draw_text(img, txt, W / 2, y + 1, 3, WHITE, DARK)
+    # hook: your avatar closes a loop in Prism Storm (tier-30 legendary) on beat 1
+    hk = Arena(12, seed=2)
+    hk.dt = v.spb / 4
+    h0 = hk.add(1, hexc("#7C5CFF"), 3, 7, 3)
+    h0.x, h0.y, h0.px, h0.py = 4, 7, 4, 7
+    h0.script = path_from([(4, 7), (8, 7), (8, 3), (4, 3), (4, 6)])  # 14 steps, claim on step 14
+    hk.add(2, PLAYERS[0], 9, 10, 3).reach = (1, 2)
+    hook = match_scene(v, hk, 15, 130, 20, {1: sk(LEGENDS, "PRISM STORM"), 2: sk(RARES, "CHERRY DOTS")},
+                       {1: ("#7C5CFF", "#FFFFFF", "hex")}, hero=1, sim=lambda tl: tl + 10 * hk.dt,
+                       scale=2, hero_scale=3, bg=lambda img, tg: bg_checker(img, tg, speed=24, **purple))
 
-    def hook(img, tl, tg):
-        bg_checker(img, tg, c1=(30, 10, 40), c2=(50, 16, 66), speed=24)
-        a, b, p, an = sk(LEGENDS, "PRISM STORM")
-        k = ease_back(min(1.0, tl / 0.3))
-        sz = int(220 * k)
-        if sz > 4:
-            img.paste(skin_board(sz, int(sz * 0.8), a, b, p, an, tg * 2), (int(W / 2 - sz / 2), int(260 - sz * 0.4)))
-            ImageDraw.Draw(img).rectangle((W / 2 - sz / 2 - 2, 260 - sz * 0.4 - 2, W / 2 + sz / 2 + 1, 260 + sz * 0.4 + 1), outline=GOLD, width=3)
-            avatar(img, W / 2, 320, OUTFITS[1], tg, moving=True, s=5, king=True)
-        countdown(img, tg, y=372)
-        draw_text(img, "LEGENDARY: PRISM STORM", W / 2, 404, 2, GOLD, DARK)
+    def hook_fn(img, tl, tg):
+        hook(img, tl, tg)
+        draw_text(img, "TIER 30: PRISM STORM", W / 2, 384, 2, GOLD, DARK)
 
-    v.scene(0, 2, hook, "HOOK: animated Prism Storm legendary pops in, red season countdown ticking down fast")
-    v.caption(0, 2, "LIMITED-TIME SKINS. 14-DAY SEASONS.", y=62, size=3, color=YELLOW)
+    v.scene(0, 3, hook_fn, "HOOK: your avatar closes a loop on beat 1 and its turf fills with the animated PRISM STORM legendary (+N pop)")
+    v.caption(0, 3, "THE TURF PASS IS COMING", y=62, size=3, color=YELLOW)
     v.sound(0, "hit")
-    v.sound(0.02, "crown")
+    v.sound(1.02, "crown")
 
-    # the pass track
-    keys_ = [(2, 0.0), (3.6, 0.0), (5, 9.0), (6.2, 9.0), (8, 19.0), (9.2, 19.0), (11, 29.0), (14, 29.0)]
+    # the pass track: tiers fly past (with >> skip markers) and stop on each animated legendary
+    keys_ = [(3, 0.0), (4.4, 0.0), (5.6, 9.0), (6.8, 9.0), (8, 19.0), (9.2, 19.0), (10.4, 29.0), (12, 29.0)]
+    arrivals = [3, 5.6, 8, 10.4]
 
     def pos_at(b):
         for (b0, p0), (b1, p1) in zip(keys_, keys_[1:]):
@@ -727,42 +838,73 @@ def s03():
 
     def track(img, tl, tg):
         b = tg / v.spb
-        bg_checker(img, tg, c1=(30, 10, 40), c2=(50, 16, 66), speed=10)
+        bg_checker(img, tg, speed=10, **purple)
         pos = pos_at(b)
         d = ImageDraw.Draw(img)
-        ribbon = Image.new("RGBA", (W, 26), (255, 200, 61, 255))
-        img.paste(ribbon, (0, 112))
+        img.paste(Image.new("RGBA", (W, 26), (255, 200, 61, 255)), (0, 112))
         draw_text(img, "SEASON 1: NEON RUSH", W / 2, 118, 2, DARK, None)
         for i, (free, prem) in enumerate(PASS_TRACK):
             x = int(W / 2 + (i - pos) * 62 - 26)
             if x < -60 or x > W:
                 continue
-            reward_card(img, prem, x, 156, tg, True)
-            reward_card(img, free, x, 268, tg, False)
-            node_on = i <= pos + 0.01
+            reward_card(img, prem, x, 150, tg, True)
+            reward_card(img, free, x, 272, tg, False)
+            on = i <= pos + 0.01
             cy = 240
-            d.rectangle((x - 5, cy - 3, x + 57, cy + 3), fill=GOLD if node_on else (70, 74, 96))
-            d.ellipse((x + 12, cy - 14, x + 40, cy + 14), fill=GOLD if node_on else (70, 74, 96), outline=DARK, width=2)
-            draw_text(img, str(i + 1), x + 26, cy - 7, 2, DARK if node_on else WHITE, None)
+            d.rectangle((x - 5, cy - 3, x + 57, cy + 3), fill=GOLD if on else (70, 74, 96))
+            d.ellipse((x + 4, cy - 20, x + 48, cy + 20), fill=GOLD if on else (70, 74, 96), outline=DARK, width=2)
+            draw_text(img, str(i + 1), x + 26, cy - 10, 3, DARK if on else WHITE, None)
         draw_text(img, "PREMIUM", 30, 140, 1, GOLD, DARK)
-        draw_text(img, "FREE", 20, 332, 1, RARE_BLUE, DARK)
+        draw_text(img, "FREE", 20, 336, 1, RARE_BLUE, DARK)
+        moving = any(b0 < b < b1 and p1 != p0 for (b0, p0), (b1, p1) in zip(keys_, keys_[1:]))
+        if moving:
+            draw_text(img, ">> SKIP >>", W / 2, 352, 3, WHITE, DARK)
         cur = int(round(pos))
         prem = PASS_TRACK[cur][1]
         if prem.startswith("legend") and abs(pos - cur) < 0.05:
-            name_card(img, prem.split(" ", 1)[1], "TIER %d LEGENDARY" % (cur + 1), v.b(b - (b % 1.2)), tg, y=356)
+            t_in = v.b(max(a for a in arrivals if a <= b + 1e-6))
+            name_card(img, prem.split(" ", 1)[1], "TIER %d LEGENDARY" % (cur + 1), t_in, tg, y=348)
 
-    v.scene(2, 14, track, "battle pass track: tiers scroll right with the gold rail filling; it stops on each animated legendary (tiers 1, 10, 20, 30) with a name card")
-    v.flash(2)
-    v.sound(2, "whoosh")
-    for (b0, p0) in keys_[1::2][:4]:
-        v.sound(b0 - 1.2, "crown")
-        v.flash(b0 - 1.2, GOLD, 0.1)
-    for b_ in (3.6, 4.0, 4.4, 6.6, 7.0, 7.4, 9.6, 10.0, 10.4):
-        v.sound(b_, "blip")
-    v.caption(2, 5, "TURF PASS. SEASON 1.", color=GOLD)
-    v.caption(5, 8, "30 TIERS. FREE + PREMIUM.", color=WHITE)
-    v.caption(8, 11, "4 ANIMATED LEGENDARIES", color=GOLD)
-    v.caption(11, 14, "EARN XP FROM DAILY MISSIONS", color=GREEN)
+    v.scene(3, 12, track, "battle pass track: big tier numbers, tiers fly past with a >> SKIP >> marker and whoosh; "
+            "stops on each animated legendary (tiers 1, 10, 20, 30) with a name card")
+    v.flash(3)
+    for a in arrivals:
+        v.sound(a, "crown")
+        v.flash(a, GOLD, 0.1)
+    for (b0, p0), (b1, p1) in zip(keys_, keys_[1:]):
+        if p1 != p0:
+            v.sound(b0, "whoosh")
+    v.caption(3, 5.6, "TURF PASS. SEASON 1.", color=GOLD)
+    v.caption(5.6, 8, "30 TIERS. FREE + PREMIUM.", color=WHITE)
+    v.caption(8, 12, "4 ANIMATED LEGENDARIES", color=GOLD)
+
+    # daily missions -> XP
+    def missions(img, tl, tg):
+        bg_checker(img, tg, speed=10, **purple)
+        d = ImageDraw.Draw(img)
+        d.rectangle((3, 110, W - 4, 340), fill=(26, 30, 46), outline=GOLD, width=3)
+        draw_text(img, "DAILY MISSIONS", W / 2, 120, 3, GOLD, DARK)
+        rows = [("LOOP 3 TIMES", "+150 XP"), ("CUT 1 TRAIL", "+100 XP"), ("CLAIM 20%", "+200 XP")]
+        for i, (task, xp) in enumerate(rows):
+            y = 156 + i * 46
+            done = tl > v.b(0.25 + i * 0.5)
+            d.rectangle((24, y + 4, 50, y + 30), fill=GREEN if done else (50, 54, 70), outline=DARK, width=2)
+            if done:
+                d.line([(29, y + 17), (35, y + 24), (46, y + 9)], fill=WHITE, width=3)
+            draw_text(img, task, 60, y + 2, 2, WHITE, DARK, align="left")
+            draw_text(img, xp, 60, y + 20, 2, GREEN if done else CREAM, DARK, align="left")
+        fill = min(1.0, max(0.0, (tl - v.b(0.25)) / v.b(1.5)))
+        d.rectangle((24, 300, W - 25, 324), fill=(14, 16, 26), outline=DARK, width=2)
+        d.rectangle((26, 302, 26 + int((W - 53) * fill), 322), fill=YELLOW)
+        draw_text(img, "XP", W / 2, 305, 2, DARK if fill > 0.5 else WHITE, None)
+        if fill >= 1:
+            draw_text(img, "TIER UP!", W / 2, 360, 4, YELLOW, DARK)
+
+    v.scene(12, 14, missions, "daily missions panel: 3 missions tick off on the beat (+150/+100/+200 XP), the XP bar fills, TIER UP!")
+    v.caption(12, 14, "EARN XP FROM DAILY MISSIONS", color=GREEN)
+    for i in range(3):
+        v.sound(12.25 + i * 0.5, "coin")
+    v.sound(13.75, "levelup")
 
     # limited-time events: Crown Rush weekend + 2x coins weekend
     E = 14
@@ -774,67 +916,203 @@ def s03():
         ar.add(i + 2, PLAYERS[(i * 4 + 2) % 12], x, y, 3).reach = (2, 3)
     skins = {1: sk(LEGENDS, "STARFALL"), 2: sk(RARES, "CHERRY DOTS"), 3: sk(RARES, "OCEAN WAVES"), 4: ("#4ADE80", "#B6E33B", "waves", None)}
     fx = FX()
-    seen = [0]
     rush_trail = ("#FFC83D", "#2B2F3A", "stars")
+    trails = {}
+    gold = dict(c1=(40, 30, 10), c2=(60, 46, 14))
+
+    def on_ev(kind, data, cx, cy, tg):
+        if kind == "claim" and data["id"] == 1:
+            fx.coins(cx, cy, 22 if tg >= v.b(E + 6) else 10, tg)
+            v.sfx.append((tg, "coin", 0))
+
+    match = match_scene(v, ar, 15, 112, 15, skins, trails, hero=1, kings=lambda tg: (1,), scale=2, hero_scale=2,
+                        on_event=on_ev, bg=lambda img, tg: bg_checker(img, tg, speed=16, **gold))
 
     def events(img, tl, tg):
         b = tg / v.spb
-        bg_checker(img, tg, c1=(40, 30, 10), c2=(60, 46, 14), speed=16)
-        ar.update(tl)
-        trails = {1: rush_trail} if b >= E + 4 else {}
-        skinned(img, ar, tl, 7, 140, 16, skins, trails, hero=1, kings=(1,))
-        for (et, kind, data) in ar.events[seen[0]:]:
-            if kind == "claim" and data["id"] == 1:
-                cx, cy = 7 + (data["at"][0] + 0.5) * 16, 140 + (data["at"][1] + 0.5) * 16
-                n = 22 if b >= E + 5 else 10
-                fx.coins(cx, cy, n, tg)
-                v.sfx.append((tg, "coin", 0))
-        seen[0] = len(ar.events)
-        if b >= E + 5:  # coin rain
+        if b >= E + 5:
+            trails[1] = rush_trail
+        match(img, tl, tg)
+        if b >= E + 6:  # coin rain
             rng = random.Random(int(tg * 30))
             for _ in range(2):
                 fx.coins(rng.uniform(10, W - 10), 120, 1, tg)
         fx.draw(img, tg)
-        if b < E + 4:  # crown hold timer (fast-forwarded)
-            held = min(300, int(max(0.0, tg - v.b(E + 0.5)) / v.b(3) * 300))
-            draw_text(img, f"CROWN HELD {held // 60}:{held % 60:02d} / 5:00", W / 2, 405, 2, GOLD, DARK)
-            draw_text(img, "FAST FORWARD >>", W / 2, 428, 1, CREAM, None)
-        elif b < E + 5:
-            name_card(img, "CROWN RUSH TRAIL", "LIMITED EVENT TRAIL", v.b(E + 4), tg, y=392)
+        if b < E + 5:  # crown hold timer (fast-forwarded)
+            held = min(300, int(max(0.0, tg - v.b(E + 0.5)) / v.b(4) * 300))
+            draw_text(img, f"CROWN HELD {held // 60}:{held % 60:02d} / 5:00", W / 2, 362, 2, GOLD, DARK)
+            draw_text(img, "FAST FORWARD >>", W / 2, 382, 1, CREAM, None)
+        elif b < E + 6:
+            draw_text(img, "CROWN RUSH TRAIL", W / 2, 360, 3, GOLD, DARK)
+            draw_text(img, "LIMITED EVENT TRAIL", W / 2, 388, 2, WHITE, DARK)
         else:
-            draw_text(img, "2X", W / 2, 396, 6, YELLOW, DARK, 2)
+            draw_text(img, "2X COINS", W / 2, 362, 4, YELLOW, DARK, 2)
 
-    v.scene(E, E + 8, events, "events: CROWN RUSH weekend on a 16x16 board (you are King, crown timer fast-forwards to 5:00 -> limited Crown Rush Trail appears on your trail), then 2X COINS weekend with coin rain")
+    v.scene(E, E + 9, events, "events: CROWN RUSH weekend on a 16x16 board with avatars (you are King, crown timer fast-forwards to 5:00 -> "
+            "limited Crown Rush Trail appears on your trail), then 2X COINS weekend with coin rain")
     v.flash(E)
     v.sound(E, "hit")
-    v.caption(E, E + 2, "LIMITED-TIME EVENTS", color=RED)
-    v.caption(E + 2, E + 3, "CROWN RUSH: KING EARNS 2X", color=GOLD)
-    v.caption(E + 3, E + 5, "HOLD THE CROWN 5 MIN = LIMITED TRAIL", color=GOLD)
-    v.stamp(E + 4, "LIMITED TRAIL!", GOLD, beats=1, size=4, sound="levelup")
-    v.caption(E + 5, E + 8, "WEEKENDS = 2X COINS", color=YELLOW)
-    v.sound(E + 5, "coin")
-    v.sound(E + 5.5, "coin")
+    v.caption(E, E + 1.5, "LIMITED-TIME EVENTS", color=RED)
+    v.caption(E + 1.5, E + 3.5, "CROWN RUSH: KING EARNS 2X", color=GOLD)
+    v.caption(E + 3.5, E + 6, "HOLD THE CROWN 5 MIN = LIMITED TRAIL", color=GOLD)
+    v.stamp(E + 5, "LIMITED TRAIL!", GOLD, y=250, beats=1, size=4, sound="levelup")
+    v.caption(E + 6, E + 9, "WEEKENDS = 2X COINS", color=YELLOW)
+    v.sound(E + 6, "coin")
+    v.sound(E + 6.5, "coin")
 
     def last(img, tl, tg):
-        bg_checker(img, tg, c1=(30, 10, 40), c2=(50, 16, 66), speed=24)
+        bg_checker(img, tg, speed=24, **purple)
         for i, (n, a, b2, p, an) in enumerate(LEGENDS):
             x = 18 + i * 60
-            img.paste(skin_board(52, 52, a, b2, p, an, tg), (x, 150))
-            ImageDraw.Draw(img).rectangle((x - 1, 149, x + 52, 202), outline=GOLD, width=2)
-            draw_text(img, str(i + 1), x + 26, 162, 4, WHITE, DARK)
-            draw_text(img, n.split(" ")[0], x + 26, 208, 1, GOLD, None)
-        countdown(img, tg, y=250)
-        draw_lines(img, "SEASON 1 STARTS AT LAUNCH", 320, 3, YELLOW)
+            img.paste(skin_board(52, 60, a, b2, p, an, tg), (x, 140))
+            ImageDraw.Draw(img).rectangle((x - 1, 139, x + 52, 200), outline=GOLD, width=2)
+            draw_text(img, str(i + 1), x + 26, 146, 3, WHITE, DARK)
+            avatar(img, x + 26, 196, OUTFITS[1 + i % 4], tg + i * 0.05, moving=True, s=1)
+            draw_text(img, n.split(" ")[0], x + 26, 206, 1, GOLD, None)
+        ImageDraw.Draw(img).rectangle((12, 244, W - 13, 276), fill=RED, outline=DARK, width=2)
+        draw_text(img, "14 DAYS PER SEASON", W / 2, 251, 3, WHITE, DARK)
+        draw_lines(img, "SEASON 1 STARTS AT LAUNCH", 330, 3, YELLOW)
 
-    v.scene(E + 8, E + 10, last, "all 4 legendaries animating + season countdown: DON'T MISS SEASON 1")
-    v.caption(E + 8, E + 10, "WHICH ARE YOU GRINDING FOR? COMMENT 1-4", color=WHITE)
-    v.watermark(0, E + 10)
-    avatar_end(v, E + 10, E + 14, skin=sk(LEGENDS, "PRISM STORM"))
-    v.dur = v.b(E + 14)
+    v.scene(E + 9, E + 11, last, "all 4 legendaries animating with an avatar on each, 14 DAYS PER SEASON, SEASON 1 STARTS AT LAUNCH")
+    v.caption(E + 9, E + 11, "WHICH ARE YOU GRINDING FOR? COMMENT 1-4", color=WHITE)
+    footer(v, 0, E + 11)
+    avatar_end(v, E + 11, E + 15, skin=sk(LEGENDS, "PRISM STORM"))
+    v.dur = v.b(E + 15)
     return v
 
 
-ALL = {"s01": s01, "s02": s02, "s03": s03}
+# ============================================================ s04 1 cell from home (idea #8)
+def s04():
+    v = Video("s04_one_cell", 108, 24, music=dict(mode="major", root=60, seed=123, prog=[0, 5, 3, 4], sections=[
+        (0, 1.75, {"kick", "hat", "arp"}), (1.75, 4, set()), (4, 20, {"kick", "snare", "hat", "bass", "arp", "lead"}),
+        (20, 24, {"kick", "snare", "hat", "bass", "lead"})]))
+    dt = v.spb / 4
+    X0, Y0, CP = 9, 112, 18  # 14 x 18 = 252 px board
+    skins = {1: sk(LEGENDS, "MAGMA SURGE"), 2: ("#FFC83D", "#FF8A3D", "dots", None)}
+    trails = {1: ("#FFC83D", "#E8361A", "stripes")}
+
+    def take(second, d):
+        ar = Arena(14, seed=8)
+        ar.dt = d
+        h = ar.add(1, hexc("#E8361A"), 3, 10, 4)  # home turf x 1-4, y 8-11
+        h.x, h.y, h.px, h.py = 4, 8, 4, 8
+        h.respawn = False
+        if second:  # go home early (claim on step 22), then cut yellow's trail (step 28), loop home again
+            h.script = path_from([(4, 8), (4, 3), (10, 3), (10, 7), (4, 7), (4, 8), (4, 10), (8, 10), (8, 11), (4, 11)])
+        else:  # the big loop: one cell from home on step 22, yellow steps on the trail that same step
+            h.script = path_from([(4, 8), (4, 3), (10, 3), (10, 9), (5, 9), (4, 9)])
+        y = ar.add(2, PLAYERS[2], 8, 13, 3)
+        y.script = deque([(8, 13)] * 18) + path_from([(8, 13), (8, 8), (11, 8), (11, 6)])
+        y.respawn = False
+        return ar
+
+    # ---------- take 1: so close (slow-mo on the last steps, cut lands at 0.97 s) ----------
+    a1 = take(False, dt)
+    pre = 18 * dt
+
+    def slow(tl):
+        return pre + tl if tl < 2 * dt else pre + 2 * dt + (tl - 2 * dt) / 2.5
+
+    ko_b = 7 * dt / v.spb  # 1.75 beats
+    ZC = 26  # hook camera: ~2x zoom on the gap
+    t1 = match_scene(v, a1, 5, 112, ZC, skins, trails, hero=1, sim=slow, view=(260, 262), scale=3, hero_scale=3)
+
+    def take1(img, tl, tg):
+        t1(img, tl, tg)
+        if tg < v.b(ko_b):  # pulsing bracket on the one home cell you still need
+            sx, sy = t1.cam
+            hx, hy = sx + 4 * ZC, sy + 9 * ZC
+            g = 2 if int(tg * 6) % 2 else 0
+            d = ImageDraw.Draw(img)
+            d.rectangle((hx - g, hy - g, hx + ZC - 1 + g, hy + ZC - 1 + g), outline=WHITE, width=3)
+            d.polygon([(hx + ZC / 2, hy + ZC + 4), (hx + ZC / 2 - 7, hy + ZC + 14), (hx + ZC / 2 + 7, hy + ZC + 14)], fill=WHITE, outline=DARK)
+            draw_text(img, "1 CELL", max(62, hx + ZC / 2), hy + ZC + 18, 3, WHITE, DARK)  # below the cell, kept on screen
+
+    v.scene(0, 4, take1, "HOOK: camera zoomed ~2x on the gap: your avatar (Magma Surge turf) is ONE cell from home (pulsing bracket + "
+            "'1 CELL' arrow on that cell); yellow walks up toward your trail; slow-mo; yellow steps on your trail at 0.97 s -> K.O. (freeze + zoom), your turf vanishes")
+    v.caption(0, ko_b, "1 CELL FROM HOME...", y=58, size=3, color=YELLOW)
+    v.stamp(ko_b, "SO CLOSE.", RED, y=400, beats=2.25, sound=None)
+    v.sound(ko_b + 0.1, "fail")
+    v.caption(ko_b, 4, "WE'VE ALL BEEN HERE.", y=58, size=3, color=WHITE)
+
+    # ---------- take 2: rewind, go home first, then get revenge ----------
+    dt2 = v.spb / 3  # take 2 a little slower so the claim and the revenge get room
+    a2 = take(True, dt2)
+    efx = Effects()
+    W2 = 4
+
+    def on2(kind, data, cx, cy, tg):
+        if kind == "claim" and data["id"] == 1 and data["cells"] > 10:
+            efx.fire("FIREWORKS", cx, cy, tg, (X0 + 20, Y0 + 20, X0 + 232, Y0 + 232))
+            v.sfx.append((tg, "levelup", 0))
+
+    t2 = match_scene(v, a2, X0, Y0, CP, skins, trails, hero=1, sim=lambda tl: 10 * dt2 + tl, scale=2, hero_scale=2,
+                     on_event=on2, kings=lambda tg: (1,) if tg >= v.b(W2 + 6) else ())
+
+    def take2(img, tl, tg):
+        t2(img, tl, tg)
+        efx.draw(img, tg)
+
+    v.scene(W2, W2 + 8.5, take2, "take 2 after a REWIND: same board, you head home early -> claim (+N, Fireworks capture effect), "
+            "then cut yellow's trail (K.O.), loop home again, crowned")
+    rewind(v, W2, W2 + 1)
+    v.flash(W2 + 1)
+    v.sound(W2 + 1, "hit")
+    v.caption(W2 + 1, W2 + 4, "TAKE 2: GO HOME FIRST", color=GREEN)
+    v.stamp(W2 + 4, "MINE!", GREEN, y=400, beats=1.5, sound=None)
+    v.caption(W2 + 4, W2 + 6, "LOOP HOME = IT'S YOURS", color=GREEN)
+    v.stamp(W2 + 6, "REVENGE!", RED, y=400, beats=1.5)
+    v.caption(W2 + 6, W2 + 8.5, "CUT THEIR TRAIL = THEY'RE OUT", color=RED)
+
+    # ---------- lose a round, keep your skins (Turf Pass legendaries) ----------
+    S = W2 + 8.5
+    fits = [("MAGMA SURGE", "TIER 10 LEGENDARY"), ("NEON PULSE", "TIER 1 LEGENDARY"),
+            ("STARFALL", "TIER 20 LEGENDARY"), ("PRISM STORM", "TIER 30 LEGENDARY")]
+
+    def wardrobe(img, tl, tg):
+        bg_checker(img, tg, speed=14)
+        i = min(len(fits) - 1, int(tl / v.b(1)))
+        name, tier = fits[i]
+        s_ = sk(LEGENDS, name)
+        img.paste(skin_board(240, 170, s_[0], s_[1], s_[2], s_[3], tg), (15, 140))
+        ImageDraw.Draw(img).rectangle((14, 139, 255, 310), outline=GOLD, width=3)
+        avatar(img, W / 2, 285, OUTFITS[1], tg, moving=True, s=5, label="YOU")
+        draw_text(img, "TURF PASS LEGENDARIES", W / 2, 120, 2, GOLD, DARK)
+        name_card(img, name, tier, v.b(S + i), tg, y=330)
+
+    v.scene(S, S + 4, wardrobe, "the same YOU avatar on a pad swapping animated legendaries on every beat, each labelled with its Turf Pass tier")
+    v.caption(S, S + 4, "LOSE A ROUND. KEEP YOUR SKINS.", color=YELLOW)
+    for i in range(4):
+        v.sound(S + i, "crown" if i else "pop")
+        v.flash(S + i, WHITE, 0.08)
+
+    # ---------- comment bait ----------
+    B = S + 4
+
+    def bait(img, tl, tg):
+        bg_checker(img, tg, speed=20)
+        draw_lines(img, "WHAT'S YOUR CLOSEST CALL?", 100, 3, YELLOW)
+        d = ImageDraw.Draw(img)
+        y = 200
+        img.paste(skin_board(54, 54, *sk(LEGENDS, "MAGMA SURGE")[:3], "flow", tg), (24, y))  # home
+        d.rectangle((23, y - 1, 78, y + 54), outline=WHITE, width=2)
+        draw_text(img, "HOME", 51, y + 60, 2, WHITE, DARK)
+        for i in range(4):  # trail cells, the gap is the first one
+            x = 84 + i * 42
+            d.rectangle((x, y + 12, x + 36, y + 42), fill=(232, 54, 26) if i else (60, 64, 78), outline=DARK, width=2)
+        avatar(img, 105, y + 40, OUTFITS[1], tg, moving=True, s=2)
+        draw_text(img, "1", 105, y - 26, 3, RED, DARK)
+        draw_lines(img, "COMMENT HOW MANY CELLS", 340, 3, WHITE)
+
+    v.scene(B, B + 3, bait, "comment bait: WHAT'S YOUR CLOSEST CALL? a home pad, a 1-cell gap with your avatar, COMMENT HOW MANY CELLS")
+    v.sound(B, "hit")
+    footer(v, 0, B + 3)
+    avatar_end(v, B + 3, B + 7, skin=sk(LEGENDS, "MAGMA SURGE"))
+    v.dur = v.b(B + 7)
+    return v
+
+
+ALL = {"s01": s01, "s02": s02, "s03": s03, "s04": s04}
 
 if __name__ == "__main__":
     for n in sys.argv[1:] or list(ALL):

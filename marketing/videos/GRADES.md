@@ -215,8 +215,10 @@ Graders then found the next layer. **Round 4 to-do, in priority order:**
 | R1 | 6 | 7 | 5 | 7 | 6 | 6 | 6 |
 | R2 | 6 | 7 | 5 | 7 | 6 | 6 | 7 |
 | R3 | 6 | 7 | 5 | 7 | 6 | 6 | 7 |
+| R4 | 6 | 7 | 5 | 8 | 6 | 7 | 7 |
 
-Status: rework. R2 fixes for the next run:
+Status: rework (4 rounds). Older fix lists below; the R4 list is in the 2026-11-20 13:00 run section at the end.
+R2 fixes:
 1. Make the green CRT playfield 2x bigger with lighter scanlines, and put the +33 burst on screen by 0.6 s. Turn "IT GREW UP..." into a CRT power-off before the logo slam.
 2. Hold "LOOP HOME = IT'S YOURS" for 2 beats over one clear loop and claim. Add one visible cut around the trails section ("CUT THEIR TRAIL = THEY'RE OUT").
 3. Show 4 contrasting rare skins at 1 beat or more each instead of 6. Remove the leftover white wipe line.
@@ -236,6 +238,8 @@ Blocky avatar sprites are our own art and not Roblox's logo. The Paper.io square
 |---|---|---|---|---|---|---|---|
 | R1 | 6 | 7 | 6 | 7 | 7 | 6 | 6 |
 | R2 | 6 | 7 | 6 | 7 | 6 | 6 | 6 |
+| R3 | 6 | 6 | 5 | 7 | 6 | 7 | 7 |
+| R4 | 6 | 6 | 7 | 7 | 7 | 6 | 7 |
 
 Fixed after R2: the wardrobe keeps the same avatar with a YOU tag. Still to do:
 - The in-match avatars are too small. Zoom the camera about 1.8x on YOU (needs a view crop in `skinned()`).
@@ -249,6 +253,7 @@ Fixed after R2: the wardrobe keeps the same avatar with a YOU tag. Still to do:
 |---|---|---|---|---|---|---|---|
 | R1 | 6 | 5 | 6 | 7 | 7 | 5 | 6 |
 | R2 | 5 | 4 | 5 | 6 | 6 | 5 | 6 |
+| R3 | 6 | 5 | 6 | 7 | 6 | 5 | 6 |
 
 Fixed after R2: honesty. The pass isn't live, so there's no ticking countdown. The hook is now "LIMITED-TIME SKINS. 14-DAY SEASONS." and the closing line is "SEASON 1 STARTS AT LAUNCH". Still to do:
 - Open on the avatar running a loop with the Prism Storm trail and claiming on beat 1.
@@ -259,3 +264,56 @@ Fixed after R2: honesty. The pass isn't live, so there's no ticking countdown. T
 - Put the LIMITED TRAIL! stamp in the centre over the board.
 - A 1 s core-loop shot by 3 s.
 - Note that graders misread frame boundaries on the contact sheet as overlap ("12/18", "SKINSKIN").
+
+## Run 2026-11-20 13:00 (weekend task): s01-s03 reworked, s04 new. Still no 7.
+**Shared changes in `tools/video/hype.py` (all s-videos re-rendered; v01-v07 untouched):**
+- s01 now uses avatars, not squares. `draw_avatars()` is shared.
+- `match_scene()`: a skinned avatar match with preroll or slow-mo (`sim`), an optional follow camera (`view` crops a zoomed board), and +N pops on a dark chip at size 4.
+- `footer()`: "TURF LOOP COMING SOON", raised about 120 px (at 1080 wide) out of the bottom UI. Name cards also moved up.
+- `rewind()` cue: dark scanlines, "<< REWIND" and a whoosh.
+- Coarser diagonal stripes (no moiré). The YOU tag hides after the first claim.
+- End card: a bigger 2-line "COMING SOON TO ROBLOX", and the CTA button flashes yellow and grows on every beat.
+
+**s01 R4 (6)** hook 7, clarity 5, style 8, pacing 6, readability 7, cta 7.
+Applied: a big CRT hook with the loop at 0.56 s and a power-off, "COMING TO ROBLOX" on the drop, LOOP HOME held 2.5 beats over a scripted loop and claim, 4 rares at 2 beats with a fast wipe and then the name card, 1 trail, half the bubbles, bolts inside the board, the question above an 8-tile grid.
+Next fixes:
+1. It is a skin catalog with almost no gameplay. Give LOOP HOME about 2.5 s with a visible trail, and add a 1-beat "CUT A TRAIL = THEY'RE OUT" cut (script the rival) before RARE SKINS.
+2. TRAILS: put the trail on plain or default turf and drag a long thick rainbow trail across empty grid. It currently reads as another turf skin.
+3. CAPTURE EFFECTS: plain turf, bubbles 3-4x bigger, and keep the avatar off the board's top edge.
+4. Trim to 2 rares and 2 legendaries at 1-2 beats each. The first rare needs its name card visible in the sampled frame.
+5. Bait: hold 2.5 s and put a 1-word name under each tile.
+
+**s02 R3 (6)** hook 6, clarity 5, style 7, pacing 6, readability 7, cta 7.
+Applied R2 fixes: a 1.6x follow camera, "PLAY AS YOUR OWN AVATAR" cut, a slower match, the split caption, coarse stripes.
+**s02 R4 (6)** hook 6, clarity 7, style 7, pacing 7, readability 6, cta 7.
+Applied R3 fixes: the loop closes at 0.28 s, a hard cut to the avatar at 1.1 s, a solid cyan trail (the line now differs from the turf), MINE! at 5.0 s, DANGER!/CUT IT! tags on the rivals, a 4-beat wardrobe.
+Next fixes:
+1. Hook: a 3x bigger, brighter square, and draw the +N above the scanlines. The avatar reveal needs a punch-in or overshoot on the beat. 1.1-2.8 s is a still avatar.
+2. Never place a tag or pop over a sprite: offset DANGER!, CUT IT! and +N by at least one avatar height.
+3. Keep yellow on screen closing in during "...BEFORE THEY CATCH YOU". Remove the dark bar at the arena top (the offscreen padding row of the camera).
+4. The K.O. needs a bigger pink burst and a flash on pink's trail. Use a bigger crown at KING.
+5. Bigger viewport (about 75% of the height). Wardrobe at 2 beats per skin.
+
+**s03 R3 (6)** hook 5, clarity 6, style 7, pacing 6, readability 5, cta 6.
+Applied: an avatar loop-and-claim hook in Prism Storm, big tier numbers, a >> SKIP >> marker and whooshes, a daily-missions panel (3 ticks, XP bar, TIER UP!), Crown Rush held 2 beats, LIMITED TRAIL! centred, an avatar on each legendary tile, no fake countdown.
+Next fixes:
+1. Hook: full-width board, a zoomed fill burst, and a value line instead of "THE TURF PASS IS COMING". It must stay honest: no "0 Robux" claims unless true. Free-track rewards are real, so something like "FREE TRACK + 4 LEGENDARIES" works.
+2. Track: one big centred tier card per stop. Hide non-current bubbles while skipping. (The "38"/"1218" and "KEY XEY" the grader saw are mostly contact-sheet frame seams, but one card per stop removes the doubt.)
+3. Missions: 1 mission with a big "+200 XP -> TIER UP!", or 2 more beats.
+4. The comment 1-4 beat needs about 2.5 s with big numbers. Take the time from the end card.
+5. Drop the K.O. zoom during the 2X COINS beat (it pushes the label onto the footer). A core-loop shot by 3 s.
+
+**s04_one_cell (idea #8, new, 108 BPM, 13 s).** A 1-cell-from-home fail in slow-mo (yellow steps on your trail at 0.97 s, "SO CLOSE.", sad "fail" tune), "WE'VE ALL BEEN HERE.", << REWIND, take 2: go home first (+35, Fireworks), REVENGE! cut, crowned. Then "LOSE A ROUND. KEEP YOUR SKINS." showing the 4 Turf Pass legendaries, "WHAT'S YOUR CLOSEST CALL?", avatar end card.
+| Round | Overall | hook | clarity | style | pacing | readability | cta |
+|---|---|---|---|---|---|---|---|
+| R1 | 6 | 6 | 6 | 8 | 6 | 6 | 7 |
+| R2 | 6 | 6 | 5 | 7 | 6 | 7 | 7 |
+R2 applied: a ~2x follow camera on the gap, a pulsing "1 CELL" bracket, chip-backed pops, a slower take 2, a 4-beat carousel, a 3-beat bait on navy.
+Next fixes:
+1. The hook geometry must match the caption from frame 0: start with YOU already on the cell next to home, the bracket on the single gap cell, and the "1 CELL" label above the board.
+2. After the K.O. leave a ghost or tombstone of YOU plus a "TRAIL HIT = OUT" flash, and drain the turf over about 4 frames before SO CLOSE.
+3. Music: keep the kick and arp under the rewind, and start the full band at TAKE 2 (2.78 s), not at 4 beats.
+4. Claim frame: about 60% fewer confetti particles, +35 above the claimed block. Show yellow at the moment of the cut (REVENGE!).
+5. Bait: grey cells with a dashed trail and a "? CELLS" gap, or fold it into the end card.
+
+**Pattern across 23 grades:** every s-video sits at 6 with style 7-8. The ceiling is clarity and hook (5-6): graders want one instantly readable mechanic shot in the first 2 s and threats and cuts that are visible in stills. The next run should spend its rounds on those, not on more cosmetics.
