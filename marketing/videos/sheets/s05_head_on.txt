@@ -1,17 +1,17 @@
-s05_head_on: 11.4s, 108 BPM, 1080x1920 30fps
+s05_head_on: 10.3s, 108 BPM, 1080x1920 30fps
  0.00- 0.83s  text: WHO WINS?
- 0.00- 2.78s  scene: HOOK: 16x16 board, your avatar (Neon Pulse, YOU) and a rival (Candy Stripe, THEM) both have 4 trail cells and run straight at each other along one row; their heads meet on the same step: both K.O. (freeze + zoom) and both turfs vanish
- 0.83- 2.78s  text: BOTH TRAILS HIT = BOTH OUT
+ 0.00- 1.94s  scene: HOOK: 16x16 board, your avatar (Neon Pulse, YOU) and a rival (Candy Stripe, THEM) both have 4 trail cells and run straight at each other along one row; their heads meet on the same step: both K.O. (freeze + zoom) and both turfs vanish
+ 0.83- 1.94s  text: BOTH TRAILS HIT = BOTH OUT
  0.83s  STAMP: DRAW. (+shake, flash)
- 2.78- 3.33s  REWIND cue: dark scanlines + << REWIND
- 2.78- 7.50s  scene: take 2 after a REWIND: same board, you skip the race and loop home first (claim +N, Fireworks), then cut the rival's trail (K.O.), crowned
- 3.33- 4.44s  text: TAKE 2: DON'T RACE
- 4.44- 5.37s  text: DRAW A LOOP. CLAIM THE TURF.
- 4.44s  STAMP: MINE! (+shake, flash)
- 5.37- 6.39s  text: CUT THEIR TRAIL = OUT
- 5.37s  STAMP: K.O.! (+shake, flash)
- 6.39- 7.50s  text: FIRST HOME WINS
- 6.39s  STAMP: WINNER! (+shake, flash)
- 7.50- 9.17s  scene: comment bait: YOU vs THEM avatars bobbing toward each other, 'HEAD-ON. WHO WINS?', 'COMMENT: DRAW OR WIN?'
- 9.17-11.39s  scene: end card: logo, COMING SOON TO ROBLOX, two avatars (one crowned) on an animated skin pad, pulsing FOLLOW TO PLAY FIRST
-sound effects: 20 cues; music: {'mode': 'minor', 'root': 59, 'seed': 205, 'prog': [0, 5, 3, 6], 'sections': [(0, 5, {'arp', 'hat', 'kick', 'bass'}), (5, 6.5, {'arp', 'kick'}), (6.5, 18, {'hat', 'snare', 'arp', 'bass', 'kick', 'lead'}), (18, 22, {'hat', 'snare', 'bass', 'kick', 'lead'})]}
+ 1.94- 2.50s  REWIND cue: dark scanlines + << REWIND
+ 1.94- 6.67s  scene: take 2 after a REWIND: same board, you skip the race and loop home first (claim +N, Fireworks), then cut the rival's trail (K.O.), crowned
+ 2.50- 3.61s  text: TAKE 2: DON'T RACE
+ 3.61- 4.54s  text: LOOP HOME. CLAIM IT.
+ 3.61s  STAMP: MINE! (+shake, flash)
+ 4.54- 5.56s  text: CUT THEIR TRAIL = OUT
+ 4.54s  STAMP: K.O.! (+shake, flash)
+ 5.56- 6.67s  text: FIRST HOME WINS
+ 5.56s  STAMP: WINNER! (+shake, flash)
+ 6.67- 8.06s  scene: comment bait: YOU vs THEM avatars bobbing toward each other, 'HEAD-ON. WHO WINS?', 'COMMENT: DRAW OR WIN?'
+ 8.06-10.28s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST
+sound effects: 21 cues; music: {'mode': 'minor', 'root': 59, 'seed': 205, 'prog': [0, 5, 3, 6], 'sections': [(0, 3.5, {'hat', 'bass', 'kick', 'arp'}), (3.5, 5, {'kick', 'arp'}), (5, 18, {'bass', 'hat', 'lead', 'snare', 'kick', 'arp'}), (18, 22, {'bass', 'hat', 'lead', 'snare', 'kick'})]}

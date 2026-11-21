@@ -1,17 +1,15 @@
-s04_one_cell: 11.7s, 108 BPM, 1080x1920 30fps
+s04_one_cell: 9.4s, 108 BPM, 1080x1920 30fps
  0.00- 0.97s  text: 1 CELL FROM HOME...
  0.00- 2.22s  scene: HOOK: camera zoomed ~2x on the gap: your avatar (Magma Surge turf) is ONE cell from home (pulsing bracket + '1 CELL' arrow on that cell); yellow walks up toward your trail; slow-mo; yellow steps on your trail at 0.97 s -> K.O. (freeze + zoom), your turf vanishes
  0.97- 2.22s  text: WE'VE ALL BEEN HERE.
  0.97s  STAMP: SO CLOSE. (+shake, flash)
  2.22- 2.78s  REWIND cue: dark scanlines + << REWIND
- 2.22- 6.94s  scene: take 2 after a REWIND: same board, you head home early -> claim (+N, Fireworks capture effect), then cut yellow's trail (K.O.), loop home again, crowned
- 2.78- 4.44s  text: TAKE 2: GO HOME FIRST
- 4.44- 5.56s  text: DRAW A LOOP. CLAIM THE TURF.
- 4.44s  STAMP: MINE! (+shake, flash)
- 5.56- 6.94s  text: CUT THEIR TRAIL = THEY'RE OUT
- 5.56s  STAMP: REVENGE! (+shake, flash)
- 6.94- 8.06s  scene: the same YOU avatar on a pad swapping animated legendaries every half beat, each labelled with its Turf Pass tier
- 6.94- 8.06s  text: LOSE A ROUND. KEEP YOUR SKINS.
- 8.06- 9.44s  scene: comment bait: WHAT'S YOUR CLOSEST CALL? a home pad, a 1-cell gap with your avatar, COMMENT HOW MANY CELLS
- 9.44-11.67s  scene: end card: logo, COMING SOON TO ROBLOX, two avatars (one crowned) on an animated skin pad, pulsing FOLLOW TO PLAY FIRST
-sound effects: 22 cues; music: {'mode': 'major', 'root': 60, 'seed': 123, 'prog': [0, 5, 3, 4], 'sections': [(0, 1.75, {'kick', 'arp', 'hat'}), (1.75, 5, {'kick', 'arp'}), (5, 20, {'snare', 'hat', 'kick', 'arp', 'bass', 'lead'}), (20, 24, {'snare', 'hat', 'kick', 'bass', 'lead'})]}
+ 2.22- 6.11s  scene: take 2 after a REWIND: same board, you head home early -> claim (+N, Fireworks capture effect), then cut yellow's trail (K.O.), loop home again, crowned
+ 2.78- 3.89s  text: TAKE 2: GO HOME FIRST
+ 3.89- 4.82s  text: LOOP HOME. CLAIM IT.
+ 3.89s  STAMP: MINE! (+shake, flash)
+ 4.82- 6.11s  text: CUT THEIR TRAIL = OUT
+ 4.82s  STAMP: REVENGE! (+shake, flash)
+ 6.11- 7.22s  scene: comment bait: WHAT'S YOUR CLOSEST CALL? a home pad, a 1-cell gap with your avatar, COMMENT HOW MANY CELLS
+ 7.22- 9.44s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST
+sound effects: 18 cues; music: {'mode': 'major', 'root': 60, 'seed': 123, 'prog': [0, 5, 3, 4], 'sections': [(0, 1.75, {'kick', 'hat', 'arp'}), (1.75, 5, {'kick', 'arp'}), (5, 20, {'hat', 'arp', 'kick', 'bass', 'lead', 'snare'}), (20, 24, {'hat', 'kick', 'bass', 'lead', 'snare'})]}

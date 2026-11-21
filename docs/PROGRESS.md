@@ -455,3 +455,6 @@ Reworked s04 (hook geometry, ghost, music sections), s03 (hook, track, comment c
 - Reworked s02 (R6), s03 (R5), s04 (R4) and built s05 "Head-On" (idea #9) in `tools/video/hype.py`. All four graded 6/10 by fresh subagents. Details and fix lists are in `marketing/videos/GRADES.md`.
 - s02 is parked after 6 rounds (hook never passed 5-6). s03, s04, s05 still have rounds left.
 - Not verified: only contact sheets and grader reports; no one has watched the mp4s with sound. Nothing posted or uploaded.
+
+## 2026-11-20 (weekend video run): s03/s04/s05 reworked, s06 built
+Shared hype.py: corner brand tag from frame 0, live mini-match behind every end card. s05, s04, s03 reworked and s06 (Color Battle Royale) added; all graded 5-6 (s03 parked after 6 rounds). Fix lists in marketing/videos/GRADES.md. Nothing posted or uploaded; game code untouched.

@@ -1,0 +1,9 @@
+s06_color_battle: 10.0s, 108 BPM, 1080x1920 30fps
+ 0.00- 1.67s  text: PICK YOUR COLOR. GO.
+ 0.00- 5.56s  scene: 6 colored avatars race on a 24x24 board (preroll so turf already exists), live sorted bar chart of turf %, crown on the leader
+ 1.67- 4.44s  text: WHO TAKES THE MAP?
+ 4.44- 5.56s  text: CROWN = THE LEADER
+ 5.56- 7.78s  scene: winner reveal: crowned avatar, the 6 color tiles, COMMENT YOUR COLOR
+ 5.56s  STAMP: RED WINS! (+shake, flash)
+ 7.78-10.00s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST
+sound effects: 16 cues; music: {'mode': 'major', 'root': 62, 'seed': 310, 'prog': [0, 4, 5, 3], 'sections': [(0, 20, {'snare', 'lead', 'arp', 'bass', 'hat', 'kick'}), (20, 22, {'snare', 'lead', 'bass', 'hat', 'kick'})]}

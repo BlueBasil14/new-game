@@ -1,23 +1,22 @@
-s03_turf_pass_hype: 18.3s, 108 BPM, 1080x1920 30fps
+s03_turf_pass_hype: 16.1s, 108 BPM, 1080x1920 30fps
  0.00- 1.67s  scene: HOOK: 1.5 beats of full-frame animated legendaries with your avatar and a TURF LOOP badge, then your avatar closes a loop and its turf fills with PRISM STORM (+N pop)
- 0.00- 1.67s  text: FREE TRACK + 4 LEGENDARIES
- 1.67- 2.92s  text: TURF PASS. SEASON 1.
- 1.67- 6.67s  scene: battle pass: one big centred card per stop at tiers 1, 10, 20, 30 (TIER N slams in, 30-tier bar fills, the animated premium legendary with your avatar and a name card)
- 2.92- 4.17s  text: 30 TIERS. FREE + PREMIUM.
- 4.17- 6.67s  text: 4 ANIMATED LEGENDARIES
- 6.67- 7.78s  text: CUT A TRAIL...
- 6.67- 8.89s  scene: trail cut: you (Prism Storm turf) loop past pink who is drawing a trail (CUT IT! tag); you cut it, K.O. (freeze + zoom)
- 7.78- 8.89s  text: ...THEY'RE OUT
- 7.78s  STAMP: K.O.! (+shake, flash)
- 8.89-10.00s  scene: daily missions panel: 3 missions tick off on the beat (+150/+100/+200 XP), the XP bar fills, TIER UP!
- 8.89-10.00s  text: EARN XP FROM DAILY MISSIONS
-10.00-10.83s  text: LIMITED-TIME EVENTS
-10.00-15.00s  scene: events: CROWN RUSH weekend on a 16x16 board with avatars (you are King, crown timer fast-forwards to 5:00 -> limited Crown Rush Trail appears on your trail), then 2X COINS weekend with coin rain
-10.83-11.94s  text: CROWN RUSH: KING EARNS 2X
-11.94-13.33s  text: HOLD THE CROWN 5 MIN = LIMITED TRAIL
-12.78s  STAMP: LIMITED TRAIL! (+shake, flash)
-13.33-15.00s  text: WEEKENDS = 2X COINS
-15.00-16.67s  scene: all 4 legendaries animating with an avatar on each, 14 DAYS PER SEASON, SEASON 1 STARTS AT LAUNCH
-15.00-16.67s  text: WHICH ARE YOU GRINDING FOR? COMMENT 1-4
-16.67-18.33s  scene: end card: logo, COMING SOON TO ROBLOX, two avatars (one crowned) on an animated skin pad, pulsing FOLLOW TO PLAY FIRST
-sound effects: 45 cues; music: {'mode': 'minor', 'root': 57, 'seed': 99, 'prog': [0, 5, 2, 6], 'sections': [(0, 3, {'hat', 'kick', 'arp'}), (3, 29, {'hat', 'arp', 'snare', 'lead', 'kick', 'bass'}), (29, 33, {'hat', 'snare', 'lead', 'kick', 'bass'})]}
+ 0.00- 1.67s  text: 4 LEGENDARIES. FREE TRACK.
+ 1.67- 2.78s  text: TURF PASS. SEASON 1.
+ 1.67- 4.44s  scene: battle pass: one big centred card per stop at tiers 1, 10, 20, 30 (TIER N slams in, 30-tier bar fills, the animated premium legendary with your avatar and a name card)
+ 2.78- 4.44s  text: 30 TIERS. 4 LEGENDARIES.
+ 4.44- 5.56s  text: CUT A TRAIL...
+ 4.44- 6.67s  scene: trail cut: you (Prism Storm turf) loop past pink who is drawing a trail (CUT IT! tag); you cut it, K.O. (freeze + zoom)
+ 5.56- 6.67s  text: ...THEY'RE OUT
+ 5.56s  STAMP: K.O.! (+shake, flash)
+ 6.67- 7.78s  scene: daily missions panel: 3 missions tick off on the beat (+150/+100/+200 XP), the XP bar fills, TIER UP!
+ 6.67- 7.78s  text: EARN XP FROM DAILY MISSIONS
+ 7.78- 8.61s  text: LIMITED-TIME EVENTS
+ 7.78-12.78s  scene: events: CROWN RUSH weekend on a 16x16 board with avatars (you are King, crown timer fast-forwards to 5:00 -> limited Crown Rush Trail appears on your trail), then 2X COINS weekend with coin rain
+ 8.61- 9.72s  text: CROWN RUSH: KING EARNS 2X
+ 9.72-11.11s  text: 5 MIN CROWN = LIMITED TRAIL
+10.56s  STAMP: LIMITED TRAIL! (+shake, flash)
+11.11-12.78s  text: WEEKENDS = 2X COINS
+12.78-14.44s  scene: all 4 legendaries animating with an avatar on each, 14 DAYS PER SEASON, SEASON 1 STARTS AT LAUNCH
+12.78-14.44s  text: COMMENT 1-4: WHICH ONE?
+14.44-16.11s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST
+sound effects: 45 cues; music: {'mode': 'minor', 'root': 57, 'seed': 99, 'prog': [0, 5, 2, 6], 'sections': [(0, 3, {'kick', 'hat', 'arp'}), (3, 29, {'kick', 'lead', 'hat', 'arp', 'snare', 'bass'}), (29, 33, {'kick', 'hat', 'lead', 'snare', 'bass'})]}
