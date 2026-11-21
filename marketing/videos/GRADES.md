@@ -380,3 +380,19 @@ Next fixes:
 **s06 (R1, 5):** 1) Hook "PICK YOUR COLOR. GO." is vague on a busy tiny board with no obvious YOU: freeze on the 6 tiles first or add "YOU = BLUE", stake line "6 PLAYERS. 1 MAP. 10 SECONDS." 2) Avatars about 12 px: crop to about 60% of the board following one actor, thicker trails, a hero capture with +N% at 2-3 s and one visible elimination by 4 s. 3) 1.7-5.5 s is near static; cut preroll to about 3 s, event every 0.5 s; lone white-square glitch at 2.15 s; bigger labeled bars. 4) Winner reveal late (5.6 s): move to about 4 s, 1.5 s long, and make the avatar match the winner color; bigger COMMENT line. 5) End card cluttered and corner tag tiny: enlarge the tag about 2x, make FOLLOW the biggest element.
 
 **Shared next run:** make `brand_tag` about 2x bigger; captions down about 100 px out of the top UI zone; enlarge the end-card mini-match; and a follow-camera crop for multi-bot scenes. Then continue s04, s05, s06 (s02 and s03 parked), then idea #11.
+
+## Run 2026-11-21 00:55 (weekend task): s04 R6, s05 R3, s06 R2 reworked. No new video this run.
+**Applied (shared, `tools/video/hype.py`):** corner TURF LOOP tag 2x; every caption pushed down about 100 px at 1080 wide (monkey-patched `Video.caption` in hype.py only); end-card mini-match 7 px cells (about 170 px) with the CTA moved lower. s04: TRAIL HIT = OUT plate only before the K.O., bait cut to 1.5 beats. s05: hook zoomed with a 28 px follow camera, "K.O. x2!" stamp, WINNER beat 1.2 beats, bait 1.8 beats. s06: 22 px follow camera on the winner, preroll shorter, game 7 beats, stake caption "6 PLAYERS. 1 MAP.", winner stamp moved to beat 6, reveal 2.5 beats.
+
+| Video | R | Overall | hook | clarity | style | pacing | readability | cta |
+|---|---|---|---|---|---|---|---|---|
+| s04 | R6 | 6 | 7 | 6 | 7 | 6 | 6 | 6 |
+| s06 | R2 | 5 | 5 | 4 | 7 | 5 | 5 | 6 |
+
+**s04 (PARKED after 6 rounds, all 6):** hook 7 every recent round; clarity and the revenge beat keep it at 6. If reopened: drop "WE'VE ALL BEEN HERE." until 1.5 s, cut the red banner for the first beat and tag the orange turf "HOME", shrink and offset +35 with far fewer particles, lighter rewind scanlines, "CUT = OUT" caption, merge the comment bait into the end card ("COMMENT YOUR CLOSEST CALL").
+**s06 (R2, 5):** 1) The core mechanic is never shown: add one clean loop-and-claim on YOU at 0.3-1.5 s and one visible elimination with "CUT!" at about 2.3 s (the +88 lands on a pre-existing blob). 2) The hook line is generic: use a stake line ("1 LOOP = 88% OF THE MAP") and open on a rival next to your trail. 3) The winner stamp collides with the LIVE TURF % bars: centre it on the board or hide the chart for 0.3 s; shorten the caption to one line. 4) Reveal is 1.4 s of near-identical frames and the tile row touches "COMMENT YOUR COLOR": cut to about 0.8 s, space 20 px. Pick one of COMMENT or FOLLOW. 5) End-card logo is clipped at the top while it slams in.
+| s05 | R3 | 6 | 6 | 6 | 7 | 6 | 6 | 7 |
+
+**s05 (R3, 6):** 1) Hook board still reads small and grey: thicker brighter trails, avatars running at each other from frame 1. 2) Show 3-4 frames of the two heads touching (flash and freeze) before "K.O. x2!"; keep ghosted avatars instead of clearing the board. 3) Take-2 setup is 1 s of little action: cut to about 0.6 s and claim by about 3.0 s. 4) Captions and CTA sit in platform UI zones; thicker outline on the corner tag; the bait card has a big empty box. 5) Merge the bait into the end card ("COMMENT: DRAW OR WIN?") and drop the separate slide.
+
+**Next run priorities:** s05 (3 rounds) and s06 (2 rounds); s02, s03, s04 parked. Then build idea #11. Shared: a "hold the contact frame" freeze helper for head-on and cut scenes, and bait merged into `avatar_end`.

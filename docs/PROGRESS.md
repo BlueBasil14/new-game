@@ -458,3 +458,8 @@ Reworked s04 (hook geometry, ghost, music sections), s03 (hook, track, comment c
 
 ## 2026-11-20 (weekend video run): s03/s04/s05 reworked, s06 built
 Shared hype.py: corner brand tag from frame 0, live mini-match behind every end card. s05, s04, s03 reworked and s06 (Color Battle Royale) added; all graded 5-6 (s03 parked after 6 rounds). Fix lists in marketing/videos/GRADES.md. Nothing posted or uploaded; game code untouched.
+
+## 2026-11-21 weekend task: turf shorts (s04 R6, s05 R3, s06 R2)
+- Shared hype.py: 2x corner brand tag, captions lowered about 100 px, bigger end-card mini-match, CTA lower.
+- s04 graded 6 and parked after 6 rounds. s05 graded 6. s06 graded 5 (mechanic never shown, stamp collides with chart).
+- Videos render to git-ignored out/. No posting. Fix lists in marketing/videos/GRADES.md.
