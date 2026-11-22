@@ -445,3 +445,53 @@ Next fixes:
 **s09 (R1, 6):** 1) The wall doesn't read as a wall: a thick bright pulsing strip on the left edge only with a big WALL label. 2) YOUR TRAIL chip on YOU; YOU tag clipped at the board edge in take B. 3) Take A: all 4 arrows from outside the loop's box with an "x4"; a grey ghost of YOU under K.O.!. 4) Take B's loop runs into the open middle: keep it a tight rectangle flush to the wall, "x1" by the arrow, rewind ~0.5 s. 5) Skin flip is off-message: one 0.8 s flip with the card above the board, bigger end-card mini-match.
 
 **Pattern (now 41 grades, still no 7):** label chips land on avatars (shared fix: the `mark_trail` chip should avoid the hero's cell, and pops should never cover a victim), and particles bury numbers (draw pops after effects, halve Fireworks). Next run: those two shared fixes, then s07 (R4), s08 (R3), s09 (R2); s02-s05 parked; s06 at R4. Then idea #14 (The Snipe).
+
+## Run 2026-11-22 03:52 (weekend task): s07 R4, s08 R3, s09 R2 reworked, s10 (idea #14 The Snipe) new. No 7.
+**Applied (shared, `tools/video/hype.py`; s01-s10 re-rendered):** the `mark_trail` chip now goes above or below the marked trail, whichever is farther from every avatar. The +N pop sits beside the hero, with its near edge clear of the avatar's body. The K.O.! pop sits 16 px higher. `match_scene(effects=...)` draws capture effects under the numbers. Fireworks are halved (3 bursts of 16 sparks). `avatar_end` shows asks of 13 characters or fewer at size 3.
+
+Per video:
+- **s07:** "4 THINGS" badge on the hook board. The name joke is now a name box typing xX_PRO_Xx with a key click per letter. On the teacher card, YOU stays fully in frame on the right while the teacher walks in from the left. The payoff board is 1.3x bigger with a follow camera, and the caption is now "YOUR OWN LINE IS SAFE" (GDD G2: own trail is harmless).
+- **s08:** the teacher sits lower and further right, with the tag above his head. The caption reads "...AND THEY'RE OUT!". The second spreadsheet runs 0.6 s. Payoff captions are "LOOP HOME = CLAIM IT ALL" and "NO TEACHER. JUST LOOPS.". The fireworks fire 0.3 s after the +140. The end-card ask is "EVER CAUGHT?" at size 3.
+- **s09:** the board moved right for a thick pulsing wall strip (drawn under the board) and a big "<WALL" label. Take A has a grey ghost of YOU where you died, an x4 badge, and all 4 arrows coming from outside the loop. Take B is a tight box flush to the wall (claim at ~2.6 s), with an x1 badge. The skin flip is now one flip to Prism Storm, and the end card comes ~1.4 s sooner.
+- **s10:** new, 108 BPM, ~10.8 s. In the hook, YOU (Magma Surge) waits beside pink's marked trail with a crosshair on the strike cell, and the strike on the drop lands at 0.83 s with SNIPED!. After a rewind comes a 3-step replay: 1. FIND A GREEDY LOOP, 2. WAIT... DON'T MOVE (music thins, blip ticks), 3. STRIKE ON THE DROP (flash, SNIPED!). Then THEN LOOP HOME: claim with Lightning, crown, MAGMA SURGE card. End card ask: "SNIPER OR GREEDY?".
+
+| Video | R | Overall | hook | clarity | style | pacing | readability | cta |
+|---|---|---|---|---|---|---|---|---|
+| s07 | R4 | 6 | 7 | 5 | 7 | 6 | 6 | 7 |
+| s08 | R3 | 6 | 7 | 5 | 7 | 7 | 6 | 6 |
+| s09 | R2 | 6 | 5 | 6 | 7 | 6 | 6 | 6 |
+| s10 | R1 | 6 | 6 | 7 | 8 | 6 | 6 | 7 |
+
+**s07 (R4, 6):**
+1. Items 1-3 run 3.3 s with no game on screen. Keep the board under each item and act the joke out on it, at ~0.8 s per item.
+2. "YOUR OWN LINE IS SAFE" plays over a K.O. Either show YOU crossing its own trail (green flash, SAFE tag) first, or change the caption to "CROSS THEIRS = K.O.".
+3. The teacher is a cropped half-body with no text payoff. Show him fully in frame and add an "ALT+TAB" sub-caption.
+4. The board fills only the middle; move REMEMBER PAPER.IO? lower and bigger.
+5. The end-card ask strip is small, and the +55 on the end mini-board covers it. Offset or shrink that +55 (shared `avatar_end`).
+
+**s08 (R3, 6):**
+1. The hook +55 still pulls focus from the teacher. Drop the hook pop or move it after 1.1 s, and make the teacher about 40% of the frame.
+2. The cut/K.O. doesn't read. Use a big K.O.! stamp held 0.4 s+, and keep "...AND THEY'RE OUT!" 0.7 s after it; cut or enlarge the second teacher.
+3. WE ALL DID THIS and ALT+TAB! compete on one 0.8 s shot. Pick one, upper third, solid backing.
+4. The payoff runs long: trim to ~2.6 s, hold the +142 longer, and keep the particles inside the board.
+5. Make EVER CAUGHT? the headline of the end card and drop the end-card +55.
+
+**s09 (R2, 6):**
+1. The hook opens on the payoff (+22). Open on take A's danger ("THIS LOOP DIES. WHY?").
+2. Take A never shows red crossing the trail: add 2-3 frames of the crash and a freeze. The x4 badge is near the green bot.
+3. The TOO LATE! stamp isn't seen in stills: hold it 0.5 s+ over the red player, with the +22 after it.
+4. The Prism Storm swap is still off-topic: cut it.
+5. The end card is 2.5 s with 3 text blocks: ~1.6 s, a bigger ask. The YOU label is clipped at the board top at 5.95 s.
+
+**s10 (R1, 6; style 8 and clarity 7, the best start so far):**
+1. "WAIT FOR IT..." is generic: name the stakes ("ONE STEP = K.O.").
+2. The kill barely reads: hold pink in a hit pose 3-4 frames with a big K.O. on the strike cell.
+3. The zoom-punch frame is muddy: solid caption panel during the zoom, centred on the strike cell; step 3 caption in white or yellow.
+4. Step 2 holds 2.2 s with little change: cut to ~1.2 s and bring the end card ~1 s earlier.
+5. The end-card +55 covers players (shared), and the ask bar is small.
+
+**Pattern (now 45 grades, still no 7):** two things are now shared across every grader:
+- **The end card.** The mini-match's +55 pop covers the players, and the ask strip is too small. Next run: pop off on the end mini-match, and make the ask the headline.
+- **Kills.** They need a visible contact hold: 3-4 frames of the attacker on the trail plus a big K.O. stamp, not just particles. Build a `freeze`-style hold in `match_scene` (sim time pauses 0.25 s at a cut).
+
+Next run: those two shared fixes, then s10 (R2), s07 (R5), s08 (R4); s09 at R2; s06 at R4. Then idea #15 (Stat Boosts).

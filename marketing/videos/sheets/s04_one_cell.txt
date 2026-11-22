@@ -12,4 +12,4 @@ s04_one_cell: 9.2s, 108 BPM, 1080x1920 30fps
  4.82s  STAMP: REVENGE! (+shake, flash)
  6.11- 6.94s  scene: comment bait: WHAT'S YOUR CLOSEST CALL? a home pad, a 1-cell gap with your avatar, COMMENT HOW MANY CELLS
  6.94- 9.17s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST
-sound effects: 18 cues; music: {'mode': 'major', 'root': 60, 'seed': 123, 'prog': [0, 5, 3, 4], 'sections': [(0, 1.75, {'kick', 'arp', 'hat'}), (1.75, 5, {'kick', 'arp'}), (5, 20, {'bass', 'arp', 'snare', 'kick', 'lead', 'hat'}), (20, 24, {'bass', 'snare', 'kick', 'lead', 'hat'})]}
+sound effects: 18 cues; music: {'mode': 'major', 'root': 60, 'seed': 123, 'prog': [0, 5, 3, 4], 'sections': [(0, 1.75, {'kick', 'hat', 'arp'}), (1.75, 5, {'kick', 'arp'}), (5, 20, {'arp', 'lead', 'kick', 'hat', 'bass', 'snare'}), (20, 24, {'lead', 'kick', 'hat', 'bass', 'snare'})]}

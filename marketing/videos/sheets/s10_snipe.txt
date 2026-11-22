@@ -1,0 +1,13 @@
+s10_snipe: 10.8s, 108 BPM, 1080x1920 30fps
+ 0.00- 0.83s  text: WAIT FOR IT...
+ 0.00- 1.94s  scene: HOOK: 16x16 board, YOU (Magma Surge legendary) waits beside pink's long trail (marked THEIR TRAIL, crosshair on the strike cell); on the drop at 0.83 s YOU steps in: K.O.! on pink, SNIPED! stamp
+ 0.83s  STAMP: SNIPED! (+shake, flash)
+ 1.94- 2.22s  REWIND cue: dark scanlines + << REWIND
+ 2.22- 3.61s  text: 1. FIND A GREEDY LOOP
+ 2.22- 8.33s  scene: after a REWIND, the same moment slowed down in 3 steps: pink's trail grows (GREEDY LOOP marked), YOU waits (crosshair on the strike cell, music thins to kick/hat/bass), strike on the drop at 6.5 beats (K.O.!, full band), then YOU loops home: claim with a Lightning capture effect, crowned, MAGMA SURGE legendary name card
+ 3.61- 5.83s  text: 2. WAIT... DON'T MOVE
+ 5.83- 6.94s  text: 3. STRIKE ON THE DROP
+ 5.83s  STAMP: SNIPED! (+shake, flash)
+ 6.94- 8.33s  text: THEN LOOP HOME
+ 8.33-10.83s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, SNIPER OR GREEDY?
+sound effects: 19 cues; music: {'mode': 'minor', 'root': 55, 'seed': 714, 'prog': [0, 5, 6, 4], 'sections': [(0, 1.5, {'hat', 'kick'}), (1.5, 3.5, {'bass', 'snare', 'lead', 'kick', 'arp', 'hat'}), (3.5, 4, {'kick'}), (4, 10.5, {'hat', 'kick', 'bass'}), (10.5, 15, {'bass', 'snare', 'lead', 'kick', 'arp', 'hat'}), (15, 22, {'hat', 'kick', 'bass', 'arp'})]}

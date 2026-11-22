@@ -145,11 +145,11 @@ class Effects:
         x0, y0, x1, y1 = region
         rng = self.rng
         if kind == "FIREWORKS":
-            for _ in range(5):
+            for _ in range(3):  # halved (graders: particles buried the +N numbers)
                 bx, by = rng.uniform(x0, x1), rng.uniform(y0, y1)
                 col = rng.choice([PINK, YELLOW, GEM, GREEN, WHITE])
-                for i in range(24):
-                    a = i / 24 * 2 * math.pi
+                for i in range(16):
+                    a = i / 16 * 2 * math.pi
                     self.items.append(("spark", bx, by, math.cos(a) * 120, math.sin(a) * 120, t + rng.uniform(0, 0.3), col))
         elif kind == "BUBBLES":
             for _ in range(13):
@@ -549,7 +549,7 @@ def rewind(v, b0, b1):
 
 def match_scene(v, ar, x0, y0, cp, skins, trails=None, hero=1, kings=None, sim=None, view=None,
                 scale=1, hero_scale=2, fx=None, on_event=None, bg=None, kozoom=True, focus=None, mark=None, kopop=False,
-                outfits=OUTFITS):
+                outfits=OUTFITS, effects=None):
     """Scene fn for a skinned avatar match. sim(tl) -> sim time (preroll / slow-mo); view=(vw, vh) crops a camera
     that follows the hero (zoom = bigger cp). Claims by the hero pop +N with coins; cuts burst and K.O.-zoom."""
     fx = fx or FX()
@@ -595,7 +595,7 @@ def match_scene(v, ar, x0, y0, cp, skins, trails=None, hero=1, kings=None, sim=N
                 if data["id"] == hero:
                     v.sfx.append((tg, "claim", min(12, data["cells"] / 6)))
                     fx.coins(cx, cy, min(24, 6 + data["cells"] // 4), tg)
-                    pops[:] = [(min(W - 40, max(40, cx + 50 if cx + 50 < W - 40 else cx - 50)), max(y0 + 12, cy - 22 - 12 * hero_scale), f"+{data['cells']}", tg)]
+                    pops[:] = [(cx, max(y0 + 12, cy - 22 - 12 * hero_scale), f"+{data['cells']}", tg)]
             elif kind == "cut":
                 v.sfx.append((tg, "cut", 0))
                 fx.burst(cx, cy, 30, tg, ar.runners[data["victim"]].color)
@@ -607,10 +607,15 @@ def match_scene(v, ar, x0, y0, cp, skins, trails=None, hero=1, kings=None, sim=N
                 on_event(kind, data, cx, cy, tg)
         seen[0] = len(ar.events)
         fx.draw(img, tg)
-        for (px, py, txt, t0) in pops:
+        if effects:  # capture effects under the numbers, never over them
+            effects.draw(img, tg)
+        for (hx_, py, txt, t0) in pops:
             age = tg - t0
             if 0 <= age < 1.0:
                 tim = text_img(txt, 4 if age > 0.08 else 5, YELLOW, DARK)
+                gap = 10 + 8 * hero_scale + tim.width / 2  # chip edge clears the avatar's half-width
+                px = hx_ + gap if hx_ + gap + tim.width / 2 + 4 < W else hx_ - gap
+                px = min(W - tim.width / 2 - 6, max(tim.width / 2 + 6, px))
                 yy = int(py - ease_out(age / 0.4) * 14)
                 ImageDraw.Draw(img).rectangle((px - tim.width // 2 - 4, yy - 3, px + tim.width // 2 + 4, yy + tim.height + 3),
                                               fill=(14, 16, 26), outline=DARK)
@@ -620,7 +625,7 @@ def match_scene(v, ar, x0, y0, cp, skins, trails=None, hero=1, kings=None, sim=N
             if 0 <= age < 0.9:
                 tim = text_img("K.O.!", 5 if age < 0.1 else 4, RED, DARK)
                 xx = int(min(W - tim.width - 4, max(4, px - tim.width / 2)))
-                yy = int(max(y0 + 4, py - tim.height - 14))
+                yy = int(max(y0 + 4, py - tim.height - 30))
                 ImageDraw.Draw(img).rectangle((xx - 4, yy - 3, xx + tim.width + 4, yy + tim.height + 3), fill=(14, 16, 26), outline=RED, width=2)
                 img.paste(tim, (xx, yy), tim)
 
@@ -632,7 +637,7 @@ def mark_trail(img, ar, rid, label, sx, sy, cp, box, tg):
     """'Show the cut' helper: pulse a red outline on rid's trail cells (clipped to box) with a label chip."""
     d = ImageDraw.Draw(img)
     on = int(tg * 8) % 2 == 0
-    top = None
+    top = bot = None
     for y in range(ar.n):
         for x in range(ar.n):
             if ar.trail[y][x] == rid:
@@ -641,10 +646,19 @@ def mark_trail(img, ar, rid, label, sx, sy, cp, box, tg):
                     d.rectangle((px, py, px + cp - 1, py + cp - 1), outline=RED if on else WHITE, width=2)
                     if top is None or py < top[1]:
                         top = (px + cp / 2, py)
+                    if bot is None or py > bot[1]:
+                        bot = (px + cp / 2, py)
     if top and label:
         tim = text_img(label, 2, WHITE, None)
-        lx = int(min(box[2] - tim.width / 2 - 4, max(box[0] + tim.width / 2 + 4, top[0])))
-        ly = int(max(box[1] + 4, top[1] - 22))
+        # chip goes above the trail or below it, whichever is farther from every avatar (graders: chips sat on YOU)
+        heads = [(sx + (r.x + 0.5) * cp, sy + (r.y + 0.5) * cp) for r in ar.runners.values() if r.alive]
+        cands = [(top[0], max(box[1] + 4, top[1] - 22)), (bot[0], min(box[3] - tim.height - 6, bot[1] + cp + 6))]
+
+        def clear(c):
+            return min([abs(c[0] - hx) / 2 + abs(c[1] + 6 - (hy - 12)) for hx, hy in heads] or [999])
+        cx_, cy_ = max(cands, key=clear)
+        lx = int(min(box[2] - tim.width / 2 - 4, max(box[0] + tim.width / 2 + 4, cx_)))
+        ly = int(cy_)
         d.rectangle((lx - tim.width // 2 - 4, ly - 3, lx + tim.width // 2 + 4, ly + tim.height + 3), fill=RED, outline=DARK)
         img.paste(tim, (lx - tim.width // 2, ly), tim)
 
@@ -726,8 +740,9 @@ def avatar_end(v, b0, b1, skin=("#FF2E9A", "#00F0FF", "stripes", "pulse"), line=
         g = 6 if on else 0
         top = 330 if ask else 306
         if ask:  # comment bait above the CTA (graders: ask first, then the button)
-            ImageDraw.Draw(img).rectangle((4, 302, W - 5, 326), fill=(14, 16, 26), outline=YELLOW, width=2)
-            draw_text(img, ask, W / 2, 307, 2, YELLOW, None)
+            big = len(ask) <= 13
+            ImageDraw.Draw(img).rectangle((4, 300 if big else 302, W - 5, 328 if big else 326), fill=(14, 16, 26), outline=YELLOW, width=2)
+            draw_text(img, ask, W / 2, 304 if big else 307, 3 if big else 2, YELLOW, None)
         bot = 400 if ask else 384
         ImageDraw.Draw(img).rectangle((14 - g, top - g, W - 15 + g, bot + g), fill=YELLOW, outline=WHITE if on else DARK, width=3)
         draw_lines(img, line, (top + bot) // 2 + 2, 3, DARK, None, gap=2, max_chars=12)
@@ -1445,6 +1460,9 @@ def s07():
 
     def hook(img, tl, tg):
         h0(img, tl, tg)
+        d = ImageDraw.Draw(img)  # R4: "4 THINGS" badge on the board corner
+        d.rectangle((W - 128, BY + 6, W - 20, BY + 32), fill=RED, outline=WHITE if int(tl / v.spb * 2) % 2 == 0 else DARK, width=2)
+        draw_text(img, "4 THINGS", W - 74, BY + 12, 2, WHITE, None)
         draw_text(img, "REMEMBER PAPER.IO?", W / 2, 376, 2, WHITE, DARK)
 
     v.scene(0, 3, hook, "hook: live 24x24 board in plain colors, 1.5x zoom on YOU, your avatar closes a loop at ~0.3 s (+N pop); REMEMBER PAPER.IO? under it")
@@ -1468,25 +1486,24 @@ def s07():
         if int(b * 4) % 2 == 0:
             draw_text(img, "LAG!", W / 2, 140, 6, RED, DARK)
 
-    def pro(img, b, tg):  # R3: the name joke as a leaderboard (#1 types itself out)
+    NAME = "xX_PRO_Xx"
+
+    def pro(img, b, tg):  # R4: a name box types a cringe name, one key click per letter
         d = ImageDraw.Draw(img)
-        d.rectangle((10, 140, W - 11, 252), fill=(14, 16, 26), outline=GOLD, width=2)
-        draw_text(img, "LEADERBOARD", W / 2, 146, 2, GOLD, None)
-        rows = [("#1", "xX_PRO_Xx"[: max(1, int(b * 8))], "98%", (0, 240, 255)), ("#2", "GUEST_42", "1%", WHITE),
-                ("#3", "YOU", "1%", WHITE)]
-        for i, (rk, nm, pc, col) in enumerate(rows):
-            y = 168 + i * 27
-            draw_text(img, rk, 18, y, 3 if i == 0 else 2, GOLD if i == 0 else WHITE, DARK, align="left")
-            draw_text(img, nm, 58, y, 3 if i == 0 else 2, col, DARK, align="left")
-            draw_text(img, pc, W - 30, y + (4 if i == 0 else 0), 2, col, DARK)
-        avatar(img, W / 2, 400, OUTFITS[3], tg, moving=True, s=6, king=True)
+        d.rectangle((10, 150, W - 11, 240), fill=(14, 16, 26), outline=GOLD, width=2)
+        draw_text(img, "ENTER YOUR NAME:", W / 2, 158, 2, GOLD, None)
+        typed = NAME[: min(len(NAME), int(b * 6.5))]
+        d.rectangle((20, 186, W - 21, 228), fill=WHITE, outline=DARK, width=2)
+        cur = "_" if int(b * 4) % 2 == 0 and len(typed) < len(NAME) else ""
+        draw_text(img, typed + cur, W / 2, 196, 3, (20, 30, 60), None)
+        avatar(img, W / 2, 410, OUTFITS[3], tg, moving=False, s=6, label=typed or None)
 
     def teacher(img, b, tg):
-        x = -50 + min(1.0, b / 1.6) * (W + 60)
-        avatar(img, 70, 360, OUTFITS[1], tg, moving=False, s=5, label="YOU")
-        avatar(img, x, 380, OUTFITS[2], tg, moving=True, s=8)
-        if x > 90 and int(b * 4) % 2 == 0:
-            draw_text(img, "!!", 70, 170, 7, RED, DARK)
+        x = -60 + min(1.0, b / 1.2) * 150
+        avatar(img, W - 70, 360, OUTFITS[1], tg, moving=False, s=5, label="YOU")
+        avatar(img, x, 400, OUTFITS[2], tg, moving=b < 1.2, s=8)
+        if b > 0.8 and int(b * 4) % 2 == 0:
+            draw_text(img, "!!", W - 70, 170, 7, RED, DARK)
 
     # R3: a 0.6 s board clip: a rival cuts YOUR trail (demo24 seen from pink's side, your outfit on pink)
     a4 = demo24(dt)
@@ -1506,6 +1523,8 @@ def s07():
 
     card(3, 1, "SCHOOL WI-FI LAG", lag, RED)
     card(5, 2, "THE NAME", pro, (0, 240, 255))
+    for i in range(len(NAME)):
+        v.sound(5 + i / 6.5, "click")
     card(7, 3, "TEACHER WALKS BY", teacher, YELLOW)
     card(9, 4, "ONE LINE = GAME OVER", oneline, RED)
     v.sound(9.9, "fail")
@@ -1518,22 +1537,21 @@ def s07():
 
     def on1(kind, data, cx, cy, tg):
         if kind == "claim" and data["id"] == 1 and data["cells"] > 10:
-            efx.fire("FIREWORKS", cx, cy, tg, (BX + 10, BY + 10, BX + 230, BY + 230))
+            efx.fire("FIREWORKS", cx, cy, tg + 0.3, (BX + 10, BY + 10, BX + 230, BY + 230))
             v.sfx.append((tg, "levelup", 0))
 
-    p1 = match_scene(v, a1, BX, BY, BC, skins, None, hero=1, sim=lambda tl: tl + 24 * dt, scale=1, hero_scale=2,
-                     on_event=on1, kings=lambda tg: (1,) if tg >= v.b(P + 4) else (), kopop=True)
+    p1 = match_scene(v, a1, 5, BY, 13, skins, None, hero=1, sim=lambda tl: tl + 24 * dt, scale=2, hero_scale=2, view=(260, 270),
+                     on_event=on1, kings=lambda tg: (1,) if tg >= v.b(P + 4) else (), kopop=True, effects=efx)
 
-    def payoff(img, tl, tg):  # R3: calmer skin, K.O.! on the cut point inside the board
+    def payoff(img, tl, tg):  # R4: 1.3x bigger board, numbers above the particles
         p1(img, tl, tg)
-        efx.draw(img, tg)
-        ImageDraw.Draw(img).rectangle((BX - 2, BY - 2, BX + 24 * BC + 1, BY + 24 * BC + 1), outline=GOLD, width=2)
+        ImageDraw.Draw(img).rectangle((3, BY - 2, 266, BY + 271), outline=GOLD, width=2)
 
     v.scene(P, P + 5, payoff, "payoff: the same board now in Turf Loop: Neon Pulse skin, Fireworks capture effect, friends' avatars; "
             "loop home +N at ~0.4 s, cut pink's trail at ~2.2 s (K.O.!), crowned")
     v.sound(P, "crown")
     v.caption(P, P + 2.5, "NOW: TURF LOOP", color=GREEN)
-    v.caption(P + 2.5, P + 5, "WITH FRIENDS. AND SKINS.", color=GREEN)
+    v.caption(P + 2.5, P + 5, "YOUR OWN LINE IS SAFE", color=GREEN)
     v.shake(P + 4.0, 0.3, 5)
     avatar_end(v, P + 5, P + 9, skin=sk(LEGENDS, "STARFALL"), ask="COMMENT YOUR .IO NAME")
     v.dur = v.b(P + 9)
@@ -1544,8 +1562,8 @@ def s07():
 def s08():
     v = Video("s08_teacher", 108, 22, music=dict(mode="minor", root=60, seed=512, prog=[0, 5, 3, 4], sections=[
         (0, 2, {"kick", "hat", "arp", "bass"}), (2, 3.5, {"kick"}), (3.5, 6.5, {"kick", "snare", "hat", "bass", "arp"}),
-        (6.5, 7.25, {"kick"}), (7.25, 13.25, {"kick", "snare", "hat", "bass", "arp", "lead"}), (13.25, 22, {"kick", "hat", "bass", "arp"})]))
-    v.notag = [(2, 3.5), (6.5, 7.25)]  # R2: no corner brand tag on the fake spreadsheet
+        (6.5, 7.6, {"kick"}), (7.6, 13.6, {"kick", "snare", "hat", "bass", "arp", "lead"}), (13.6, 22, {"kick", "hat", "bass", "arp"})]))
+    v.notag = [(2, 3.5), (6.5, 7.6)]  # R2: no corner brand tag on the fake spreadsheet
     dt = v.spb / 3
     X0, Y0, CP, VW, VH = 5, 124, 16, 260, 260
     skins = {1: sk(LEGENDS, "NEON PULSE"), 2: sk(RARES, "CANDY STRIPE"), 3: sk(RARES, "OCEAN WAVES")}
@@ -1558,11 +1576,11 @@ def s08():
         k = min(1.0, max(0.0, (tl_beats - enter) / 0.8))
         if k <= 0:
             return
-        x = W + 40 - k * 110
-        avatar(img, x, Y0 + VH + 10, TEACH, tl_beats, moving=k < 1, s=9)
+        x = W + 50 - k * 90  # R3: lower and further right, peeking in from the edge, clear of the +N pops
+        avatar(img, x, Y0 + VH + 44, TEACH, tl_beats, moving=k < 1, s=9)
         if k > 0.3:
-            ImageDraw.Draw(img).rectangle((x - 140, Y0 + VH - 80, x - 50, Y0 + VH - 56), fill=RED, outline=DARK, width=2)
-            draw_text(img, tag, x - 95, Y0 + VH - 76, 2, WHITE, None)  # beside the teacher's body, clear of +N pops
+            ImageDraw.Draw(img).rectangle((W - 100, Y0 + VH - 112, W - 6, Y0 + VH - 88), fill=RED, outline=DARK, width=2)
+            draw_text(img, tag, W - 53, Y0 + VH - 108, 2, WHITE, None)
 
     def sheet(img, tl, tg):  # the panic spreadsheet (hard cut)
         d = ImageDraw.Draw(img)
@@ -1609,12 +1627,12 @@ def s08():
     v.scene(3.5, 6.5, gameB, "back in the match: pink's trail pulses red (THEIR TRAIL) from 0.33 s, you cut it at ~0.9 s (K.O.! on pink); "
             "the teacher slides in again at 2.2 beats")
     v.caption(3.5, 5.2, "CUT THEIR TRAIL...", color=WHITE)
-    v.caption(5.2, 6.5, "= THEY'RE OUT!", color=WHITE)
+    v.caption(5.2, 6.5, "...AND THEY'RE OUT!", color=WHITE)
     v.shake(5.17, 0.3, 5)
     v.sound(5.7, "whoosh")
 
-    v.scene(6.5, 7.25, sheet, "hard cut: spreadsheet again, faster")
-    v.stamp(6.5, "FASTER!", RED, y=300, beats=0.75, sound="hit", flash=False)
+    v.scene(6.5, 7.6, sheet, "hard cut: spreadsheet again, faster (0.6 s)")
+    v.stamp(6.5, "FASTER!", RED, y=300, beats=1.1, sound="hit", flash=False)
 
     # ---------- D: no teacher, just friends, skins and effects ----------
     aD = bigloop(dt)  # R2: the payoff is the biggest claim of the video (+100 or more)
@@ -1623,24 +1641,23 @@ def s08():
     def onD(kind, data, cx, cy, tg):
         if kind == "claim" and data["id"] == 1 and data["cells"] > 5:
             for k in range(3):  # big fireworks for the big claim
-                efx.fire("FIREWORKS", cx + (k - 1) * 60, cy - k * 20, tg + k * 0.08, (X0 + 10, Y0 + 10, X0 + VW - 10, Y0 + VH - 10))
+                efx.fire("FIREWORKS", cx + (k - 1) * 60, cy - k * 20, tg + 0.3 + k * 0.08, (X0 + 10, Y0 + 10, X0 + VW - 10, Y0 + VH - 10))
             v.sfx.append((tg, "levelup", 0))
 
     mD = match_scene(v, aD, X0, Y0, CP, skins, None, hero=1, sim=lambda tl: tl + 40 * dt, view=(VW, VH), scale=2, hero_scale=2,
-                     on_event=onD, kings=lambda tg: (1,) if tg >= v.b(8.6) else ())
+                     on_event=onD, kings=lambda tg: (1,) if tg >= v.b(8.95) else (), effects=efx)
 
     def gameD(img, tl, tg):
         mD(img, tl, tg)
-        efx.draw(img, tg)
         ImageDraw.Draw(img).rectangle((X0 - 2, Y0 - 2, X0 + VW + 1, Y0 + VH + 1), outline=GOLD, width=3)
 
-    v.scene(7.25, 13.25, gameD, "payoff: no teacher; a huge open loop along the top of the map closes at ~0.7 s for +140 with triple "
+    v.scene(7.6, 13.6, gameD, "payoff: no teacher; a huge open loop along the top of the map closes at ~0.7 s for +140 with triple "
             "Fireworks, crowned")
-    v.sound(7.25, "crown")
-    v.caption(7.25, 10.25, "IN TURF LOOP? NO TEACHER.", color=GREEN)
-    v.caption(10.25, 13.25, "FRIENDS. LOOPS. SKINS.", color=GREEN)
-    avatar_end(v, 13.25, 17.25, skin=sk(LEGENDS, "NEON PULSE"), ask="EVER GET CAUGHT?")
-    v.dur = v.b(17.25)
+    v.sound(7.6, "crown")
+    v.caption(7.6, 10.6, "LOOP HOME = CLAIM IT ALL", color=GREEN)
+    v.caption(10.6, 13.6, "NO TEACHER. JUST LOOPS.", color=GREEN)
+    avatar_end(v, 13.6, 17.6, skin=sk(LEGENDS, "NEON PULSE"), ask="EVER CAUGHT?")
+    v.dur = v.b(17.6)
     return v
 
 
@@ -1661,9 +1678,9 @@ def arrow(img, x0, y0, x1, y1, col=RED):
 def s09():
     v = Video("s09_hug_wall", 108, 24, music=dict(mode="minor", root=62, seed=613, prog=[0, 6, 3, 4], sections=[
         (0, 2.5, {"kick", "hat", "arp", "bass"}), (2.5, 7, {"kick", "snare", "hat", "bass", "arp"}), (7, 7.5, {"kick"}),
-        (7.5, 17.5, {"kick", "snare", "hat", "bass", "arp", "lead"}), (17.5, 24, {"kick", "hat", "bass", "arp"})]))
+        (7.5, 15, {"kick", "snare", "hat", "bass", "arp", "lead"}), (15, 24, {"kick", "hat", "bass", "arp"})]))
     dt = v.spb / 3
-    N, CP, X0, Y0 = 16, 16, 7, 124
+    N, CP, X0, Y0 = 16, 16, 12, 124  # R2: board shifted right so the wall strip is thick
     hero_skin = sk(LEGENDS, "NEON PULSE")
 
     def cell(x, y):
@@ -1692,9 +1709,9 @@ def s09():
         ar.dt = dt
         h = ar.add(1, PLAYERS[7], 1, 8, 3)  # home x 0-2, y 7-9
         h.x, h.y, h.px, h.py = 0, 7, 0, 7
-        h.script = path_from([(0, 7), (0, 4), (7, 4), (7, 7), (2, 7)])
+        h.script = path_from([(0, 7), (0, 3), (4, 3), (4, 7), (2, 7)])  # R2: tight box flush to the wall (claim at step 14)
         h.shield, h.after_script = True, "idle"
-        rivals(ar, deque([(12, 6)] * 12) + path_from([(12, 6), (8, 6)]))
+        rivals(ar, deque([(12, 6)] * 7) + path_from([(12, 6), (5, 6)]))
         return ar
 
     skins = {1: hero_skin, 2: sk(RARES, "CHERRY DOTS"), 4: sk(RARES, "CANDY STRIPE")}
@@ -1705,46 +1722,64 @@ def s09():
             efx.fire("FIREWORKS", cx, cy, tg, (X0 + 10, Y0 + 10, X0 + N * CP - 10, Y0 + N * CP - 10))
             v.sfx.append((tg, "levelup", 0))
 
-    def wall_glow(img, tg, label=True):
+    def wall_glow(img, tg, label=True, strip=True):  # R2: thick pulsing strip on the left edge plus a big WALL label
         on = int(tg / v.spb * 2) % 2 == 0
         d = ImageDraw.Draw(img)
-        d.rectangle((X0 - 6, Y0, X0 - 1, Y0 + N * CP), fill=GOLD if on else YELLOW)
+        if strip:
+            d.rectangle((0, Y0 - 2, X0 - 1, Y0 + N * CP + 1), fill=GOLD if on else WHITE, outline=DARK)
         if label:
-            d.rectangle((X0 + 2, Y0 + 2, X0 + 92, Y0 + 22), fill=GOLD, outline=DARK, width=2)
-            draw_text(img, "WALL = SAFE", X0 + 47, Y0 + 7, 1, DARK, None)
+            ly = Y0 + 10 * CP
+            d.rectangle((X0 + 4, ly, X0 + 96, ly + 30), fill=GOLD, outline=DARK, width=2)
+            arrow(img, X0 + 30, ly + 15, X0 + 8, ly + 15, DARK)
+            draw_text(img, "WALL", X0 + 62, ly + 6, 3, DARK, None)
 
     def frame(img, col=DARK):
         ImageDraw.Draw(img).rectangle((X0 - 2, Y0 - 2, X0 + N * CP + 1, Y0 + N * CP + 1), outline=col, width=2)
 
+    def wall_bg(img, tg):
+        bg_checker(img, tg)
+        wall_glow(img, tg, label=False)
+
     # ---------- hook: the wall loop closing at ~0.4 s ----------
     a0 = wall()
-    m0 = match_scene(v, a0, X0, Y0, CP, skins, None, hero=1, sim=lambda tl: tl + 16 * dt, scale=2, hero_scale=3,
-                     on_event=on_claim, kozoom=False)
+    m0 = match_scene(v, a0, X0, Y0, CP, skins, None, hero=1, sim=lambda tl: tl + 12 * dt, scale=2, hero_scale=3,
+                     on_event=on_claim, kozoom=False, effects=efx, bg=wall_bg)
 
     def hook(img, tl, tg):
         m0(img, tl, tg)
-        efx.draw(img, tg)
         frame(img, GOLD)
-        wall_glow(img, tg)
+        wall_glow(img, tg, strip=False)
 
     v.scene(0, 2.5, hook, "HOOK: 16x16 board, your avatar (Neon Pulse) closes a loop along the glowing left wall at ~0.4 s (+N, "
-            "Fireworks); WALL = SAFE tag")
+            "Fireworks); thick glowing wall strip with a big WALL label")
     v.sound(0, "hit")
     v.caption(0, 2.5, "PRO TIP: HUG THE WALL", size=3, color=YELLOW)
 
     # ---------- take A: open field, threats from 4 sides, red cuts you ----------
     A = 2.5
     a1 = open_field()
+    ghost = []
+
+    def onA(kind, data, cx, cy, tg):
+        if kind == "cut" and data["victim"] == 1:
+            ghost[:] = [data["at"]]
+
     m1 = match_scene(v, a1, X0, Y0, CP, skins, None, hero=1, sim=lambda tl: tl + 3 * dt, scale=2, hero_scale=3, kopop=True,
-                     mark=lambda tg: (1, "YOUR TRAIL") if v.b(A + 1.8) <= tg < v.b(A + 3.05) else None)
+                     on_event=onA, mark=lambda tg: (1, "YOUR TRAIL") if v.b(A + 1.8) <= tg < v.b(A + 3.05) else None)
+    GREY = ((150, 150, 150), (110, 110, 110), (90, 90, 90), (70, 70, 70))
 
     def takeA(img, tl, tg):
         m1(img, tl, tg)
         frame(img)
         b = tl / v.spb
-        if 0.3 < b < 3.0 and int(b * 4) % 2 == 0:  # four threat arrows at your open loop
-            for (sx, sy), (ex, ey) in (((7, 0), (7, 3)), ((15, 6), (11, 6)), ((7, 15), (7, 9)), ((0, 2), (2, 5))):
+        if ghost:  # R2: grey ghost of YOU where you got cut
+            gx, gy = cell(*ghost[0])
+            avatar(img, gx, gy + CP / 2, GREY, tg, moving=False, s=3)
+        if 0.3 < b < 3.0 and int(b * 4) % 2 == 0:  # four threat arrows from outside your open loop
+            for (sx, sy), (ex, ey) in (((7, 0), (7, 3)), ((15, 6), (11, 6)), ((7, 15), (7, 9)), ((0, 5), (2, 5))):
                 arrow(img, *cell(sx, sy), *cell(ex, ey))
+        if 0.3 < b < 3.0:
+            draw_text(img, "x4", cell(12, 9)[0], cell(12, 9)[1] - 10, 5, RED, DARK)
 
     v.scene(A, A + 4.5, takeA, "take A: same avatar loops out into the open middle; four red arrows point at the loop from every side; "
             "your trail pulses (YOUR TRAIL), red steps on it at ~1.7 s: K.O.! on you")
@@ -1766,39 +1801,136 @@ def s09():
             v.sfx.append((tg, "levelup", 0))
 
     m2 = match_scene(v, a2, X0, Y0, CP, skins, None, hero=1, sim=lambda tl: tl, scale=2, hero_scale=3, on_event=on2,
-                     kings=lambda tg: (1,) if tg >= v.b(B + 6) else ())
-    SHOWN = ["MAGMA SURGE", "STARFALL", "PRISM STORM", "NEON PULSE"]
-    SHOW = [sk(LEGENDS, n) for n in SHOWN]
-    S0 = B + 7  # skin flex after the claim
+                     kings=lambda tg: (1,) if tg >= v.b(B + 5) else (), effects=efx2, bg=wall_bg)
+    S0 = B + 5.5  # R2: one skin flip after the claim, not four
 
     def takeB(img, tl, tg):
         b = tl / v.spb
-        k = min(3, int((b - 7) / 0.75)) if b >= 7 else -1
-        skins[1] = SHOW[k] if k >= 0 else hero_skin
+        skins[1] = sk(LEGENDS, "PRISM STORM") if b >= 5.5 else hero_skin
         m2(img, tl, tg)
-        efx2.draw(img, tg)
         frame(img, GOLD)
-        wall_glow(img, tg)
-        if 0.3 < b < 6 and int(b * 4) % 2 == 0:  # only one side to watch
-            arrow(img, *cell(15, 6), *cell(10, 6))
-        if k >= 0:
-            name_card(img, SHOWN[k], "LEGENDARY", v.b(S0 + k * 0.75), tg, y=300)
+        if b < 5.5:
+            wall_glow(img, tg, strip=False)
+        if 0.3 < b < 4.6 and int(b * 4) % 2 == 0:  # only one side to watch
+            arrow(img, *cell(15, 6), *cell(7, 6))
+        if 0.3 < b < 4.6:
+            draw_text(img, "x1", cell(12, 9)[0], cell(12, 9)[1] - 10, 5, GREEN, DARK)
+        if b >= 5.5:
+            name_card(img, "PRISM STORM", "LEGENDARY", v.b(S0), tg, y=Y0 + 150)
 
-    v.scene(B, B + 10, takeB, "take B after a REWIND: same avatar loops along the left wall (glowing, WALL = SAFE); only ONE red arrow "
-            "(from the right); red arrives one step late; claim +N with Fireworks at 3.3 s, crowned; then your turf flips through the "
-            "4 animated legendaries (Magma Surge, Starfall, Prism Storm, Neon Pulse) with name cards")
+    v.scene(B, B + 7.5, takeB, "take B after a REWIND: same avatar loops along the left wall (glowing, WALL = SAFE); only ONE red arrow "
+            "(x1, from the right); tight box flush to the wall; red arrives one step late; claim +N with Fireworks at ~2.6 s, crowned; "
+            "then one flip of your turf to the animated Prism Storm legendary with a name card")
     v.flash(B)
     v.caption(B, B + 3, "WALL = 1 SIDE TO GUARD", color=GREEN)
-    v.caption(B + 3, B + 6, "1 SIDE. CLOSE IT FAST.", color=WHITE)
-    v.stamp(B + 6, "TOO LATE!", YELLOW, y=404, size=4, beats=1.2, sound=None)
-    v.caption(B + 7, B + 10, "SAME TIP. YOUR SKIN.", color=YELLOW)
+    v.caption(B + 3, B + 5.5, "1 SIDE. CLOSE IT FAST.", color=WHITE)
+    v.stamp(B + 4.7, "TOO LATE!", YELLOW, y=404, size=4, beats=1.2, sound=None)
+    v.caption(B + 5.5, B + 7.5, "SAME TIP. YOUR SKIN.", color=YELLOW)
 
-    avatar_end(v, B + 10, B + 14.5, skin=hero_skin, ask="COMMENT YOUR BEST TIP")
-    v.dur = v.b(B + 14.5)
+    avatar_end(v, B + 7.5, B + 12, skin=sk(LEGENDS, "PRISM STORM"), ask="COMMENT YOUR BEST TIP")
+    v.dur = v.b(B + 12)
     return v
 
 
-ALL = {"s01": s01, "s02": s02, "s03": s03, "s04": s04, "s05": s05, "s06": s06, "s07": s07, "s08": s08, "s09": s09}
+# ============================================================ s10 Strategy: the snipe (idea #14)
+def s10():
+    v = Video("s10_snipe", 108, 22, music=dict(mode="minor", root=55, seed=714, prog=[0, 5, 6, 4], sections=[
+        (0, 1.5, {"kick", "hat"}), (1.5, 3.5, {"kick", "snare", "hat", "bass", "arp", "lead"}), (3.5, 4, {"kick"}),
+        (4, 10.5, {"kick", "hat", "bass"}), (10.5, 15, {"kick", "snare", "hat", "bass", "arp", "lead"}),
+        (15, 22, {"kick", "hat", "bass", "arp"})]))
+    dt = v.spb / 3
+    N, CP, X0, Y0 = 16, 16, 7, 124
+    hero_skin = sk(LEGENDS, "MAGMA SURGE")
+    skins = {1: hero_skin, 2: sk(RARES, "OCEAN WAVES"), 3: sk(RARES, "CANDY STRIPE")}
+
+    def arena():
+        """YOU waits at (7, 9); pink draws a greedy loop up col 13, along row 2, down col 10; YOU steps into col 10 at step 22."""
+        ar = Arena(N, seed=14)
+        ar.dt = dt
+        h = ar.add(1, PLAYERS[7], 6, 9, 3)  # home x 5-7, y 8-10
+        h.x, h.y, h.px, h.py = 7, 9, 7, 9
+        h.script = deque([(7, 9)] * 19) + path_from([(7, 9), (10, 9), (10, 7), (7, 7), (7, 8)])
+        h.shield, h.after_script = True, "idle"
+        p = ar.add(3, PLAYERS[11], 13, 13, 3)  # home x 12-14, y 12-14
+        p.x, p.y, p.px, p.py = 13, 12, 13, 12
+        p.script = path_from([(13, 12), (13, 2), (10, 2), (10, 12), (12, 12)])
+        p.respawn, p.after_script = False, "idle"
+        for rid, col, x, y in ((2, PLAYERS[2], 3, 3), (4, PLAYERS[4], 3, 13)):
+            q = ar.add(rid, col, x, y, 3)
+            q.script, q.after_script, q.respawn = deque([(x, y)] * 300), "idle", False
+        return ar
+
+    def frame(img, col=DARK):
+        ImageDraw.Draw(img).rectangle((X0 - 2, Y0 - 2, X0 + N * CP + 1, Y0 + N * CP + 1), outline=col, width=2)
+
+    def reticle(img, tg):  # pulsing crosshair on the strike cell (10, 9)
+        cx, cy = X0 + 10.5 * CP, Y0 + 9.5 * CP
+        r = CP * (0.9 + 0.25 * (int(tg / v.spb * 2) % 2))
+        d = ImageDraw.Draw(img)
+        for sx, sy in ((-1, -1), (1, -1), (-1, 1), (1, 1)):
+            d.line((cx + sx * r, cy + sy * r, cx + sx * r * 0.45, cy + sy * r), fill=YELLOW, width=3)
+            d.line((cx + sx * r, cy + sy * r, cx + sx * r, cy + sy * r * 0.45), fill=YELLOW, width=3)
+
+    # ---------- hook: the strike lands at 1.5 beats (0.83 s) ----------
+    a0 = arena()
+    m0 = match_scene(v, a0, X0, Y0, CP, skins, None, hero=1, sim=lambda tl: tl + 17.5 * dt, scale=2, hero_scale=3, kopop=False,
+                     mark=lambda tg: (3, "THEIR TRAIL") if tg < v.b(1.5) else None)
+
+    def hook(img, tl, tg):
+        m0(img, tl, tg)
+        frame(img, RED if tl / v.spb >= 1.5 else DARK)
+        if tl / v.spb < 1.5:
+            reticle(img, tg)
+
+    v.scene(0, 3.5, hook, "HOOK: 16x16 board, YOU (Magma Surge legendary) waits beside pink's long trail (marked THEIR TRAIL, "
+            "crosshair on the strike cell); on the drop at 0.83 s YOU steps in: K.O.! on pink, SNIPED! stamp")
+    v.caption(0, 1.5, "WAIT FOR IT...", size=4, color=YELLOW)
+    v.stamp(1.5, "SNIPED!", RED, y=404, size=5, beats=2, sound="hit")
+    v.shake(1.5, 0.3, 6)
+
+    # ---------- replay, slow: how to snipe ----------
+    R = 4
+    rewind(v, 3.5, R)
+    a1 = arena()
+    efx = Effects()
+
+    def on1(kind, data, cx, cy, tg):
+        if kind == "claim" and data["id"] == 1:
+            efx.fire("LIGHTNING", cx, cy, tg + 0.1, (X0 + 20, Y0 + 20, X0 + N * CP - 20, Y0 + N * CP - 20))
+            v.sfx.append((tg, "levelup", 0))
+
+    m1 = match_scene(v, a1, X0, Y0, CP, skins, None, hero=1, sim=lambda tl: tl + 2.5 * dt, scale=2, hero_scale=3, kopop=False,
+                     on_event=on1, effects=efx, kings=lambda tg: (1,) if tg >= v.b(R + 9) else (),
+                     mark=lambda tg: (3, "GREEDY LOOP") if v.b(R + 1) <= tg < v.b(R + 6.5) else None)
+
+    def replay(img, tl, tg):
+        b = tl / v.spb
+        m1(img, tl, tg)
+        frame(img, GOLD if b >= 8.5 else DARK)
+        if 2.5 <= b < 6.5:
+            reticle(img, tg)
+        if b >= 9.5:
+            name_card(img, "MAGMA SURGE", "LEGENDARY", v.b(R + 9.5), tg, y=Y0 + 186)
+
+    v.scene(R, R + 11, replay, "after a REWIND, the same moment slowed down in 3 steps: pink's trail grows (GREEDY LOOP marked), YOU waits "
+            "(crosshair on the strike cell, music thins to kick/hat/bass), strike on the drop at 6.5 beats (K.O.!, full band), "
+            "then YOU loops home: claim with a Lightning capture effect, crowned, MAGMA SURGE legendary name card")
+    v.caption(R, R + 2.5, "1. FIND A GREEDY LOOP", color=WHITE)
+    v.caption(R + 2.5, R + 6.5, "2. WAIT... DON'T MOVE", color=YELLOW)
+    v.caption(R + 6.5, R + 8.5, "3. STRIKE ON THE DROP", color=RED)
+    v.caption(R + 8.5, R + 11, "THEN LOOP HOME", color=GREEN)
+    v.shake(R + 6.5, 0.3, 6)
+    v.flash(R + 6.5)
+    v.stamp(R + 6.5, "SNIPED!", RED, y=404, size=5, beats=2, sound="hit", flash=False)
+    for k in range(4):  # heartbeat ticks while you wait
+        v.sound(R + 2.5 + k, "blip")
+
+    avatar_end(v, R + 11, R + 15.5, skin=hero_skin, ask="SNIPER OR GREEDY?")
+    v.dur = v.b(R + 15.5)
+    return v
+
+
+ALL = {"s01": s01, "s02": s02, "s03": s03, "s04": s04, "s05": s05, "s06": s06, "s07": s07, "s08": s08, "s09": s09, "s10": s10}
 
 if __name__ == "__main__":
     for n in sys.argv[1:] or list(ALL):

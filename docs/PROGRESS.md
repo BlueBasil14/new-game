@@ -478,3 +478,9 @@ Shared hype.py: corner brand tag from frame 0, live mini-match behind every end 
 - Reworked s05 (round 6), s07 (round 3), s08 (round 2); built s09 Hug the Wall (idea #13). All s-videos re-rendered (mp4s in `marketing/videos/out/`, git-ignored).
 - Fresh grader subagents: all four 6/10. s05 parked after 6 rounds. Fix lists in `marketing/videos/GRADES.md`.
 - Not done: no video has reached 7 yet. Nothing posted anywhere.
+
+## 2026-11-22 03:52: Turf Loop shorts, weekend run (video task)
+- Shared fixes in `tools/video/hype.py`: trail-label chips avoid avatars; +N pops clear the hero's body; K.O.! pop higher; capture effects drawn under numbers; Fireworks halved; short end-card asks at size 3. All s01-s10 re-rendered.
+- Reworked s07 (R4), s08 (R3), s09 (R2); new s10_snipe (idea #14 The Snipe, 108 BPM, ~10.8 s, Magma Surge legendary, Lightning capture).
+- Grader subagents: s07 6, s08 6, s09 6, s10 6 (s10 style 8, clarity 7). Still no 7. Fix lists and next-run plan in `marketing/videos/GRADES.md`.
+- Verified: each contact sheet read by the lead after render. Not verified: audio by ear. Nothing posted anywhere.
