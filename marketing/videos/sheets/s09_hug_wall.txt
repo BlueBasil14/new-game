@@ -1,0 +1,14 @@
+s09_hug_wall: 12.2s, 108 BPM, 1080x1920 30fps
+ 0.00- 1.39s  scene: HOOK: 16x16 board, your avatar (Neon Pulse) closes a loop along the glowing left wall at ~0.4 s (+N, Fireworks); WALL = SAFE tag
+ 0.00- 1.39s  text: PRO TIP: HUG THE WALL
+ 1.39- 3.06s  text: OPEN FIELD = 4 SIDES TO GUARD
+ 1.39- 3.89s  scene: take A: same avatar loops out into the open middle; four red arrows point at the loop from every side; your trail pulses (YOUR TRAIL), red steps on it at ~1.7 s: K.O.! on you
+ 3.06- 3.89s  text: TOO MANY SIDES!
+ 3.89- 4.17s  REWIND cue: dark scanlines + << REWIND
+ 4.17- 5.83s  text: WALL = 1 SIDE TO GUARD
+ 4.17- 9.72s  scene: take B after a REWIND: same avatar loops along the left wall (glowing, WALL = SAFE); only ONE red arrow (from the right); red arrives one step late; claim +N with Fireworks at 3.3 s, crowned; then your turf flips through the 4 animated legendaries (Magma Surge, Starfall, Prism Storm, Neon Pulse) with name cards
+ 5.83- 7.50s  text: 1 SIDE. CLOSE IT FAST.
+ 7.50s  STAMP: TOO LATE! (+shake, flash)
+ 8.06- 9.72s  text: SAME TIP. YOUR SKIN.
+ 9.72-12.22s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, COMMENT YOUR BEST TIP
+sound effects: 17 cues; music: {'mode': 'minor', 'root': 62, 'seed': 613, 'prog': [0, 6, 3, 4], 'sections': [(0, 2.5, {'hat', 'kick', 'bass', 'arp'}), (2.5, 7, {'hat', 'bass', 'kick', 'snare', 'arp'}), (7, 7.5, {'kick'}), (7.5, 17.5, {'hat', 'bass', 'kick', 'snare', 'lead', 'arp'}), (17.5, 24, {'hat', 'kick', 'bass', 'arp'})]}

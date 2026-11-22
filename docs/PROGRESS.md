@@ -472,3 +472,9 @@ Shared hype.py: corner brand tag from frame 0, live mini-match behind every end 
 - Changed `tools/video/hype.py`: end-card comment line (`avatar_end(ask=)`), fixed-focus camera (`match_scene(focus=)`), no stale preroll +N pops; s05/s06/s07 reworked per their fix lists; new s08 Teacher's Coming (idea #12). All s-videos re-rendered; sheets in `marketing/videos/sheets/`.
 - Grader subagents: s05 6, s06 5, s07 6 (from 5), s08 6. Still no 7. Details and next fixes in `marketing/videos/GRADES.md`.
 - Verified: contact sheets inspected by eye before grading. Not verified: audio by ear.
+
+## 2026-11-22 00:53 — Turf Loop shorts, weekend task run
+- Shared helpers in `tools/video/hype.py`: trail highlight + K.O.! pop on the victim ("show the cut"), end card with the comment ask above a yellow CTA (~2 s), corner tag hidden on fake-out screens, `bigloop()` and `arrow()`.
+- Reworked s05 (round 6), s07 (round 3), s08 (round 2); built s09 Hug the Wall (idea #13). All s-videos re-rendered (mp4s in `marketing/videos/out/`, git-ignored).
+- Fresh grader subagents: all four 6/10. s05 parked after 6 rounds. Fix lists in `marketing/videos/GRADES.md`.
+- Not done: no video has reached 7 yet. Nothing posted anywhere.

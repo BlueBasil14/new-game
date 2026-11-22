@@ -1,5 +1,5 @@
-s07_io_kids: 12.2s, 108 BPM, 1080x1920 30fps
- 0.00- 1.67s  scene: hook: live 24x24 board in plain colors, your avatar closes a loop at ~0.7 s (+N pop); REMEMBER PAPER.IO? under it
+s07_io_kids: 11.1s, 108 BPM, 1080x1920 30fps
+ 0.00- 1.67s  scene: hook: live 24x24 board in plain colors, 1.5x zoom on YOU, your avatar closes a loop at ~0.3 s (+N pop); REMEMBER PAPER.IO? under it
  0.00- 1.67s  text: ONLY .IO KIDS REMEMBER THIS
  1.67- 2.78s  scene: list item 1: SCHOOL WI-FI LAG
  1.67- 2.78s  text: 1. SCHOOL WI-FI LAG
@@ -9,9 +9,8 @@ s07_io_kids: 12.2s, 108 BPM, 1080x1920 30fps
  3.89- 5.00s  text: 3. TEACHER WALKS BY
  5.00- 6.11s  scene: list item 4: ONE LINE = GAME OVER
  5.00- 6.11s  text: 4. ONE LINE = GAME OVER
- 6.11- 7.50s  text: NOW IT'S TURF LOOP
+ 6.11- 7.50s  text: NOW: TURF LOOP
  6.11- 8.89s  scene: payoff: the same board now in Turf Loop: Neon Pulse skin, Fireworks capture effect, friends' avatars; loop home +N at ~0.4 s, cut pink's trail at ~2.2 s (K.O.!), crowned
  7.50- 8.89s  text: WITH FRIENDS. AND SKINS.
- 8.33s  STAMP: K.O.! (+shake, flash)
- 8.89-12.22s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, COMMENT YOUR .IO NAME
-sound effects: 19 cues; music: {'mode': 'minor', 'root': 57, 'seed': 411, 'prog': [0, 3, 5, 4], 'sections': [(0, 3, {'hat', 'kick', 'bass', 'arp'}), (3, 20, {'hat', 'arp', 'snare', 'kick', 'bass', 'lead'}), (20, 22, {'hat', 'snare', 'kick', 'bass', 'lead'})]}
+ 8.89-11.11s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, COMMENT YOUR .IO NAME
+sound effects: 18 cues; music: {'mode': 'minor', 'root': 57, 'seed': 411, 'prog': [0, 3, 5, 4], 'sections': [(0, 3, {'hat', 'kick', 'arp', 'bass'}), (3, 16, {'kick', 'bass', 'hat', 'snare', 'arp', 'lead'}), (16, 22, {'hat', 'kick', 'arp', 'bass'})]}
