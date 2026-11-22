@@ -467,3 +467,8 @@ Shared hype.py: corner brand tag from frame 0, live mini-match behind every end 
 ## 2026-11-21 Turf Loop shorts weekend run
 - tools/video/hype.py: s05 take 2 shortened, s06 hook/chart/reveal changes, new s07 (idea #11), end-card logo no longer clips. s01-s04 re-rendered.
 - Grades (fresh subagents): s05 R4 6, s06 R3 5, s07 R1 5. Fix lists in marketing/videos/GRADES.md. Nothing posted or uploaded.
+
+## 2026-11-21 21:52 — Promo shorts weekend run (s05/s06/s07 rework, s08 new)
+- Changed `tools/video/hype.py`: end-card comment line (`avatar_end(ask=)`), fixed-focus camera (`match_scene(focus=)`), no stale preroll +N pops; s05/s06/s07 reworked per their fix lists; new s08 Teacher's Coming (idea #12). All s-videos re-rendered; sheets in `marketing/videos/sheets/`.
+- Grader subagents: s05 6, s06 5, s07 6 (from 5), s08 6. Still no 7. Details and next fixes in `marketing/videos/GRADES.md`.
+- Verified: contact sheets inspected by eye before grading. Not verified: audio by ear.

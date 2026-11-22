@@ -1,6 +1,6 @@
 # Turf Loop shorts: grades
 
-Running:
+Running: 2026-11-21 21:52 EST
 
 Pass mark 7/10 overall from a fresh grader subagent (`GRADER_PROMPT.md`). Max 6 rework rounds per video (raised from 3 on 2026-11-20: all five plateaued at 6 and the owner asked for 7+), then parked with reasons.
 
@@ -411,3 +411,20 @@ Next fixes:
 **s07 (R1, 5):** 1) No gameplay until the end card: add a 1.5 s loop-claim clip with +55 in place of the empty grid / GAME OVER slide. 2) Hook is static: animate a trail closing into a square with a pop in the first second; shorten the headline. 3) Caption plates are tall with dead space: shrink to fit, enlarge text ~30%, one color. 4) Each list item is a static 1.7 s slide: animate mid-beat or cut to 1 s. 5) Bigger end-card mini-match, CTA on screen 3 s+.
 
 **Next run priorities:** s05 (4 rounds), s06 (3), s07 (1); s02, s03, s04 parked. Then idea #12 (Teacher's Coming).
+
+## Run 2026-11-21 21:52 (weekend task): s05 R5, s06 R4, s07 R2 reworked, s08 (idea #12 Teacher's Coming) new. No 7.
+**Applied (shared, `tools/video/hype.py`; all s-videos re-rendered):** `avatar_end(..., ask=...)` folds the comment bait into the end card as a line under the CTA (separate bait slides dropped in s05/s07/s08); `match_scene(focus=(cx, cy))` fixed camera to keep two actors in frame; `match_scene` skips preroll events, so no stale +N pop on a scene's first frame. s05: fixed camera between YOU and THEM with VS, grey crossed-out ghosts stay where they met, "TIE = BOTH OUT", take 2 zoomed (24 px cells), size-4 "TAKE 2: DON'T RACE", bait in the end card. s06: hook is RED's +88 loop at ~0.5 s, captions ONE LOOP HOME / MOST TURF WINS / CROWN = LEADER / CROSS A TRAIL = OUT, game 11.5 beats, bars relative to the leader and above the bottom 20%, winner tiles with full names, winner shirt in the winner color. s07: hook is a live board with a loop closing (+55) under "ONLY .IO KIDS REMEMBER THIS", captions use auto-fit plates, 4 animated list cards at 2 beats, payoff is real gameplay (skins, Fireworks, cut, crown), 6-beat end card with "COMMENT YOUR .IO NAME". s08: new, 108 BPM, ~11 s: live match, teacher slides in, hard cut to a BOOK1.XLS spreadsheet ("ALT+TAB!"), back in and cut a rival, teacher again, faster spreadsheet, then "IN TURF LOOP? NO TEACHER." with Fireworks and crown, end card "EVER GET CAUGHT?".
+
+| Video | R | Overall | hook | clarity | style | pacing | readability | cta |
+|---|---|---|---|---|---|---|---|---|
+| s05 | R5 | 6 | 7 | 5 | 7 | 5 | 6 | 7 |
+| s06 | R4 | 5 | 6 | 4 | 7 | 5 | 6 | 7 |
+| s07 | R2 | 6 | 7 | 5 | 6 | 6 | 6 | 8 |
+| s08 | R1 | 6 | 6 | 5 | 7 | 7 | 6 | 6 |
+
+**s05 (R5, 6; one round left):** 1) "TAKE 2: DON'T RACE" is hidden under the rewind: caption box from 1.94 s, rewind ~0.3 s, YOU tag clear of the rival. 2) The take-2 cut is never seen (only YOU + puff + K.O.!): show pink's trail ~0.4 s before and YOU crossing it. 3) Your turf (cyan/pink) and theirs (pink/white) both use pink: make YOU cyan/white, pink for THEM only; one claim fill. 4) Music peaks on the end card: full band from MINE! (2.94 s), lighter under the end card. 5) End card ~1.8 s; +55/+18 pops above-beside the avatar.
+**s06 (R4, 5):** 1) Hero wears blue but claims red: shirt, trail and turf one color. 2) No lead change and only 2-3 of 6 colors on screen: script a lead swap (crown jumps), zoom out so all 6 show and bars reorder. 3) "CROSS A TRAIL = OUT" has no visible cut: show it with OUT! pop and the bar dropping to 0%; drop the repeated CROWN = LEADER. 4) Bigger board/chart into the empty bottom, labels inside bars, grey out 0%. 5) Winner card: crown overlaps "RED WON", use one phrase, hold COMMENT YOUR COLOR ~1 s longer, end card ~2 s.
+**s07 (R2, 6, up from 5):** 1) Loop close and +N at ~0.3 s, 1.5x zoom on YOU. 2) Item 4 should be a 0.6 s board clip of an enemy cutting your trail, then GAME OVER. 3) The name joke: show it as a leaderboard row "#1 xX_PRO_Xx 98%". 4) Payoff: caption band above the board, K.O.! centred on the cut point, half the particles, a calmer skin. 5) "NOW IT'S / TURF LOOP" line break, logo slam on the downbeat; end card ~0.8 s shorter.
+**s08 (R1, 6):** 1) Teacher in by ~0.2 s with a stake caption ("TEACHER INCOMING. ALT+TAB!"). 2) Hide the corner TURF LOOP tag during the spreadsheet; give "WE ALL DID THIS" 0.5 s+ and big. 3) Replace "COAST IS CLEAR..." with "LOOP HOME = CLAIM IT"; opaque caption box during the K.O. zoom; show pink's trail before the cut. 4) K.O.! on the victim inside the board; make the payoff the biggest claim (+100) with big fireworks. 5) End card ~2.2 s, "EVER GET CAUGHT?" above the CTA and bigger, yellow CTA with dark text from the start.
+
+**Pattern (now 37 grades):** clarity stays at 4-5 because cuts happen off-camera or too fast to read in stills. Next run, shared first: a "show the cut" helper (camera holds the victim's trail ~0.4 s, YOU crosses, OUT! pop on the victim); end cards ~2 s with the ask above the CTA; hide the corner tag on fake-out screens. Then s05 (last round), s07, s08, then idea #13.

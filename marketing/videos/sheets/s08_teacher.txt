@@ -1,0 +1,17 @@
+s08_teacher: 11.0s, 108 BPM, 1080x1920 30fps
+ 0.00- 1.67s  scene: HOOK: live Turf Loop match (follow camera, Neon Pulse skin), your loop closes at ~0.7 s (+N); a big teacher avatar slides in from the right at 1.0 s with a flashing TEACHER! tag
+ 0.00- 1.67s  text: ALT+TAB REFLEX CHECK
+ 1.67- 2.22s  scene: hard cut: the panic spreadsheet (BOOK1.XLS)
+ 1.67- 2.22s  text: WE ALL DID THIS
+ 1.67s  STAMP: ALT+TAB! (+shake, flash)
+ 2.22- 3.11s  text: COAST IS CLEAR...
+ 2.22- 3.89s  scene: back in the match: you cut pink's trail at ~0.9 s (K.O.); the teacher slides in again at 2.2 beats
+ 3.11- 3.89s  text: CUT THEIR TRAIL = OUT
+ 3.17s  STAMP: K.O.! (+shake, flash)
+ 3.89- 4.31s  scene: hard cut: spreadsheet again, faster
+ 3.89s  STAMP: FASTER! (+shake, flash)
+ 4.31- 5.83s  text: IN TURF LOOP? NO TEACHER.
+ 4.31- 7.64s  scene: payoff: no teacher; the match keeps going with skins: loop home +N with Fireworks at ~0.7 s, crowned
+ 5.83- 7.64s  text: FRIENDS. LOOPS. SKINS.
+ 7.64-10.97s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, EVER GET CAUGHT?
+sound effects: 20 cues; music: {'mode': 'minor', 'root': 60, 'seed': 512, 'prog': [0, 5, 3, 4], 'sections': [(0, 3, {'kick', 'bass', 'arp', 'hat'}), (3, 4, {'kick'}), (4, 7, {'bass', 'arp', 'snare', 'hat', 'kick'}), (7, 7.75, {'kick'}), (7.75, 22, {'bass', 'arp', 'snare', 'hat', 'kick', 'lead'})]}

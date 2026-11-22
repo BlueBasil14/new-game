@@ -1,10 +1,11 @@
-s06_color_battle: 6.9s, 108 BPM, 1080x1920 30fps
- 0.00- 1.11s  text: 1 LOOP CAN TAKE THE MAP
- 0.00- 3.89s  scene: 6 colored avatars race on a 24x24 board (preroll so turf already exists), live sorted bar chart of turf %, crown on the leader
- 1.11- 2.78s  text: 6 PLAYERS. 1 MAP.
- 1.78s  STAMP: CUT! (+shake, flash)
- 2.78- 3.89s  text: CROWN = LEADER
- 3.33s  STAMP: RED WINS! (+shake, flash)
- 3.89- 4.72s  scene: winner reveal: crowned avatar, the 6 color tiles, COMMENT YOUR COLOR
- 4.72- 6.94s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST
-sound effects: 15 cues; music: {'mode': 'major', 'root': 62, 'seed': 310, 'prog': [0, 4, 5, 3], 'sections': [(0, 20, {'snare', 'hat', 'arp', 'bass', 'lead', 'kick'}), (20, 22, {'snare', 'hat', 'lead', 'bass', 'kick'})]}
+s06_color_battle: 9.8s, 108 BPM, 1080x1920 30fps
+ 0.00- 1.67s  text: ONE LOOP HOME: +88!
+ 0.00- 6.39s  scene: 6 colored avatars race on a 24x24 board (preroll so turf already exists), live sorted bar chart of turf %, crown on the leader
+ 1.67- 3.33s  text: MOST TURF WINS
+ 3.33- 4.89s  text: CROWN = LEADER
+ 4.89- 5.83s  text: CROSS A TRAIL = OUT
+ 5.83- 6.39s  text: CROWN = LEADER
+ 5.83s  STAMP: RED WINS! (+shake, flash)
+ 6.39- 7.06s  scene: winner reveal: crowned avatar, the 6 color tiles, COMMENT YOUR COLOR
+ 7.06- 9.83s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST
+sound effects: 17 cues; music: {'mode': 'major', 'root': 62, 'seed': 310, 'prog': [0, 4, 5, 3], 'sections': [(0, 20, {'bass', 'lead', 'arp', 'hat', 'snare', 'kick'}), (20, 22, {'bass', 'lead', 'hat', 'snare', 'kick'})]}
