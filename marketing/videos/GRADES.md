@@ -1,6 +1,6 @@
 # Turf Loop shorts: grades
 
-Running: 2026-11-22 12:53 EST
+Running:
 
 Pass mark 7/10 overall from a fresh grader subagent (`GRADER_PROMPT.md`). Max 6 rework rounds per video (raised from 3 on 2026-11-20: all five plateaued at 6 and the owner asked for 7+), then parked with reasons.
 
