@@ -495,3 +495,56 @@ Per video:
 - **Kills.** They need a visible contact hold: 3-4 frames of the attacker on the trail plus a big K.O. stamp, not just particles. Build a `freeze`-style hold in `match_scene` (sim time pauses 0.25 s at a cut).
 
 Next run: those two shared fixes, then s10 (R2), s07 (R5), s08 (R4); s09 at R2; s06 at R4. Then idea #15 (Stat Boosts).
+
+## Run 2026-11-22 06:53 (weekend task): s07 R5, s08 R4, s10 R2 reworked, s11 (idea #15 Stat Boosts) new. No 7.
+**Applied (shared, `tools/video/hype.py`; s01-s11 re-rendered):**
+- `match_scene(freeze=0.3)` pauses the sim at a cut, keeps the victim on screen in a hit pose inside a flashing box, and shows a big K.O.! over it (opt-in; used in s07, s08, s10).
+- `match_scene(pops_on=False)` turns off +N pops; the end-card mini-match uses it, so nothing covers the players or the ask.
+- `avatar_end(ask=...)`: the ask is now the headline (size 4, 2 lines) under the logo, the mini-match sits under it, then one line COMING SOON TO ROBLOX, then the CTA. Asks shortened to fit: DRAW OR WIN?, YOUR .IO NAME?, YOUR BEST TIP?.
+
+Per video:
+- **s10:** hook caption "ONE STEP = K.O."; no K.O. zoom (the freeze replaces it); the wait cut from 4 to 2.5 beats, so the strike comes ~1.1 s sooner; step 3 caption in yellow; end card ~1 s earlier.
+- **s07:** list items 1.5 beats each (were 2); teacher fully in frame with an "ALT+TAB!" line; "REMEMBER PAPER.IO?" bigger and lower; payoff caption "CROSS THEIRS = K.O." with the freeze on the cut.
+- **s08:** no +N in the hook; the teacher further in; the ALT+TAB! stamp on the spreadsheet dropped (one message per shot); freeze on the cut; payoff trimmed to 4.8 beats.
+- **s11:** new, 108 BPM, 12.8 s, numbers from Config.Upgrades / GDD G3.3. The hook is a 5x5 spawn that jumps to 11x11 on a LEVEL UP flash at 0.42 s. SPAWN SHIELD 3s > 5.5s: yellow runs through your trail, BLOCKED!. COIN BOOST x3 on a +142 loop. Then a stat sheet with 4 bars filling to max, and the end card "WHICH FIRST?".
+
+| Video | R | Overall | hook | clarity | style | pacing | readability | cta |
+|---|---|---|---|---|---|---|---|---|
+| s07 | R5 | 6 | 6 | 5 | 7 | 6 | 6 | 7 |
+| s08 | R4 | 6 | 8 | 6 | 7 | 7 | 6 | 6 |
+| s10 | R2 | 6 | 7 | 6 | 7 | 7 | 6 | 6 |
+| s11 | R1 | 6 | 5 | 5 | 7 | 6 | 6 | 6 |
+
+**s07 (R5, 6; one round left):**
+1. The hook frame is crowded (title, 4 THINGS, +55, REMEMBER PAPER.IO?). Drop REMEMBER PAPER.IO?, fold the badge into the title ("ONLY .IO KIDS REMEMBER THESE 4"), and keep the +55 off the loop.
+2. Items 1-3 still have no board. Keep a board behind each item.
+3. The Neon Pulse navy-dot turf reads as holes. Use a bright skin.
+4. The K.O. on "CROSS THEIRS = K.O." doesn't show in the sampled frames. Make it a big stamp plus shake, held longer.
+5. The end-card YOU tag sits on the crown; COMING SOON is thin.
+
+**s08 (R4, 6; hook 8, the best hook yet):**
+1. WE ALL DID THIS sits over the spreadsheet header: solid panel or move it.
+2. The teacher needs teacher cues (glasses, mug).
+3. LOOP HOME = CLAIM IT ALL plays before the claim lands: close the loop inside that caption, and hold +142 big and centred.
+4. End card: the logo reads into the ask ("TURF LOOP EVER CAUGHT?"). Add a gap below the logo.
+5. The K.O.! panel and AGAIN?! tag are small and cramped by the teacher.
+
+**s10 (R2, 6):**
+1. The kill still doesn't read in the sampled frames. Hold longer (0.5 s), with a big K.O.! and the pink trail wiping cell by cell.
+2. The SNIPED! stamp at 5.0 s runs under THEN LOOP HOME: end it at 5.8 s.
+3. The GREEDY LOOP chip overlaps pink's home and runs past the board edge.
+4. The +10 payoff is small and the MAGMA SURGE card covers the claim.
+5. End card: gap between the logo and the ask, bigger mini-board.
+
+**s11 (R1, 6):**
+1. The 5x5 > 11x11 jump lands before the first sampled frame. Hold 5x5 ~0.4 s and jump on a downbeat, with a stake line ("SPAWN 5X BIGGER").
+2. The core rule is never taught. Add "LOOP HOME = YOUR LAND" and a "without shield" K.O. flash before BLOCKED!.
+3. The yellow runner overlaps YOU at the block. Hit the trail away from YOU, with BLOCKED! at the impact point.
+4. The coin section has no "1X > 3X" line under the board.
+5. The stat bars fill too slowly (two still empty at 9.05 s), and the end-card COMING SOON is thin.
+
+**Pattern (now 49 grades, still no 7):**
+- **The contact sheet only samples every ~0.8-1.1 s.** Short holds (0.3 s freeze, 0.4 s jumps) are invisible to graders, who flag "kill doesn't read" even when it is on screen. Next run, as a shared fix, either sample the sheet at the timeline's key moments (stamps and cut events) or hold every key moment 0.6 s or more.
+- **End-card logo and ask collide.** Add 10-15 px between them, give COMING SOON a dark plate, and keep the YOU tag off the end mini-board.
+
+Next run: those two shared fixes, then s07 (last round), s08 (R5), s10 (R3), s11 (R2). s06 is at R4, s09 at R2, s01 at R4. Then idea #16 (New Game+ / Rebirth).

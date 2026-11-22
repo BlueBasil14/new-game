@@ -1,16 +1,15 @@
-s08_teacher: 9.8s, 108 BPM, 1080x1920 30fps
+s08_teacher: 9.1s, 108 BPM, 1080x1920 30fps
  0.00- 1.11s  scene: HOOK: live Turf Loop match (follow camera, Neon Pulse skin), your loop closes at ~0.3 s (+N); a big teacher avatar is already sliding in from the right at frame 0 with a TEACHER! tag
  0.00- 1.11s  text: TEACHER INCOMING. ALT+TAB!
  1.11- 1.94s  scene: hard cut: the panic spreadsheet (BOOK1.XLS), corner tag hidden
  1.11- 1.94s  text: WE ALL DID THIS
- 1.11s  STAMP: ALT+TAB! (+shake, flash)
  1.94- 2.89s  text: CUT THEIR TRAIL...
  1.94- 3.61s  scene: back in the match: pink's trail pulses red (THEIR TRAIL) from 0.33 s, you cut it at ~0.9 s (K.O.! on pink); the teacher slides in again at 2.2 beats
  2.89- 3.61s  text: ...AND THEY'RE OUT!
  3.61- 4.22s  scene: hard cut: spreadsheet again, faster (0.6 s)
  3.61s  STAMP: FASTER! (+shake, flash)
- 4.22- 5.89s  text: LOOP HOME = CLAIM IT ALL
- 4.22- 7.56s  scene: payoff: no teacher; a huge open loop along the top of the map closes at ~0.7 s for +140 with triple Fireworks, crowned
- 5.89- 7.56s  text: NO TEACHER. JUST LOOPS.
- 7.56- 9.78s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, EVER CAUGHT?
-sound effects: 18 cues; music: {'mode': 'minor', 'root': 60, 'seed': 512, 'prog': [0, 5, 3, 4], 'sections': [(0, 2, {'hat', 'kick', 'bass', 'arp'}), (2, 3.5, {'kick'}), (3.5, 6.5, {'bass', 'kick', 'hat', 'arp', 'snare'}), (6.5, 7.6, {'kick'}), (7.6, 13.6, {'bass', 'kick', 'hat', 'lead', 'arp', 'snare'}), (13.6, 22, {'hat', 'kick', 'bass', 'arp'})]}
+ 4.22- 5.56s  text: LOOP HOME = CLAIM IT ALL
+ 4.22- 6.89s  scene: payoff: no teacher; a huge open loop along the top of the map closes at ~0.7 s for +140 with triple Fireworks, crowned
+ 5.56- 6.89s  text: NO TEACHER. JUST LOOPS.
+ 6.89- 9.11s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, EVER CAUGHT?
+sound effects: 18 cues; music: {'mode': 'minor', 'root': 60, 'seed': 512, 'prog': [0, 5, 3, 4], 'sections': [(0, 2, {'hat', 'bass', 'kick', 'arp'}), (2, 3.5, {'kick'}), (3.5, 6.5, {'arp', 'kick', 'bass', 'snare', 'hat'}), (6.5, 7.6, {'kick'}), (7.6, 12.4, {'snare', 'arp', 'kick', 'bass', 'lead', 'hat'}), (12.4, 22, {'hat', 'bass', 'kick', 'arp'})]}

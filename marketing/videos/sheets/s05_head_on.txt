@@ -11,5 +11,5 @@ s05_head_on: 7.2s, 108 BPM, 1080x1920 30fps
  3.79- 4.72s  text: CUT THEIR TRAIL = OUT
  4.72- 5.28s  text: FIRST HOME WINS
  4.72s  STAMP: WINNER! (+shake, flash)
- 5.28- 7.22s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, COMMENT: DRAW OR WIN?
-sound effects: 20 cues; music: {'mode': 'minor', 'root': 59, 'seed': 205, 'prog': [0, 5, 3, 6], 'sections': [(0, 3.5, {'bass', 'kick', 'hat', 'arp'}), (3.5, 5, {'kick', 'arp'}), (5, 9.5, {'snare', 'lead', 'arp', 'bass', 'kick', 'hat'}), (9.5, 22, {'bass', 'kick', 'hat', 'arp'})]}
+ 5.28- 7.22s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, DRAW OR WIN?
+sound effects: 20 cues; music: {'mode': 'minor', 'root': 59, 'seed': 205, 'prog': [0, 5, 3, 6], 'sections': [(0, 3.5, {'bass', 'kick', 'arp', 'hat'}), (3.5, 5, {'kick', 'arp'}), (5, 9.5, {'bass', 'lead', 'hat', 'snare', 'kick', 'arp'}), (9.5, 22, {'bass', 'kick', 'arp', 'hat'})]}

@@ -10,5 +10,5 @@ s09_hug_wall: 10.8s, 108 BPM, 1080x1920 30fps
  5.83- 7.22s  text: 1 SIDE. CLOSE IT FAST.
  6.78s  STAMP: TOO LATE! (+shake, flash)
  7.22- 8.33s  text: SAME TIP. YOUR SKIN.
- 8.33-10.83s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, COMMENT YOUR BEST TIP
-sound effects: 17 cues; music: {'mode': 'minor', 'root': 62, 'seed': 613, 'prog': [0, 6, 3, 4], 'sections': [(0, 2.5, {'arp', 'kick', 'bass', 'hat'}), (2.5, 7, {'arp', 'kick', 'snare', 'bass', 'hat'}), (7, 7.5, {'kick'}), (7.5, 15, {'arp', 'kick', 'snare', 'bass', 'lead', 'hat'}), (15, 24, {'arp', 'kick', 'bass', 'hat'})]}
+ 8.33-10.83s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, YOUR BEST TIP?
+sound effects: 17 cues; music: {'mode': 'minor', 'root': 62, 'seed': 613, 'prog': [0, 6, 3, 4], 'sections': [(0, 2.5, {'bass', 'kick', 'arp', 'hat'}), (2.5, 7, {'bass', 'hat', 'snare', 'kick', 'arp'}), (7, 7.5, {'kick'}), (7.5, 15, {'bass', 'lead', 'hat', 'snare', 'kick', 'arp'}), (15, 24, {'bass', 'kick', 'arp', 'hat'})]}

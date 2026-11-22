@@ -14,4 +14,4 @@ s02_avatar_hype: 11.9s, 108 BPM, 1080x1920 30fps
  8.06-10.28s  scene: wardrobe: the same YOU avatar on a pad that swaps skin on every beat (Galaxy Swirl, Magma Surge, Prism Storm, Starfall)
  8.06-10.28s  text: YOUR AVATAR. ANY SKIN.
 10.28-11.94s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST
-sound effects: 23 cues; music: {'mode': 'major', 'root': 62, 'seed': 88, 'prog': [0, 4, 5, 3], 'sections': [(0, 10.5, {'snare', 'lead', 'kick', 'bass', 'hat', 'arp'}), (10.5, 11, set()), (11, 19, {'snare', 'lead', 'kick', 'bass', 'hat', 'arp'}), (19, 22, {'lead', 'kick', 'bass', 'hat', 'snare'})]}
+sound effects: 23 cues; music: {'mode': 'major', 'root': 62, 'seed': 88, 'prog': [0, 4, 5, 3], 'sections': [(0, 10.5, {'bass', 'lead', 'hat', 'snare', 'kick', 'arp'}), (10.5, 11, set()), (11, 19, {'bass', 'lead', 'hat', 'snare', 'kick', 'arp'}), (19, 22, {'bass', 'lead', 'hat', 'snare', 'kick'})]}

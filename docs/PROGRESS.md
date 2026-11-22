@@ -484,3 +484,10 @@ Shared hype.py: corner brand tag from frame 0, live mini-match behind every end 
 - Reworked s07 (R4), s08 (R3), s09 (R2); new s10_snipe (idea #14 The Snipe, 108 BPM, ~10.8 s, Magma Surge legendary, Lightning capture).
 - Grader subagents: s07 6, s08 6, s09 6, s10 6 (s10 style 8, clarity 7). Still no 7. Fix lists and next-run plan in `marketing/videos/GRADES.md`.
 - Verified: each contact sheet read by the lead after render. Not verified: audio by ear. Nothing posted anywhere.
+
+## 2026-11-22 07:00 Shorts weekend run (scheduled): s07/s08/s10 reworked, s11 Stat Boosts new
+- Shared (`tools/video/hype.py`): kill freeze hold in `match_scene` (`freeze=`, opt-in), `pops_on=False` for the end-card mini-match, and the end-card ask is now the headline. s01-s11 re-rendered.
+- s11_stat_boosts (idea #15) is new. It uses the real upgrade numbers from Config.Upgrades (start size 5→11, shield 3→5.5 s, coins +200%, speed +15%).
+- Grades: s07 R5 6, s08 R4 6 (hook 8), s10 R2 6, s11 R1 6. Still no 7. Full fix lists are in marketing/videos/GRADES.md.
+- Finding: contact sheets sample every ~0.8-1.1 s, so short key moments (0.3 s freeze) are invisible to graders. The next run should sample key moments or hold them for 0.6 s or more.
+- Checked: each reworked and new contact sheet, read by eye. Not checked: audio by ear.
