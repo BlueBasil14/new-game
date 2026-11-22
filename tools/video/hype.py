@@ -660,7 +660,7 @@ def avatar_end(v, b0, b1, skin=("#FF2E9A", "#00F0FF", "stripes", "pulse"), line=
     def fn(img, tl, tg):
         mm(img, tl, tg)
         k = ease_back(tl / 0.3)
-        logo(img, 22 - (1 - k) * 40, 4, tg)
+        logo(img, max(8, 22 - (1 - min(k, 1)) * 14), 4, tg)
         draw_lines(img, "COMING SOON TO ROBLOX", 92, 3, YELLOW, max_chars=12)  # 2 big lines
         ImageDraw.Draw(img).rectangle((X6 - 3, Y6 - 3, X6 + 24 * CP6 + 2, Y6 + 24 * CP6 + CP6 + 2), outline=GOLD, width=3)
         ph = (tl / v.spb) % 1.0
@@ -1245,28 +1245,28 @@ def s05():
             efx.fire("FIREWORKS", cx, cy, tg, (X0 + 20, Y0 + 20, X0 + 232, Y0 + 232))
             v.sfx.append((tg, "levelup", 0))
 
-    t2 = match_scene(v, a2, X0, Y0, CP, skins, trails, hero=1, sim=lambda tl: tl + 4 * dt2, scale=2, hero_scale=2,
-                     on_event=on2, kings=lambda tg: (1,) if tg >= v.b(W2 + 6.5) else ())
+    t2 = match_scene(v, a2, X0, Y0, CP, skins, trails, hero=1, sim=lambda tl: tl + 8 * dt2, scale=2, hero_scale=2,
+                     on_event=on2, kings=lambda tg: (1,) if tg >= v.b(W2 + 5) else ())
 
     def take2(img, tl, tg):
         t2(img, tl, tg)
         efx.draw(img, tg)
 
-    v.scene(W2, W2 + 7.7, take2, "take 2 after a REWIND: same board, you skip the race and loop home first (claim +N, Fireworks), then cut the "
+    v.scene(W2, W2 + 6, take2, "take 2 after a REWIND: same board, you skip the race and loop home first (claim +N, Fireworks), then cut the "
             "rival's trail (K.O.), crowned")
     rewind(v, W2, W2 + 1)
     v.flash(W2 + 1)
     v.sound(W2 + 1, "hit")
-    v.caption(W2 + 1, W2 + 3, "TAKE 2: DON'T RACE", color=GREEN)
-    v.stamp(W2 + 3, "MINE!", GREEN, y=372, beats=1.5, sound=None)
-    v.caption(W2 + 3, W2 + 4.67, "LOOP HOME. CLAIM IT.", color=GREEN)
-    v.stamp(W2 + 4.67, "K.O.!", RED, y=372, beats=1.8)
-    v.caption(W2 + 4.67, W2 + 6.5, "CUT THEIR TRAIL = OUT", color=WHITE)
-    v.stamp(W2 + 6.5, "WINNER!", YELLOW, y=372, beats=1.2, sound="crown")
-    v.caption(W2 + 6.5, W2 + 7.7, "FIRST HOME WINS", color=YELLOW)
+    v.caption(W2 + 1, W2 + 1.8, "TAKE 2: DON'T RACE", color=GREEN)
+    v.stamp(W2 + 1.8, "MINE!", GREEN, y=372, beats=1.2, sound=None)
+    v.caption(W2 + 1.8, W2 + 3.33, "LOOP HOME. CLAIM IT.", color=GREEN)
+    v.stamp(W2 + 3.33, "K.O.!", RED, y=372, beats=1.6)
+    v.caption(W2 + 3.33, W2 + 5, "CUT THEIR TRAIL = OUT", color=WHITE)
+    v.stamp(W2 + 5, "WINNER!", YELLOW, y=372, beats=1.0, sound="crown")
+    v.caption(W2 + 5, W2 + 6, "FIRST HOME WINS", color=YELLOW)
 
     # ---------- bait + end ----------
-    B = W2 + 7.7
+    B = W2 + 6
 
     def bait(img, tl, tg):
         bg_checker(img, tg, speed=20)
@@ -1279,10 +1279,10 @@ def s05():
         ImageDraw.Draw(img).rectangle((10, 336, W - 11, 396), fill=(14, 16, 26), outline=DARK, width=2)
         draw_lines(img, "COMMENT: DRAW OR WIN?", 342, 3, WHITE)
 
-    v.scene(B, B + 1.8, bait, "comment bait: YOU vs THEM avatars bobbing toward each other, 'HEAD-ON. WHO WINS?', 'COMMENT: DRAW OR WIN?'")
+    v.scene(B, B + 1.2, bait, "comment bait: YOU vs THEM avatars bobbing toward each other, 'HEAD-ON. WHO WINS?', 'COMMENT: DRAW OR WIN?'")
     v.sound(B, "hit")
-    avatar_end(v, B + 1.8, B + 5.8, skin=sk(LEGENDS, "NEON PULSE"))
-    v.dur = v.b(B + 5.8)
+    avatar_end(v, B + 1.2, B + 5.2, skin=sk(LEGENDS, "NEON PULSE"))
+    v.dur = v.b(B + 5.2)
     return v
 
 
@@ -1332,11 +1332,14 @@ def s06():
             draw_text(img, "%d%%" % round(ar.share(i + 1) * 100), x + bw / 2, 418 - hgt - 14, 1, WHITE, DARK)
         d.rectangle((6, 349, W - 7, 365), fill=(14, 16, 26))
         draw_text(img, "LIVE TURF %", W / 2, 352, 2, YELLOW, None)
+        if v.b(6) <= tg < v.b(7):  # winner stamp zone: hide the chart so nothing collides (R2 fix)
+            d.rectangle((0, 340, W, 430), fill=(14, 16, 26))
 
     v.scene(0, 7, game, "6 colored avatars race on a 24x24 board (preroll so turf already exists), live sorted bar chart of turf %, crown on the leader")
     v.sound(0, "hit")
-    v.caption(0, 2, "6 PLAYERS. 1 MAP.", y=58, size=3, color=YELLOW)
-    v.caption(2, 5, "WHO TAKES IT ALL?", y=58, size=3, color=WHITE)
+    v.caption(0, 2, "1 LOOP CAN TAKE THE MAP", y=58, size=3, color=YELLOW)
+    v.caption(2, 5, "6 PLAYERS. 1 MAP.", y=58, size=3, color=WHITE)
+    v.stamp(3.2, "CUT!", RED, y=300, beats=0.8, sound=None)
     v.caption(5, 7, "CROWN = LEADER", y=58, size=3, color=GOLD)
     v.stamp(6, "%s WINS!" % wname, PLAYERS[wci], y=372, beats=1, sound="crown")
 
@@ -1350,17 +1353,99 @@ def s06():
             x = 22 + i * 40
             ImageDraw.Draw(img).rectangle((x, 282, x + 34, 314), fill=PLAYERS[ci], outline=DARK, width=2)
             draw_text(img, nm[:2] if nm == "PINK" else nm[0], x + 17, 292, 2, DARK, None)
-        ImageDraw.Draw(img).rectangle((10, 340, W - 11, 392), fill=(14, 16, 26), outline=DARK, width=2)
-        draw_lines(img, "COMMENT YOUR COLOR", 348, 4, WHITE)
+        ImageDraw.Draw(img).rectangle((10, 352, W - 11, 404), fill=(14, 16, 26), outline=DARK, width=2)
+        draw_lines(img, "COMMENT YOUR COLOR", 360, 4, WHITE)
 
-    v.scene(B, B + 2.5, reveal, "winner reveal: crowned avatar, the 6 color tiles, COMMENT YOUR COLOR")
+    v.scene(B, B + 1.5, reveal, "winner reveal: crowned avatar, the 6 color tiles, COMMENT YOUR COLOR")
     v.sound(B, "hit")
-    avatar_end(v, B + 2.5, B + 6.5, skin=("#7C5CFF", "#FFFFFF", "hex", "rainbow"))
-    v.dur = v.b(B + 6.5)
+    avatar_end(v, B + 1.5, B + 5.5, skin=("#7C5CFF", "#FFFFFF", "hex", "rainbow"))
+    v.dur = v.b(B + 5.5)
     return v
 
 
-ALL = {"s01": s01, "s02": s02, "s03": s03, "s04": s04, "s05": s05, "s06": s06}
+# ============================================================ s07 Things only .io kids remember (idea #11)
+def s07():
+    v = Video("s07_io_kids", 108, 22, music=dict(mode="minor", root=57, seed=411, prog=[0, 3, 5, 4], sections=[
+        (0, 3, {"kick", "hat", "arp"}), (3, 20, {"kick", "snare", "hat", "bass", "arp", "lead"}),
+        (20, 22, {"kick", "snare", "hat", "bass", "lead"})]))
+    PL = lambda img, y0, y1: ImageDraw.Draw(img).rectangle((10, y0, W - 11, y1), fill=(14, 16, 26), outline=DARK, width=2)
+    D = (14, 16, 26)
+
+    def hook(img, tl, tg):
+        bg_checker(img, tg, speed=20)
+        PL(img, 90, 230)
+        draw_lines(img, "THINGS ONLY .IO KIDS REMEMBER", 100, 3, YELLOW, max_chars=13)
+        for i in range(5):  # a row of 8-bit squares: the old-game look
+            c = PLAYERS[(0, 2, 4, 7, 11)[i]]
+            ImageDraw.Draw(img).rectangle((24 + i * 46, 270, 24 + i * 46 + 34, 304), fill=c, outline=DARK, width=2)
+        draw_text(img, "REMEMBER PAPER.IO?", W / 2, 340, 2, WHITE, DARK)
+
+    v.scene(0, 2.5, hook, "hook: THINGS ONLY .IO KIDS REMEMBER over a row of pixel squares + REMEMBER PAPER.IO?")
+    v.sound(0, "hit")
+
+    def card(b0, n, title, art, color=WHITE):
+        def fn(img, tl, tg):
+            bg_checker(img, tg, speed=20)
+            ImageDraw.Draw(img).rectangle((10, 90, W - 11, 160), fill=D, outline=DARK, width=2)
+            draw_lines(img, f"{n}. {title}", 96, 3, color, None, max_chars=13)
+            art(img, tl, tg)
+        v.scene(b0, b0 + 3, fn, f"list item {n}: {title}")
+        v.sound(b0, "hit")
+
+    def lag(img, tl, tg):
+        avatar(img, W / 2, 330, OUTFITS[1], tg, moving=False, s=6, label="YOU")
+        ph = int(tg * 10) % 8
+        d = ImageDraw.Draw(img)
+        for i in range(8):
+            d.rectangle((W / 2 - 40 + i * 10, 360, W / 2 - 40 + i * 10 + 8, 368), fill=YELLOW if i <= ph else (60, 64, 80))
+        draw_text(img, "LAG!", W / 2, 190, 6, RED, DARK)
+
+    def pro(img, tl, tg):
+        PL(img, 180, 230)
+        draw_text(img, "xX_PRO_Xx", W / 2, 192, 3, CYAN if 'CYAN' in globals() else (0, 240, 255), DARK)
+        avatar(img, W / 2, 400, OUTFITS[3], tg, moving=True, s=6, king=True)
+
+    def teacher(img, tl, tg):
+        x = -40 + (tl / v.spb / 3) * (W + 80)
+        avatar(img, x, 360, OUTFITS[2], tg, moving=True, s=8)
+        if x > 40:
+            draw_text(img, "!", min(x, W - 30), 190, 8, RED, DARK)
+        avatar(img, 60, 360, OUTFITS[1], tg, moving=False, s=4, label="YOU")
+
+    def oneline(img, tl, tg):
+        d = ImageDraw.Draw(img)
+        k = min(1.0, tl / (v.spb * 1.6))
+        for yy in range(210, 330, 20):
+            for xx in range(40, 220, 20):
+                if k < 1:
+                    d.rectangle((xx, yy, xx + 19, yy + 19), fill=(70, 140, 255), outline=(40, 100, 200))
+        if k >= 1:
+            PL(img, 220, 320)
+            draw_text(img, "GAME OVER", W / 2, 244, 4, RED, DARK)
+            draw_text(img, "SCORE: 0", W / 2, 285, 3, WHITE, None)
+        else:
+            d.rectangle((20, 262 - 3, 20 + int(k * 230), 262 + 3), fill=RED)
+
+    card(2.5, 1, "SCHOOL WI-FI LAG", lag, RED)
+    card(5.5, 2, "THE NAME", pro, CYAN if 'CYAN' in globals() else (0, 240, 255))
+    card(8.5, 3, "TEACHER WALKS BY", teacher, YELLOW)
+    card(11.5, 4, "ONE LINE ENDS IT", oneline, RED)
+
+    def now(img, tl, tg):
+        bg_checker(img, tg, speed=20)
+        PL(img, 96, 200)
+        draw_lines(img, "NOW IT'S TURF LOOP. WITH FRIENDS.", 104, 3, GREEN, max_chars=16)
+        for i, o in enumerate((1, 2, 3)):
+            avatar(img, 60 + i * 70, 330, OUTFITS[o], tg + i * 0.1, moving=True, s=5, king=(i == 0))
+
+    v.scene(14.5, 17.5, now, "payoff: NOW IT'S TURF LOOP. WITH FRIENDS. three avatars")
+    v.sound(14.5, "crown")
+    avatar_end(v, 17.5, 21.5, skin=sk(LEGENDS, "NEON PULSE"))
+    v.dur = v.b(21.5)
+    return v
+
+
+ALL = {"s01": s01, "s02": s02, "s03": s03, "s04": s04, "s05": s05, "s06": s06, "s07": s07}
 
 if __name__ == "__main__":
     for n in sys.argv[1:] or list(ALL):

@@ -463,3 +463,7 @@ Shared hype.py: corner brand tag from frame 0, live mini-match behind every end 
 - Shared hype.py: 2x corner brand tag, captions lowered about 100 px, bigger end-card mini-match, CTA lower.
 - s04 graded 6 and parked after 6 rounds. s05 graded 6. s06 graded 5 (mechanic never shown, stamp collides with chart).
 - Videos render to git-ignored out/. No posting. Fix lists in marketing/videos/GRADES.md.
+
+## 2026-11-21 Turf Loop shorts weekend run
+- tools/video/hype.py: s05 take 2 shortened, s06 hook/chart/reveal changes, new s07 (idea #11), end-card logo no longer clips. s01-s04 re-rendered.
+- Grades (fresh subagents): s05 R4 6, s06 R3 5, s07 R1 5. Fix lists in marketing/videos/GRADES.md. Nothing posted or uploaded.

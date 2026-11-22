@@ -3,7 +3,7 @@ s02_avatar_hype: 11.9s, 108 BPM, 1080x1920 30fps
  0.00- 6.11s  scene: HOOK on the game: 24x24 match, camera zoomed 1.6x following YOU (Neon Pulse turf, solid cyan trail): your loop is 4 steps from closing (claim +N at ~0.9 s), yellow (DANGER! tag) arrives a beat too late, pink draws a trail (CUT IT! tag), you cut it (K.O.), claim again, crown
  0.89- 1.78s  text: LOOP HOME = IT'S YOURS
  0.89s  STAMP: MINE! (+shake, flash)
- 1.78- 3.11s  text: CUT THEIR TRAIL = THEY'RE OUT
+ 1.78- 3.11s  text: CUT THEIR TRAIL = OUT
  3.11- 4.72s  text: LOOP HOME AGAIN
  3.11s  STAMP: K.O.! (+shake, flash)
  4.72- 6.11s  text: MOST TURF = THE CROWN
@@ -14,4 +14,4 @@ s02_avatar_hype: 11.9s, 108 BPM, 1080x1920 30fps
  8.06-10.28s  scene: wardrobe: the same YOU avatar on a pad that swaps skin on every beat (Galaxy Swirl, Magma Surge, Prism Storm, Starfall)
  8.06-10.28s  text: YOUR AVATAR. ANY SKIN.
 10.28-11.94s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST
-sound effects: 23 cues; music: {'mode': 'major', 'root': 62, 'seed': 88, 'prog': [0, 4, 5, 3], 'sections': [(0, 10.5, {'snare', 'lead', 'arp', 'bass', 'hat', 'kick'}), (10.5, 11, set()), (11, 19, {'snare', 'lead', 'arp', 'bass', 'hat', 'kick'}), (19, 22, {'snare', 'lead', 'bass', 'hat', 'kick'})]}
+sound effects: 23 cues; music: {'mode': 'major', 'root': 62, 'seed': 88, 'prog': [0, 4, 5, 3], 'sections': [(0, 10.5, {'arp', 'lead', 'bass', 'snare', 'kick', 'hat'}), (10.5, 11, set()), (11, 19, {'arp', 'lead', 'bass', 'snare', 'kick', 'hat'}), (19, 22, {'lead', 'bass', 'snare', 'kick', 'hat'})]}

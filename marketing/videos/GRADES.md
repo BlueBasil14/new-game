@@ -396,3 +396,18 @@ Next fixes:
 **s05 (R3, 6):** 1) Hook board still reads small and grey: thicker brighter trails, avatars running at each other from frame 1. 2) Show 3-4 frames of the two heads touching (flash and freeze) before "K.O. x2!"; keep ghosted avatars instead of clearing the board. 3) Take-2 setup is 1 s of little action: cut to about 0.6 s and claim by about 3.0 s. 4) Captions and CTA sit in platform UI zones; thicker outline on the corner tag; the bait card has a big empty box. 5) Merge the bait into the end card ("COMMENT: DRAW OR WIN?") and drop the separate slide.
 
 **Next run priorities:** s05 (3 rounds) and s06 (2 rounds); s02, s03, s04 parked. Then build idea #11. Shared: a "hold the contact frame" freeze helper for head-on and cut scenes, and bait merged into `avatar_end`.
+
+## Run 2026-11-21 19:02 (weekend task): s05 R4, s06 R3 reworked, s07 (idea #11 Things Only .io Kids Remember) new. No 7.
+**Applied:** shared: end-card logo no longer clips at the top while slamming in (s01-s04 re-rendered). s05: take 2 preroll 8 steps (claim ~1.7 beats, cut ~3.3, winner ~5), take 2 now 6 beats, bait 1.2 beats. s06: stake caption "1 LOOP CAN TAKE THE MAP", CUT! stamp at 3.2, chart hidden under the winner stamp, reveal 1.5 beats, comment box moved down. s07: hook + 4 list cards (Wi-Fi lag, the name, teacher, one line = GAME OVER) + "NOW IT'S TURF LOOP. WITH FRIENDS." + avatar end card.
+
+| Video | R | Overall | hook | clarity | style | pacing | readability | cta |
+|---|---|---|---|---|---|---|---|---|
+| s05 | R4 | 6 | 6 | 6 | 7 | 6 | 6 | 7 |
+| s06 | R3 | 5 | 5 | 5 | 6 | 5 | 6 | 6 |
+| s07 | R1 | 5 | 6 | 4 | 6 | 5 | 5 | 6 |
+
+**s05 (R4, 6):** 1) Hook: show both avatars with full trails, centred and large, a beat from impact, VS between them; hold the clash to ~0.8 s, then K.O. x2. 2) Caption "HEAD-ON = BOTH OUT"; bigger shake on the burst. 3) Brighter rewind, YOU tag off the avatar, a big "TAKE 2: DON'T RACE" for 0.5 s+. 4) Zoom ~1.5x on take 2, K.O. pop at the cut point, +18 off the avatars. 5) Hold bait 1.2 s or fold into the end card; keep one CTA color.
+**s06 (R3, 5):** 1) Hook is a vague claim over an empty grey board: open on a loop-close with a huge +88 or a CUT in progress. 2) Show the rules: "CROSS THEIR TRAIL = OUT" callout with an arrow, "LOOP HOME = CLAIM"; keep YOU on the trail. 3) Reveal to ~0.5 s, bigger color tiles with full names. 4) Bar chart 2x bigger and out of the bottom 20%; fix the "6 PLAYERS. 1 / MAP." wrap. 5) End-card incentive and bigger mini-match.
+**s07 (R1, 5):** 1) No gameplay until the end card: add a 1.5 s loop-claim clip with +55 in place of the empty grid / GAME OVER slide. 2) Hook is static: animate a trail closing into a square with a pop in the first second; shorten the headline. 3) Caption plates are tall with dead space: shrink to fit, enlarge text ~30%, one color. 4) Each list item is a static 1.7 s slide: animate mid-beat or cut to 1 s. 5) Bigger end-card mini-match, CTA on screen 3 s+.
+
+**Next run priorities:** s05 (4 rounds), s06 (3), s07 (1); s02, s03, s04 parked. Then idea #12 (Teacher's Coming).

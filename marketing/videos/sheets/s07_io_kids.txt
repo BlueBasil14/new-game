@@ -1,0 +1,9 @@
+s07_io_kids: 11.9s, 108 BPM, 1080x1920 30fps
+ 0.00- 1.39s  scene: hook: THINGS ONLY .IO KIDS REMEMBER over a row of pixel squares + REMEMBER PAPER.IO?
+ 1.39- 3.06s  scene: list item 1: SCHOOL WI-FI LAG
+ 3.06- 4.72s  scene: list item 2: THE NAME
+ 4.72- 6.39s  scene: list item 3: TEACHER WALKS BY
+ 6.39- 8.06s  scene: list item 4: ONE LINE ENDS IT
+ 8.06- 9.72s  scene: payoff: NOW IT'S TURF LOOP. WITH FRIENDS. three avatars
+ 9.72-11.94s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST
+sound effects: 9 cues; music: {'mode': 'minor', 'root': 57, 'seed': 411, 'prog': [0, 3, 5, 4], 'sections': [(0, 3, {'kick', 'arp', 'hat'}), (3, 20, {'snare', 'kick', 'arp', 'hat', 'lead', 'bass'}), (20, 22, {'snare', 'kick', 'hat', 'lead', 'bass'})]}
