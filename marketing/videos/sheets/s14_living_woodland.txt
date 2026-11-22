@@ -1,0 +1,11 @@
+s14_living_woodland: 12.2s, 108 BPM, 1080x1920 30fps
+ 0.00- 2.22s  scene: HOOK: 24x24 board, YOU on grass turf (Living Woodland) closes a huge loop at ~0.4 s: trees, rocks and mushrooms pop up across the new turf in a wave from the closing point; name card LIVING WOODLAND at 1.1 s
+ 0.00- 2.22s  text: YOUR TURF GROWS A FOREST
+ 2.22- 5.14s  text: GET HOME. DON'T GET CUT!
+ 2.22- 6.11s  scene: 2: 16x16, YOU on grass draws a big open loop; red leaves home and runs at your trail (red ring, DANGER! chip) but arrives one step late; the loop closes at ~2.9 s and trees/rocks/mushrooms grow in a wave, SAFE! +TREES
+ 5.14- 6.11s  text: EVERY LOOP = MORE FOREST
+ 5.14s  STAMP: SAFE! (+shake, flash)
+ 6.11- 8.33s  scene: 3: close-up of grass turf, big pixel trees, rocks and mushrooms pop in two per beat while your avatar walks across; name card LIVING WOODLAND / LEGENDARY BIOME
+ 6.11- 8.33s  text: TREES. ROCKS. MUSHROOMS.
+ 8.33-12.22s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, FOREST OR NEON?
+sound effects: 27 cues; music: {'mode': 'major', 'root': 65, 'seed': 1418, 'prog': [0, 5, 3, 4], 'sections': [(0, 4, {'lead', 'hat', 'arp', 'bass', 'kick', 'snare'}), (4, 9, {'hat', 'arp', 'bass', 'kick'}), (9, 11, {'lead', 'hat', 'arp', 'bass', 'kick', 'snare'}), (11, 15, {'lead', 'hat', 'bass', 'kick', 'snare'}), (15, 22, {'hat', 'arp', 'bass', 'kick'})]}

@@ -8,4 +8,4 @@ s06_color_battle: 9.8s, 108 BPM, 1080x1920 30fps
  5.83s  STAMP: RED WINS! (+shake, flash)
  6.39- 7.06s  scene: winner reveal: crowned avatar, the 6 color tiles, COMMENT YOUR COLOR
  7.06- 9.83s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST
-sound effects: 17 cues; music: {'mode': 'major', 'root': 62, 'seed': 310, 'prog': [0, 4, 5, 3], 'sections': [(0, 20, {'hat', 'arp', 'bass', 'lead', 'snare', 'kick'}), (20, 22, {'hat', 'bass', 'lead', 'snare', 'kick'})]}
+sound effects: 17 cues; music: {'mode': 'major', 'root': 62, 'seed': 310, 'prog': [0, 4, 5, 3], 'sections': [(0, 20, {'bass', 'snare', 'lead', 'hat', 'kick', 'arp'}), (20, 22, {'bass', 'snare', 'lead', 'hat', 'kick'})]}

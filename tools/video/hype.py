@@ -120,11 +120,11 @@ def runner_sprite(img, ar, rid, x0, y0, cp, t, label=True):
         draw_text(img, "YOU", px + s / 2, py - 18, 2, WHITE, DARK)
 
 
-def tree(img, cx, cy, k, seed):
-    """Pixel tree for Living Woodland, k = grow 0..1 (overshoots like the game's grow-in)."""
+def tree(img, cx, cy, k, seed, z=1.0):
+    """Pixel tree for Living Woodland, k = grow 0..1 (overshoots like the game's grow-in); z scales it."""
     if k <= 0:
         return
-    s = ease_back(min(1.0, k))
+    s = ease_back(min(1.0, k)) * z
     d = ImageDraw.Draw(img)
     th = int(6 * s)
     d.rectangle((cx - 1, cy - th, cx + 1, cy), fill=(110, 72, 40))
@@ -150,7 +150,7 @@ class Effects:
                 col = rng.choice([PINK, YELLOW, GEM, GREEN, WHITE])
                 for i in range(16):
                     a = i / 16 * 2 * math.pi
-                    self.items.append(("spark", bx, by, math.cos(a) * 120, math.sin(a) * 120, t + rng.uniform(0, 0.3), col))
+                    self.items.append(("spark", bx, by, math.cos(a) * 190, math.sin(a) * 190, t + rng.uniform(0, 0.3), col))
         elif kind == "BUBBLES":
             for _ in range(13):
                 self.items.append(("bubble", rng.uniform(x0, x1), rng.uniform(y0, y1), rng.uniform(-8, 8), -rng.uniform(30, 60),
@@ -160,7 +160,7 @@ class Effects:
                 self.items.append(("bolt", rng.uniform(x0, x1), y0, rng.uniform(x0, x1), rng.uniform(y0, y1),
                                    t + rng.uniform(0, 0.2), rng.randint(0, 999)))
         elif kind == "HEARTS":
-            for _ in range(20):
+            for _ in range(10):  # R14: bigger, so fewer
                 self.items.append(("heart", rng.uniform(x0, x1), rng.uniform(y0, y1), rng.uniform(-10, 10), -rng.uniform(35, 70),
                                    t + rng.uniform(0, 0.4), rng.choice([PINK, (255, 184, 224), RED])))
 
@@ -178,23 +178,23 @@ class Effects:
             keep.append(it)
             if kind == "spark":
                 px, py = x + vx * age, y + vy * age + 60 * age * age
-                d.rectangle((px, py, px + 4, py + 4), fill=col if age < 0.7 else shade(col, 0.6), outline=DARK)
+                d.rectangle((px - 4, py - 4, px + 6, py + 6), fill=col if age < 0.7 else shade(col, 0.6), outline=DARK)  # R14: 2.5x (graders: effects too small)
             elif kind == "bubble":
                 px, py = x + vx * age, y + vy * age
-                r = 6 + age * 10
-                d.ellipse((px - r, py - r, px + r, py + r), outline=WHITE if age < 0.8 else col, width=2)
+                r = 12 + age * 22  # R14: 2x
+                d.ellipse((px - r, py - r, px + r, py + r), outline=WHITE if age < 0.8 else col, width=4)
             elif kind == "bolt" and age < 0.35:
                 rng = random.Random(col + int(age * 20))
                 pts, n = [], 6
                 for i in range(n + 1):
                     k = i / n
                     pts.append((x + (vx - x) * k + (rng.uniform(-7, 7) if 0 < i < n else 0), y + (vy - y) * k))
-                d.line(pts, fill=(255, 232, 138), width=6)
-                d.line(pts, fill=WHITE, width=2)
+                d.line(pts, fill=(255, 232, 138), width=12)  # R14: 2x
+                d.line(pts, fill=WHITE, width=4)
             elif kind == "heart":
                 px, py = x + vx * age, y + vy * age
                 for (hx, hy) in ((0, 0), (2, 0), (-1, 1), (0, 1), (1, 1), (2, 1), (3, 1), (0, 2), (1, 2), (2, 2), (1, 3)):
-                    d.rectangle((px + hx * 4, py + hy * 4, px + hx * 4 + 3, py + hy * 4 + 3), fill=col)
+                    d.rectangle((px + hx * 9, py + hy * 9, px + hx * 9 + 8, py + hy * 9 + 8), fill=col)  # R14: 2.25x
         self.items = keep
 
 
@@ -755,7 +755,7 @@ def avatar_end(v, b0, b1, skin=("#FF2E9A", "#00F0FF", "stripes", "pulse"), line=
     brand_tag(v, 0, b0)
     dt = v.spb / 3
     ar = demo24(dt)
-    CP6, X6, Y6 = (8, 39, 144) if ask else (8, 39, 122)  # R13: 1.33x board (every grader: end mini-board too small)
+    CP6, X6, Y6 = (8, 39, 128) if ask else (8, 39, 122)  # R13: 1.33x board (every grader: end mini-board too small)
     skins = {1: skin_of(skin), 2: sk(RARES, "CANDY STRIPE"), 3: sk(RARES, "OCEAN WAVES")}
     mm = match_scene(v, ar, X6, Y6, CP6, skins, None, hero=1, sim=lambda tl: tl + 20 * dt, scale=1, hero_scale=2, kozoom=False,
                      kings=lambda tg: (), pops_on=False)  # no +N on the end board (graders: it covered players and the ask)
@@ -763,17 +763,17 @@ def avatar_end(v, b0, b1, skin=("#FF2E9A", "#00F0FF", "stripes", "pulse"), line=
     def fn(img, tl, tg):
         mm(img, tl, tg)
         k = ease_back(tl / 0.3)
-        logo(img, max(8, 22 - (1 - min(k, 1)) * 14), 4, tg)
+        logo(img, max(6, (10 if ask else 22) - (1 - min(k, 1)) * 14), 4, tg)
         ImageDraw.Draw(img).rectangle((X6 - 3, Y6 - 3, X6 + 24 * CP6 + 2, Y6 + 24 * CP6 + CP6 + 2), outline=GOLD, width=3)
         ph = (tl / v.spb) % 1.0
         on = ph < 0.2  # pulse on every beat: button grows, outline flashes white
         g = 6 if on else 0
         if ask:  # R11: the ask is the headline under the logo; COMING SOON sits under the board
-            draw_lines(img, ask, 104, 4, WHITE, DARK, gap=2, max_chars=10)
+            draw_lines(img, ask, 86, 4, WHITE, DARK, gap=2, max_chars=10)
             cy = Y6 + 24 * CP6 + CP6 + 6
-            ImageDraw.Draw(img).rectangle((3, cy - 4, W - 4, cy + 21), fill=(14, 16, 26), outline=YELLOW, width=2)  # R12: plate, COMING SOON read thin
-            draw_text(img, "COMING SOON TO ROBLOX", W / 2, cy + 1, 2, YELLOW, DARK)
-            top, bot = cy + 26, cy + 96  # R13: follows the bigger board; 2-line CTA fits
+            ImageDraw.Draw(img).rectangle((3, cy - 4, W - 4, cy + 54), fill=(14, 16, 26), outline=YELLOW, width=2)  # R12: plate
+            draw_lines(img, "COMING SOON TO ROBLOX", cy + 26, 3, YELLOW, DARK, gap=0, max_chars=12)  # R14: size 3 on its own rows (every grader: too thin)
+            top, bot = cy + 60, min(cy + 122, H - 20)
         else:
             draw_lines(img, "COMING SOON TO ROBLOX", 92, 3, YELLOW, max_chars=12)  # 2 big lines
             top, bot = Y6 + 25 * CP6 + 8, Y6 + 25 * CP6 + 82
@@ -2035,8 +2035,9 @@ def s11():
 
     a5, a11 = arenaA(5), arenaA(11)
     m5 = match_scene(v, a5, X0, Y0, CP, skins, None, hero=1, sim=lambda tl: tl + dt, scale=2, hero_scale=3)
-    m11 = match_scene(v, a11, X0, Y0, CP, skins, None, hero=1, sim=lambda tl: tl + dt, scale=2, hero_scale=3)
-    UP = 1.0  # R2: hold the 5x5 for a beat (0.56 s), jump on the downbeat
+    m11 = match_scene(v, a11, X0, Y0, CP, skins, None, hero=1, sim=lambda tl: tl + 17 * dt,  # R3: 4 steps from home, claim ~0.75 s
+                     scale=2, hero_scale=3)
+    UP = 0.0  # R3: the LEVEL UP burst is frame 0 (graders: open on it)
 
     def sceneA(img, tl, tg):
         b = tl / v.spb
@@ -2049,17 +2050,17 @@ def s11():
         if b >= UP:
             draw_text(img, "5x5 > 11x11", W / 2, Y0 + N * CP + 12, 3, YELLOW, DARK)
 
-    v.scene(0, 5, sceneA, "HOOK: 20x20 board, YOU (Neon Pulse) on a 5x5 spawn patch; at 0.42 s LEVEL UP flash: the patch jumps "
+    v.scene(0, 4, sceneA, "HOOK: 20x20 board, YOU (Neon Pulse) on a 5x5 spawn patch; at 0.42 s LEVEL UP flash: the patch jumps "
             "to 11x11 (START SIZE 3/3 pips fill, '5x5 > 11x11' under the board); then YOU runs a loop off the big base and claims (+N)")
-    v.caption(0, 2.5, "LEVEL UP: 5X BIGGER SPAWN", size=3, color=YELLOW)  # R2: a stake line
-    v.caption(2.5, 5, "LOOP HOME = YOUR LAND", size=3, color=WHITE)  # R2: teach the core rule
+    v.caption(0, 2, "LEVEL UP: 5x5 > 11x11 START", size=3, color=YELLOW)  # R3: 121/25 is 4.8x, so no "5X"
+    v.caption(2, 4, "LOOP HOME = YOUR LAND", size=3, color=WHITE)
     v.flash(UP)
     v.shake(UP, 0.25, 5)
     v.sound(UP, "levelup")
     v.sound(0, "hit")
 
     # ---------- B: SPAWN SHIELD. a rival runs into your trail: BLOCKED ----------
-    B = 5
+    B = 4
 
     def arenaB():
         ar = Arena(N, seed=16)
@@ -2103,14 +2104,13 @@ def s11():
 
     v.scene(B, B + 5, sceneB, "SPAWN SHIELD 5/5: cyan bubble round YOU; yellow runs straight through your open trail at ~2 s: "
             "no K.O., ring flash, 'BLOCKED!'; YOU finishes the loop and claims")
-    v.caption(B, B + HIT, "NO SHIELD = 1 TOUCH K.O.", color=RED)  # R2: the stake before BLOCKED!
-    v.caption(B + HIT, B + 5, "THEY CAN'T CUT YOU", color=(0, 240, 255))
+    v.caption(B, B + 5, "SHIELD: THEY CAN'T CUT YOU", color=(0, 240, 255))  # R3: one true line (the old stake contradicted the picture)
     v.sound(B, "levelup")
     v.sound(B + HIT, "hit")
     v.shake(B + HIT, 0.25, 4)
 
     # ---------- C: COIN BOOST. the big loop pays x3 ----------
-    C = 10
+    C = 9
     aC = bigloop(dt)
     efx = Effects()
     coins = [None]
@@ -2130,14 +2130,19 @@ def s11():
         mC(img, tl, tg)
         ImageDraw.Draw(img).rectangle((X0 - 2, Y0 + 14, X0 + 24 * 11 + 1, Y0 + 16 + 25 * 11 + 1), outline=GOLD, width=2)
         stat_chip(img, "COIN BOOST", 20, 20, GOLD, tg, v.b(C))
-        draw_text(img, "1X > 3X", W / 2, Y0 + 16 + 25 * 11 + 10, 4, GOLD, DARK)  # R2
+        if coins[0]:  # R3: a coin counter ticks +N > +3N instead of a static 1X > 3X
+            t0, n = coins[0]
+            k = min(1.0, max(0.0, (tg - t0 - 0.2) / 0.6))
+            draw_text(img, f"+{n} > +{int(n + 2 * n * k)}", W / 2, Y0 + 16 + 25 * 11 + 12, 3, GOLD if k < 1 else WHITE, DARK)
+        else:
+            draw_text(img, "x3 COINS", W / 2, Y0 + 16 + 25 * 11 + 10, 4, GOLD, DARK)
 
-    v.scene(C, C + 5, sceneC, "COIN BOOST 20/20: a huge loop closes at ~0.6 s (+N, Fireworks, coin ticks), caption COIN BOOST: x3 COINS (+200%), crowned")
-    v.caption(C, C + 5, "COIN BOOST: x3 COINS", color=GOLD)
+    v.scene(C, C + 4, sceneC, "COIN BOOST 20/20: a huge loop closes at ~0.6 s (+N, Fireworks, coin ticks), caption COIN BOOST: x3 COINS (+200%), crowned")
+    v.caption(C, C + 4, "COIN BOOST: x3 COINS", color=GOLD)
 
     # ---------- D: the stat sheet, every bar to MAX on the beat ----------
-    D = 15
-    STATS = (("SPEED", "+15%", GREEN), ("START", "11x11", YELLOW), ("SHIELD", "5.5s", (0, 240, 255)), ("COINS", "+200%", GOLD))
+    D = 13
+    STATS = (("A START", "11x11", YELLOW), ("B SHIELD", "5.5s", (0, 240, 255)), ("C COINS", "x3", GOLD))  # R3: no SPEED (never shown); A/B/C for the ask
 
     def sheet(img, tl, tg):
         b = tl / v.spb
@@ -2146,21 +2151,21 @@ def s11():
         d = ImageDraw.Draw(img)
         for i, (nm, val, col) in enumerate(STATS):
             y = 250 + i * 32
-            fill = min(1.0, max(0.0, (b - i * 0.4) / 0.3))  # R2: all four full by ~1 s
+            fill = min(1.0, max(0.0, (b - i * 0.35) / 0.3))
             d.rectangle((10, y, W - 11, y + 26), fill=(14, 16, 26), outline=col if fill >= 1 else DARK, width=2)
             draw_text(img, nm, 16, y + 7, 2, col, None, align="left")
-            d.rectangle((92, y + 7, 92 + int(90 * fill), y + 19), fill=col)
+            d.rectangle((120, y + 7, 120 + int(70 * fill), y + 19), fill=col)
             if fill >= 1:
                 draw_text(img, val, W - 16 - text_img(val, 2, WHITE, None).width, y + 7, 2, WHITE, None, align="left")
 
-    v.scene(D, D + 4, sheet, "stat sheet: big crowned avatar, 4 RPG bars fill to MAX one per 0.75 beat with a level-up chime: "
-            "SPEED +15%, START 11x11, SHIELD 5.5s, COINS +200%")
-    v.caption(D, D + 4, "EARN COINS. LEVEL UP.", color=GREEN)
-    for i in range(4):
-        v.sound(D + i * 0.4 + 0.3, "levelup")
+    v.scene(D, D + 3.5, sheet, "stat sheet: big crowned avatar, 3 RPG bars fill to MAX with a level-up chime: "
+            "A START 11x11, B SHIELD 5.5s, C COINS x3")
+    v.caption(D, D + 3.5, "FREE. EARNED IN-GAME.", color=GREEN)  # R3: reads as pay-to-win otherwise
+    for i in range(3):
+        v.sound(D + i * 0.35 + 0.3, "levelup")
 
-    avatar_end(v, D + 4, D + 8, skin=hero_skin, ask="WHICH FIRST?")
-    v.dur = v.b(D + 8)
+    avatar_end(v, D + 3.5, D + 9, skin=hero_skin, ask="COMMENT A, B OR C")
+    v.dur = v.b(D + 9)
     return v
 
 
@@ -2179,7 +2184,8 @@ def s12():
     dt = v.spb / 3
     hero_skin = sk(LEGENDS, "PRISM STORM")
     skins = {1: hero_skin, 2: sk(RARES, "CANDY STRIPE"), 3: sk(RARES, "OCEAN WAVES")}
-    PRESS = 1.5  # R2: 0.8 s of the core loop (claim at ~0.4 s) before the press (graders: show what you are giving up)
+    TEASE = 0.75  # R3: open on the payoff (crown rain) for 0.4 s, then the back-story
+    PRESS = 2.25  # R2: 0.8 s of the core loop (claim at ~0.4 s) before the press (graders: show what you are giving up)
 
     def coin_chip(img, n, x, y, size=3, col=YELLOW):
         txt = f"{n:,}"
@@ -2193,32 +2199,37 @@ def s12():
 
     # ---------- hook: a huge turf, 150,000 coins, REBIRTH pressed at 0.42 s -> crowns rain ----------
     aH = bigloop(dt)
-    mH = match_scene(v, aH, 3, 124, 11, skins, None, hero=1, sim=lambda tl: tl + 42 * dt, scale=2, hero_scale=2,
-                     kings=lambda tg: (1,))
+    mH = match_scene(v, aH, 15, 124, 10, skins, None, hero=1, sim=lambda tl: tl + 42 * dt - v.b(TEASE), scale=2, hero_scale=2,
+                     kings=lambda tg: (1,), pops_on=False)  # R3: no +N over the claim
     rng = random.Random(16)
     rain = [(rng.uniform(10, W - 10), rng.uniform(-200, 0), rng.uniform(160, 260)) for _ in range(26)]
 
     def hook(img, tl, tg):
         b = tl / v.spb
-        if b < PRESS:
+        if TEASE <= b < PRESS:
             mH(img, tl, tg)
-            ImageDraw.Draw(img).rectangle((1, 122, 3 + 24 * 11 + 1, 124 + 25 * 11 + 1), outline=GOLD, width=2)
-            coin_chip(img, 150000, W / 2, 134)
-            down = b > PRESS - 0.25
+            ImageDraw.Draw(img).rectangle((13, 122, 15 + 24 * 10 + 1, 124 + 25 * 10 + 1), outline=GOLD, width=2)
+            coin_chip(img, 150000, W / 2, 380, 3)  # R3: under the board, off the avatars
+            down = b > PRESS - 0.3
             d = ImageDraw.Draw(img)
-            y = 404 + (4 if down else 0)
-            d.rectangle((30, y, W - 31, y + 44), fill=shade(GOLD, 0.7) if down else GOLD, outline=WHITE if down else DARK, width=3)
-            draw_text(img, "REBIRTH", W / 2, y + 12, 4, DARK, None)
+            y = 414 + (4 if down else 0)  # R3: 2x bigger button with a tapping hand
+            d.rectangle((10, y, W - 11, y + 56), fill=shade(GOLD, 0.7) if down else GOLD, outline=WHITE if down else DARK, width=4)
+            draw_text(img, "REBIRTH", W / 2, y + 14, 5, DARK, None)
+            hx, hy = W - 36, y + 40 + int(max(0.0, (PRESS - 0.3 - b)) * 60)
+            d.rectangle((hx, hy, hx + 8, hy + 22), fill=WHITE, outline=DARK, width=2)  # finger
+            d.rectangle((hx - 6, hy + 14, hx + 22, hy + 36), fill=WHITE, outline=DARK, width=2)  # hand
+            if down:
+                d.ellipse((hx - 14, hy - 14, hx + 22, hy + 22), outline=WHITE, width=3)
             return
         bg_checker(img, tg, speed=20)
-        age = tl - v.b(PRESS)
+        age = tl - v.b(PRESS if b >= PRESS else 0)
         for (x, y0, sp) in rain:  # crowns rain down, only above the avatar (R2: they covered the +1 CROWN stamp)
             crown(img, int(x), int(y0 + age * sp) % 300 + 110, 3)
         avatar(img, W / 2, 380, OUTFITS[1], tg, moving=False, s=7, king=True)
 
-    v.scene(0, 4, hook, "HOOK: a huge Prism Storm turf (crowned), coin chip 150,000, big gold REBIRTH button pressed at 0.42 s; "
-            "hard cut to crowns raining over your big crowned avatar, +1 CROWN stamp")
-    v.caption(0, 4, "RESET IT ALL FOR +25% COINS FOREVER?", color=YELLOW)  # R2: lead with the payoff
+    v.scene(0, 4.5, hook, "HOOK: 0-0.4 s crowns rain over your big crowned avatar (teaser); then a huge Prism Storm turf (crowned), "
+            "coin chip 150,000 under it, a hand taps a big gold REBIRTH button at 1.25 s; hard cut to crowns raining, +1 CROWN stamp")
+    v.caption(0, 4.5, "RESET IT ALL FOR +25% COINS FOREVER?", color=YELLOW)  # R2: lead with the payoff
     v.sound(PRESS - 0.25, "click")
     v.keys.append(v.b(PRESS - 0.3))  # the sheet shows the REBIRTH button before the press
     v.flash(PRESS)
@@ -2226,7 +2237,7 @@ def s12():
     v.sound(PRESS + 0.05, "crown")
 
     # ---------- 1: the cost. coins and upgrades reset, back to a 5x5 spawn ----------
-    A = 4
+    A = 4.5
     aA = Arena(20, seed=17)
     aA.dt = dt
     h = aA.add(1, PLAYERS[7], 10, 11, 5)
@@ -2260,7 +2271,7 @@ def s12():
     v.sound(A + 1.75, "fail")
 
     # ---------- 2: the reward. +25% coins per crown, forever, and it stacks ----------
-    B = 8
+    B = 8.5
     aB = demo24(dt)
     efx = Effects()
 
@@ -2285,32 +2296,50 @@ def s12():
             crown(img, 18 + c * 18, 401, 2)
         draw_text(img, nm, W - 16 - text_img(nm, 2, WHITE, None).width, 401, 2, WHITE, None, align="left")
         mi = text_img(mult, 5, GOLD, DARK)
-        img.paste(mi, (int(W / 2 - mi.width / 2), 462 - mi.height), mi)
+        img.paste(mi, (16, 462 - mi.height), mi)
+        per = f"+{round(55 * float(mult[1:]))}"  # R3: the same 55-cell loop pays more per crown
+        draw_text(img, "LOOP", W - 50, 420, 2, WHITE, None)
+        draw_text(img, per, W - 50, 435, 3, YELLOW, DARK)
 
     v.scene(B, B + 5, multi, "2: the reward. live match, Prism Storm, a loop closes at ~0.5 s (+N, Lightning); under the board a "
             "crown counter steps up one per beat: 1 CROWN x1.25 > 2 x1.50 > 3 x1.75 > 4 x2.00")
-    v.caption(B, B + 5, "2. +25% COINS PER CROWN. FOREVER.", color=GOLD)
+    v.caption(B, B + 5, "2. +25% COINS PER CROWN", color=GOLD)
     for k in range(4):
         v.sound(B + 1 + k, "crown")
+    v.stamp(B + 4, "x2 COINS!", GOLD, y=230, size=5, beats=1, sound="hit", flash=False)  # R3: the top step lands as a stamp
 
     # ---------- 3: crown-only skins, one per beat ----------
-    C = 13
+    C = 13.5
 
     def skinsC(img, tl, tg):
         b = tl / v.spb
         bg_checker(img, tg, speed=20)
-        i = min(3, int(b))
+        i = min(3, int(b / 0.75))  # R3: three quick, DIAMOND held as the reveal
+        st = i * 0.75
         nm, a, c2, pat, anim, need = CROWN_SKINS[i]
         img.paste(skin_board(240, 200, a, c2, pat, anim, tg), (15, 130))
-        ImageDraw.Draw(img).rectangle((13, 128, 256, 331), outline=GOLD, width=3)
+        d = ImageDraw.Draw(img)
+        sx = 15 + int(((tl * 1.6) % 1.0) * 360) - 60  # R3: shimmer band sweeps the swatch
+        for k in range(18):
+            x = sx + k
+            if 15 <= x - 0 < 255:
+                d.line((x, 130, max(15, x - 60), 329), fill=(255, 255, 255), width=1)
+        d.rectangle((13, 128, 256, 331), outline=WHITE if i == 3 else GOLD, width=3)
         avatar(img, W / 2, 300, OUTFITS[1], tg, moving=False, s=5, king=True)
-        name_card(img, nm, f"{need} CROWN" + ("S" if need > 1 else ""), v.b(C + i), tg, y=346)
+        if b - st < 0.3:  # lock, then pop to UNLOCKED
+            d.rectangle((W / 2 - 22, 170, W / 2 + 22, 206), fill=DARK, outline=WHITE, width=3)
+            d.arc((W / 2 - 14, 150, W / 2 + 14, 186), 180, 360, fill=WHITE, width=4)
+        elif b - st < 0.75:
+            draw_text(img, "UNLOCKED!", W / 2, 180, 3, GREEN, DARK)
+        name_card(img, nm, f"{need} CROWN" + ("S" if need > 1 else ""), v.b(C + st), tg, y=346)
 
     v.scene(C, C + 4, skinsC, "3: crown-only skins (Catalog crownSkins), one per beat: BRONZE CROWN (1), SILVER (3), GOLD (5), "
             "DIAMOND CROWN (10) as full turf swatches behind your crowned avatar, name card with the crowns needed")
     v.caption(C, C + 4, "3. CROWN-ONLY SKINS", color=GOLD)
     for k in range(4):
-        v.sound(C + k, "whoosh" if k < 3 else "hit")
+        v.sound(C + k * 0.75, "whoosh" if k < 3 else "hit")
+    v.keys.append(v.b(C + 2.6))  # the sheet samples the DIAMOND reveal
+    v.notag = [(A, C + 4)]  # R3: no corner brand tag in the mid scenes
 
     avatar_end(v, C + 4, C + 9, skin=hero_skin, ask="REBIRTH OR GRIND?")
     v.dur = v.b(C + 9)
@@ -2342,32 +2371,47 @@ def s13():
             q.script, q.after_script, q.respawn = deque([(x, y)] * 300), "idle", False
         return ar
 
-    def item(b0, b1, skin, trail, effect, name, tier, caption, start, col, desc):
+    def item(b0, b1, skin, trail, effect, name, tier, caption, start, col, desc, score=None, hook=False):
         ar = arena()
         efx = Effects()
         sks = dict(rivals)
         if skin:
             sks[1] = skin
+        region = (X0 + 16, Y0 + 16, X0 + N * CP - 16, Y0 + N * CP - 16)
+        claims, refire = [], [hook]
 
         def on(kind, data, cx, cy, tg):
             if kind == "claim" and data["id"] == 1 and data["cells"] > 5 and effect:
-                efx.fire(effect, cx, cy, tg + 0.05, (X0 + 16, Y0 + 16, X0 + N * CP - 16, Y0 + N * CP - 16))
+                efx.fire(effect, cx, cy, tg + 0.05, region)
+                claims.append(tg)  # R2: white flash on every claim
                 v.sfx.append((tg, "levelup", 0))
                 v.keys.append(tg + 0.25)  # the sheet samples the capture effect
 
         m = match_scene(v, ar, X0, Y0, CP, sks, {1: trail} if trail else None, hero=1, sim=lambda tl: tl + start * dt, scale=2,
-                        hero_scale=3, on_event=on, effects=efx, kozoom=False, pops_on=False)  # the skin is the star, not +N
+                        hero_scale=3, on_event=on, effects=efx, kozoom=False, pops_on=hook)  # R2: +N only on the hook
 
         def fn(img, tl, tg):
             b = tl / v.spb
+            if refire[0] and b >= 2.0:  # R2: the hook replays its lightning on beat 2 so the payoff lasts
+                refire[0] = False
+                efx.fire(effect, W / 2, Y0 + N * CP / 2, tg, region)
+                claims.append(tg)
+                v.keys.append(tg + 0.2)
             m(img, tl, tg)
+            if any(0 <= tg - c < 0.1 for c in claims):
+                img.paste(Image.blend(img, Image.new("RGB", img.size, WHITE), 0.45))
             ImageDraw.Draw(img).rectangle((X0 - 2, Y0 - 2, X0 + N * CP + 1, Y0 + N * CP + 1), outline=col, width=3)
-            # ?/10 rating chip, top right of the board, punches on every beat
+            # rating chip: ?/10 while it plays, then the item's score lands on the last beat (R2: one muddled ?/10 for all five)
+            scored = score and b >= 2.0
             on_beat = (b % 1) < 0.15
-            tim = text_img("?/10", 4, YELLOW, DARK)
-            x, y = int(X0 + N * CP / 2 - tim.width / 2), Y0 + N * CP - tim.height - 10  # bottom middle, between the rivals
+            txt, tc = (score, GREEN) if scored else ("?/10", YELLOW)
+            k = 1.0 + (0.4 * max(0.0, 1 - (b - 2.0) / 0.3) if scored else 0)
+            tim = text_img(txt, 4, tc, DARK)
+            if k > 1:
+                tim = tim.resize((int(tim.width * k), int(tim.height * k)), Image.NEAREST)
+            x, y = int(X0 + N * CP / 2 - tim.width / 2), Y0 + N * CP - tim.height - 10
             ImageDraw.Draw(img).rectangle((x - 6, y - 4, x + tim.width + 6, y + tim.height + 4), fill=(14, 16, 26),
-                                          outline=WHITE if on_beat else YELLOW, width=2)
+                                          outline=WHITE if on_beat or scored else YELLOW, width=2)
             img.paste(tim, (x, y), tim)
             if name:
                 name_card(img, name, tier, v.b(b0), tg, y=Y0 + N * CP + 16)
@@ -2375,35 +2419,220 @@ def s13():
         v.scene(b0, b1, fn, desc)
         v.caption(b0, b1, caption, color=col)
         v.sound(b0, "whoosh")
+        if score:
+            v.sound(b0 + 2.0, "hit")
 
-    neon, magma, prism = sk(LEGENDS, "NEON PULSE"), sk(LEGENDS, "MAGMA SURGE"), sk(LEGENDS, "PRISM STORM")
+    neon, magma, prism, star = sk(LEGENDS, "NEON PULSE"), sk(LEGENDS, "MAGMA SURGE"), sk(LEGENDS, "PRISM STORM"), sk(RARES, "GALAXY SWIRL")  # Starfall read as holes on the sheet
     rainbow = sk(TRAILS, "RAINBOW STREAK")
     stardust = sk(TRAILS, "STARDUST")
 
-    # hook: the full combo, loop closes at ~0.4 s with Lightning
-    item(0, 3, prism, stardust, "LIGHTNING", "PRISM STORM", "LEGENDARY + STARDUST", "RATE MY TRAIL 1-10", 20, GOLD,
-         "HOOK: 16x16 board, YOU (Prism Storm legendary, Stardust trail) closes a big loop at ~0.4 s: claim + Lightning; "
-         "?/10 chip pulses on the beat; name card PRISM STORM under the board")
+    # hook: the full combo, loop closes at ~0.4 s with Lightning (+N), lightning replays on beat 2. R2: no name card on the hook.
+    item(0, 3, prism, stardust, "LIGHTNING", None, None, "RATE MY TRAIL 1-10", 20, GOLD,
+         "HOOK: 16x16 board, YOU (Prism Storm legendary, Stardust trail) closes a big loop at ~0.4 s: claim + Lightning + white flash + "
+         "+N; lightning replays on beat 2; ?/10 chip pulses on the beat", hook=True)
     v.flash(0.75)
     v.shake(0.75, 0.25, 5)
-    item(3, 6, None, rainbow, None, "RAINBOW STREAK", "TRAIL", "1. RAINBOW STREAK TRAIL", 16, WHITE,
-         "1: default turf, Rainbow Streak trail drawn round a big open loop, the loop closes at ~1.75 beats (+N)")
-    item(6, 9, None, stardust, None, "STARDUST", "TRAIL", "2. STARDUST TRAIL", 16, WHITE,
-         "2: Stardust trail on a big open loop, closes at ~1.75 beats (+N)")
-    item(9, 12, neon, None, "HEARTS", "NEON PULSE", "LEGENDARY", "3. NEON PULSE + HEARTS", 16, PINK,
-         "3: Neon Pulse animated legendary turf, the loop closes with a Hearts capture effect")
-    item(12, 15, magma, None, "FIREWORKS", "MAGMA SURGE", "LEGENDARY", "4. MAGMA SURGE + FIREWORKS", 16, RED,
-         "4: Magma Surge animated legendary turf, the loop closes with a Fireworks capture effect")
-    item(15, 18, prism, stardust, "LIGHTNING", None, None, "MY FULL COMBO. RATE IT!", 16, GOLD,
-         "5: the full combo again: Prism Storm + Stardust trail + Lightning")
-    v.stamp(16.75, "10/10?", GOLD, y=404, size=5, beats=1.25, sound="hit", flash=False)
+    # R2: three items, each a legendary + trail that closes with a capture effect; a score lands on each one's last beat
+    item(3, 6, neon, rainbow, "HEARTS", "NEON PULSE", "LEGENDARY + RAINBOW", "1. NEON PULSE + HEARTS", 16, PINK,
+         "1: Neon Pulse turf, Rainbow Streak trail, the loop closes with Hearts and a white flash; chip ?/10 > 6/10", score="6/10")
+    item(6, 9, star, None, "BUBBLES", "GALAXY SWIRL", "RARE", "2. GALAXY + BUBBLES", 16, (124, 196, 255),
+         "2: Galaxy Swirl rare turf, the loop closes with Bubbles and a white flash; chip ?/10 > 7/10", score="7/10")
+    item(9, 12, magma, None, "FIREWORKS", "MAGMA SURGE", "LEGENDARY", "3. MAGMA SURGE + FIREWORKS", 16, RED,
+         "3: Magma Surge turf, the loop closes with Fireworks and a white flash; chip ?/10 > 8/10", score="8/10")
+    item(12, 15, prism, stardust, "LIGHTNING", None, None, "MY FULL COMBO. RATE IT!", 16, GOLD,
+         "4: the full combo again: Prism Storm + Stardust trail + Lightning; ?/10 then a big 10/10? stamp")
+    v.stamp(13.75, "10/10?", GOLD, y=404, size=5, beats=1.25, sound="hit", flash=False)
 
-    avatar_end(v, 18, 22, skin=prism, ask="YOUR RATING?")
-    v.dur = v.b(22)
+    avatar_end(v, 15, 19, skin=prism, ask="YOUR SCORE 1-10?")
+    v.dur = v.b(19)
     return v
 
 
-ALL = {"s01": s01, "s02": s02, "s03": s03, "s04": s04, "s05": s05, "s06": s06, "s07": s07, "s08": s08, "s09": s09, "s10": s10, "s11": s11, "s12": s12, "s13": s13}
+# ============================================================ s14 Living Woodland (idea #18)
+WOOD = ("#A3CF62", "#8DBF4E", "dots", None)  # Catalog biome_woodland: legendary biome skin, #A3CF62
+
+
+def rock(img, cx, cy, k, z=1.0):
+    if k <= 0:
+        return
+    s = ease_back(min(1.0, k)) * z
+    ImageDraw.Draw(img).ellipse((cx - 6 * s, cy - 7 * s, cx + 6 * s, cy), fill=(140, 146, 158), outline=DARK)
+    ImageDraw.Draw(img).ellipse((cx - 3 * s, cy - 6 * s, cx, cy - 4 * s), fill=(200, 204, 212))
+
+
+def mushroom(img, cx, cy, k, z=1.0):
+    if k <= 0:
+        return
+    s = ease_back(min(1.0, k)) * z
+    d = ImageDraw.Draw(img)
+    d.rectangle((cx - 1.5 * s, cy - 5 * s, cx + 1.5 * s, cy), fill=(240, 228, 200), outline=DARK)
+    d.pieslice((cx - 6 * s, cy - 10 * s, cx + 6 * s, cy - 2 * s), 180, 360, fill=(232, 54, 26), outline=DARK)
+    d.rectangle((cx - 3 * s, cy - 8 * s, cx - 1 * s, cy - 6 * s), fill=WHITE)
+
+
+def forest(ar, born, tg, first):
+    """Tracks when each of the hero's cells was claimed (born[cell] = tg) so props grow in on the claim."""
+    for y in range(ar.n):
+        for x in range(ar.n):
+            if ar.owner[y][x] == 1 and (x, y) not in born:
+                born[(x, y)] = -99.0 if first else tg
+
+
+def draw_forest(img, ar, born, x0, y0, cp, tg, cx=None, cy=None, z=1.0):
+    """A tree, rock or mushroom on ~1 in 3 owned cells, growing in a wave out from the claim point."""
+    h = ar.runners[1]
+    for (x, y), t0 in sorted(born.items(), key=lambda kv: kv[0][1]):
+        if ar.owner[y][x] != 1 or (x * 7 + y * 13) % 3 or (abs(x - h.x) <= 1 and y - h.y in (0, 1, -1)):
+            continue
+        delay = 0 if cx is None else (abs(x - cx) + abs(y - cy)) * 0.035
+        k = (tg - t0 - delay) / 0.3
+        px, py = x0 + x * cp + cp // 2, y0 + y * cp + cp - 2
+        kind = (x * 5 + y * 3) % 7
+        if kind == 0:
+            rock(img, px, py, k, z)
+        elif kind == 1:
+            mushroom(img, px, py, k, z)
+        else:
+            tree(img, px, py, k, x * 31 + y, z)
+
+
+def s14():
+    """Living Woodland (Catalog biome_woodland, legendary biome skin): your turf is grass and trees, rocks and
+    mushrooms grow in on every claim. Payoff (a forest sprouting) by 0.5 s."""
+    v = Video("s14_living_woodland", 108, 22, music=dict(mode="major", root=65, seed=1418, prog=[0, 5, 3, 4], sections=[
+        (0, 4, {"kick", "snare", "hat", "bass", "arp", "lead"}), (4, 9, {"kick", "hat", "bass", "arp"}),
+        (9, 11, {"kick", "snare", "hat", "bass", "arp", "lead"}), (11, 15, {"kick", "snare", "hat", "bass", "lead"}),
+        (15, 22, {"kick", "hat", "bass", "arp"})]))
+    rivals = {2: sk(RARES, "CANDY STRIPE"), 3: sk(RARES, "OCEAN WAVES")}
+    skins = dict(rivals)
+    skins[1] = WOOD
+
+    # ---------- hook: a huge loop closes at ~0.4 s and a forest sprouts across it ----------
+    dt = v.spb / 3
+    aH = bigloop(dt)
+    bornH, claimH = {}, [None]
+
+    def onH(kind, data, cx, cy, tg):
+        if kind == "claim" and data["id"] == 1 and data["cells"] > 5:
+            claimH[0] = data["at"]
+            v.sfx.append((tg, "levelup", 0))
+            v.keys.append(tg + 0.45)  # the sheet samples the forest mid-sprout
+
+    mH = match_scene(v, aH, 3, 126, 11, skins, None, hero=1, sim=lambda tl: tl + 42 * dt, scale=2, hero_scale=2,
+                     on_event=onH, kings=lambda tg: (), pops_on=False)
+
+    def hook(img, tl, tg):
+        mH(img, tl, tg)
+        forest(aH, bornH, tg, tl == 0)
+        at = claimH[0] or (14, 7)
+        draw_forest(img, aH, bornH, 3, 126, 11, tg, at[0], at[1])
+        ImageDraw.Draw(img).rectangle((1, 124, 3 + 24 * 11 + 1, 126 + 24 * 11 + 1), outline=GREEN, width=3)
+        if tl > v.b(2):
+            name_card(img, "LIVING WOODLAND", "LEGENDARY BIOME", v.b(2), tg, y=400)
+
+    v.scene(0, 4, hook, "HOOK: 24x24 board, YOU on grass turf (Living Woodland) closes a huge loop at ~0.4 s: trees, rocks and "
+            "mushrooms pop up across the new turf in a wave from the closing point; name card LIVING WOODLAND at 1.1 s")
+    v.caption(0, 4, "YOUR TURF GROWS A FOREST", color=GREEN)
+    v.sound(0, "hit")
+    v.flash(0.75, (163, 207, 98), 0.15)
+    v.shake(0.75, 0.25, 4)
+    for k in range(4):
+        v.sound(0.75 + k * 0.25, "pop", k)
+
+    # ---------- 2: the threat. red closes in on your trail; you get home one step ahead, trees grow ----------
+    B = 4
+    dt2 = v.spb / 4
+    N, CP, X0, Y0 = 16, 16, 7, 124
+    aB = Arena(N, seed=18)
+    aB.dt = dt2
+    h = aB.add(1, PLAYERS[7], 4, 9, 3)  # home x 3-5, y 8-10
+    h.x, h.y, h.px, h.py = 5, 9, 5, 9
+    h.script = path_from([(5, 9), (12, 9), (12, 4), (5, 4), (5, 8)])  # closes at step 25
+    h.shield, h.after_script = True, "idle"
+    r = aB.add(2, PLAYERS[0], 14, 14, 3)  # red, home x 13-15, y 13-15
+    r.x, r.y, r.px, r.py = 14, 13, 14, 13
+    r.script = deque([(14, 13)] * 16) + path_from([(14, 13), (14, 7), (13, 7)])  # beside your trail at step 24: one step late
+    r.after_script, r.respawn = "idle", False
+    q = aB.add(3, PLAYERS[11], 1, 14, 3)
+    q.script, q.after_script, q.respawn = deque([(1, 14)] * 300), "idle", False
+    bornB, claimB = {}, [None]
+    S0 = 4
+    CLOSE = (25 - S0) * dt2 / v.spb  # beats into the scene
+
+    def onB(kind, data, cx, cy, tg):
+        if kind == "claim" and data["id"] == 1 and data["cells"] > 5:
+            claimB[0] = data["at"]
+            v.sfx.append((tg, "levelup", 0))
+            v.keys.append(tg + 0.4)
+
+    mB = match_scene(v, aB, X0, Y0, CP, {1: WOOD, 2: sk(RARES, "CHERRY DOTS"), 3: rivals[2]}, None, hero=1,
+                     sim=lambda tl: tl + S0 * dt2, scale=2, hero_scale=3, on_event=onB, kozoom=False, pops_on=False)
+
+    def threat(img, tl, tg):
+        b = tl / v.spb
+        mB(img, tl, tg)
+        forest(aB, bornB, tg, tl == 0)
+        at = claimB[0] or (5, 8)
+        draw_forest(img, aB, bornB, X0, Y0, CP, tg, at[0], at[1], 1.3)
+        d = ImageDraw.Draw(img)
+        d.rectangle((X0 - 2, Y0 - 2, X0 + N * CP + 1, Y0 + N * CP + 1), outline=GREEN, width=3)
+        rr = aB.runners[2]
+        if CLOSE - 2.2 <= b < CLOSE:  # red visibly hunting your trail
+            px, py = X0 + (rr.x + 0.5) * CP, Y0 + (rr.y + 0.5) * CP
+            on = int(b * 4) % 2
+            d.ellipse((px - 18, py - 24, px + 18, py + 12), outline=RED if on else WHITE, width=3)
+            tim = text_img("DANGER!", 2, WHITE, None)
+            tx, ty = int(min(W - tim.width - 12, max(10, px - tim.width / 2))), int(py + 16)
+            d.rectangle((tx - 4, ty - 3, tx + tim.width + 4, ty + tim.height + 3), fill=RED, outline=DARK, width=2)
+            img.paste(tim, (tx, ty), tim)
+        if b < CLOSE:  # after the close the SAFE! stamp owns this spot
+            draw_text(img, "GET HOME!", W / 2, Y0 + N * CP + 14, 4, YELLOW if int(b * 2) % 2 else WHITE, DARK)
+
+    v.scene(B, B + 7, threat, "2: 16x16, YOU on grass draws a big open loop; red leaves home and runs at your trail (red ring, "
+            "DANGER! chip) but arrives one step late; the loop closes at ~2.9 s and trees/rocks/mushrooms grow in a wave, SAFE! +TREES")
+    v.caption(B, B + CLOSE, "GET HOME. DON'T GET CUT!", color=YELLOW)
+    v.caption(B + CLOSE, B + 7, "EVERY LOOP = MORE FOREST", color=GREEN)
+    v.sound(B + CLOSE - 2.2, "blip")
+    v.keys.append(v.b(B + CLOSE - 0.8))  # the sheet samples red beside your trail
+    v.stamp(B + CLOSE, "SAFE!", GREEN, y=404, beats=1, size=5, sound="hit", flash=False)
+
+    # ---------- 3: the showcase. zoomed forest, props pop on the beat, your avatar strolls through ----------
+    C = 11
+    rng = random.Random(14)
+    spots = [(rng.randint(1, 11), rng.randint(1, 10)) for _ in range(26)]
+
+    def show(img, tl, tg):
+        b = tl / v.spb
+        bg_checker(img, tg, speed=14)
+        img.paste(skin_board(250, 230, WOOD[0], WOOD[1], WOOD[2], None, tg), (10, 126))
+        d = ImageDraw.Draw(img)
+        d.rectangle((8, 124, 261, 357), outline=GOLD, width=3)
+        for i, (x, y) in enumerate(sorted(spots, key=lambda p: p[1])):
+            t0 = (i % 8) * 0.5  # 2 props per beat
+            px, py = 14 + x * 20, 140 + y * 20
+            kind = i % 5
+            k = (b - t0) / 0.5
+            if kind == 0:
+                rock(img, px, py, k, 2)
+            elif kind == 1:
+                mushroom(img, px, py, k, 2)
+            else:
+                tree(img, px, py, k, i * 7, 2)
+        avatar(img, 40 + (tl * 60) % 190, 330, OUTFITS[1], tg, moving=True, s=4)
+        name_card(img, "LIVING WOODLAND", "LEGENDARY BIOME", v.b(C), tg, y=372)
+
+    v.scene(C, C + 4, show, "3: close-up of grass turf, big pixel trees, rocks and mushrooms pop in two per beat while your "
+            "avatar walks across; name card LIVING WOODLAND / LEGENDARY BIOME")
+    v.caption(C, C + 4, "TREES. ROCKS. MUSHROOMS.", color=GREEN)
+    for k in range(8):
+        v.sound(C + k * 0.5, "pop", k % 4)
+
+    avatar_end(v, C + 4, C + 11, skin=WOOD, ask="FOREST OR NEON?")
+    v.dur = v.b(C + 11)
+    return v
+
+
+ALL = {"s01": s01, "s02": s02, "s03": s03, "s04": s04, "s05": s05, "s06": s06, "s07": s07, "s08": s08, "s09": s09, "s10": s10, "s11": s11, "s12": s12, "s13": s13, "s14": s14}
 
 if __name__ == "__main__":
     for n in sys.argv[1:] or list(ALL):

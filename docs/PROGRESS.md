@@ -502,3 +502,13 @@ Shared hype.py: corner brand tag from frame 0, live mini-match behind every end 
 - s13_rate_my_trail (idea #17) is new: 4 cosmetics plus a full combo, each on a live loop that closes on the beat (Rainbow Streak, Stardust, Neon Pulse + Hearts, Magma Surge + Fireworks, Prism Storm combo).
 - Grades: s08 R6 6 (now parked), s11 R2 6, s12 R2 5, s13 R1 6. No new 7; s10 is still the only pass. Fix lists are in marketing/videos/GRADES.md.
 - Checked: each contact sheet read by the lead before grading. Not checked: audio by ear. Nothing posted; game code untouched.
+
+## 2026-11-22 15:52: shorts weekend run (scheduled task)
+- Shared fixes in tools/video/hype.py: the end-card COMING SOON TO ROBLOX is now size 3 on its own two rows, and capture-effect particles are 2-2.5x bigger. s01-s14 were re-rendered.
+- Reworked:
+  - s11 (R3): LEVEL UP on frame 0, claim at 0.75 s, A/B/C stat sheet with "FREE. EARNED IN-GAME.", coin counter +142 > +426.
+  - s12 (R3): crown-rain teaser, a 2x REBIRTH button with a tapping hand, the +N per loop scaling with crowns, UNLOCKED! pops on the crown skins.
+  - s13 (R2): 3 items instead of 5, a score that lands on each item, a white flash on every claim.
+- New: s14_living_woodland (idea #18). Trees, rocks and mushrooms grow in a wave across each claim, and a red rival misses your trail by one step.
+- Grades: s11 6, s12 6, s13 6, s14 5. No new 7; s10 is still the only pass. The common complaint is that new viewers never see the loop mechanic, plus end cards that run too long. Fix lists are in marketing/videos/GRADES.md.
+- Checked: I read each contact sheet before grading. Not checked: audio by ear. Nothing posted, and the game code is untouched.

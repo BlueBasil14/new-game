@@ -1,6 +1,6 @@
 # Turf Loop shorts: grades
 
-Running:
+Running: 2026-11-22 15:52 EST
 
 Pass mark 7/10 overall from a fresh grader subagent (`GRADER_PROMPT.md`). Max 6 rework rounds per video (raised from 3 on 2026-11-20: all five plateaued at 6 and the owner asked for 7+), then parked with reasons.
 
@@ -649,3 +649,57 @@ Per video:
 **Pattern (now 57 grades; one 7 so far, s10).** Repeated across all four: the end card's COMING SOON line is too thin (it is now the main end-card complaint), and capture-effect particles are too small to read. Next run's shared fixes: COMING SOON at size 3 on its own row, and particles 2-3x bigger.
 
 Next run: those two shared fixes, then s11 (R3), s13 (R2), s12 (R3), s09 (R3). s06 is at R4. Then idea #18.
+
+## Run 2026-11-22 15:52 (weekend task): s11 R3, s12 R3, s13 R2 reworked, s14 (idea #18 Living Woodland) new. No new 7.
+**Applied (shared, `tools/video/hype.py`; s01-s14 re-rendered):**
+- `avatar_end` (with an ask): COMING SOON TO ROBLOX is now size 3 on two rows of its own, on the dark plate. To make room, the logo, the ask and the mini-board moved up 16 px.
+- `Effects`: capture-effect particles are 2-2.5x bigger. Sparks are 10 px and fly faster, bubbles are 2x with thicker rings, lightning bolts are 2x as thick, and hearts are 2.25x (10 of them instead of 20).
+- `tree(..., z=)` takes a scale. New `rock`, `mushroom`, `forest` and `draw_forest` helpers make props grow in on each claim.
+
+Per video:
+- **s11:** the LEVEL UP burst is on frame 0, and the loop starts 4 steps from home, so it claims at about 0.75 s. Captions: "LEVEL UP: 5x5 > 11x11 START" (no more "5X"), then "LOOP HOME = YOUR LAND". The shield shot has one true caption, "SHIELD: THEY CAN'T CUT YOU". The coin shot is 4 beats with a counter that ticks +142 > +426. The stat sheet is labelled A START / B SHIELD / C COINS with "FREE. EARNED IN-GAME.", and SPEED is gone. The end ask is "COMMENT A, B OR C".
+- **s12:** a 0.4 s crown-rain teaser opens it. The REBIRTH button is 2x bigger, and a hand taps it. The 150,000 chip sits under the board, and there is no +N over the claim. The panel shows LOOP +69 > +110 as the crowns stack, and a "x2 COINS!" stamp lands on the top step. The crown skins go three quick ones with DIAMOND held, each with a lock that pops to UNLOCKED! and a shimmer band. The corner tag is gone in the mid scenes.
+- **s13:** cut to the hook plus 3 items plus the combo (10.5 s). The hook has +N and its lightning replays on beat 2, with no name card. Items: NEON PULSE + RAINBOW + HEARTS, GALAXY SWIRL + BUBBLES (Starfall read as holes), MAGMA SURGE + FIREWORKS. Each one gets a white flash on the claim and a score that lands on its last beat (6/10, 7/10, 8/10). The end ask is "YOUR SCORE 1-10?".
+- **s14:** new, 108 BPM, 12.2 s, Catalog `biome_woodland`. The hook is a huge loop on grass turf that closes at 0.4 s, and trees, rocks and mushrooms sprout in a wave from the closing point. Next, red runs at your open trail (red ring, DANGER!), you get home one step ahead, SAFE! lands and the forest grows. Then a close-up of the forest with props popping 2 per beat and the LIVING WOODLAND / LEGENDARY BIOME card. The end ask is "FOREST OR NEON?".
+
+| Video | R | Overall | hook | clarity | style | pacing | readability | cta |
+|---|---|---|---|---|---|---|---|---|
+| s11 | R3 | 6 | 5 | 5 | 7 | 6 | 6 | 6 |
+| s12 | R3 | 6 | 6 | 5 | 8 | 6 | 6 | 6 |
+| s13 | R2 | 6 | 6 | 4 | 7 | 6 | 6 | 6 |
+| s14 | R1 | 5 | 6 | 5 | 7 | 5 | 6 | 6 |
+
+**s11 (R3, 6):**
+1. The hook is jargon. Say "START WITH 4X THE LAND", jump at 0.0 s, and run LOOP HOME = YOUR LAND from 0.0 s as a subtitle.
+2. At 1.5 s, "5x5 > 11x11" under the board competes with the caption, and +42 is clipped at the right edge. Hide the label during the loop and centre the +N.
+3. The counter reads "+142 > +142" before it ticks, which looks like a bug. Show +142, then "x3 = +426" on a beat. Clip the particles to the board.
+4. The shield shot is too long (two nearly identical frames). Cut it to about 2 s with the hit by 0.6 s, and move BLOCKED! above the impact.
+5. The end card should show A/B/C option chips. Fill the stat bars in sync with the chime.
+
+**s12 (R3, 6; style 8):**
+1. The hook is crowded and the tap lands late (1.25 s). Tap at about 0.5 s with a 1.5x centred button, and use a 2-line caption ("RESET EVERYTHING? / +25% FOREVER").
+2. The +55 pop and LOOP +69 disagree. Show "+55 > +69", and make the panel side text 2x bigger.
+3. The crown skins read as turf, not hats. Rename them "BRONZE TURF" etc., or change the hat too. Show all 4 as a fast strip and stamp "10 CROWNS = DIAMOND".
+4. The reset section repeats itself. Cut it to about 1.3 s and add a 1 s core-loop shot early.
+5. Shorten the end card to about 2 s and double the mini-board.
+
+**s13 (R2, 6; clarity 4):**
+1. The hook lightning crosses the player and the +46. Keep the bolts off the centre third, put the +N above the head, and add a small "PRISM STORM + STARDUST" line.
+2. The loop mechanic is never shown, because each item starts with the loop already drawn. Show the last 0.5 s of the trail closing, and add "LOOP HOME = CLAIM" once.
+3. Effects cover the player. Keep a clear circle around him, and cut the 7.75 s white flash to 3 frames.
+4. Rarity labels should be 1.5x bigger. Shorten "3. MAGMA SURGE + FIREWORKS".
+5. The scores rise predictably. Make one a surprise ("2/10??"), show the comment prompt at the 10/10? stamp, and raise the CTA above COMING SOON.
+
+**s14 (R1, 5):**
+1. The middle loop drags (the close lands at 5.1 s). Close by about 3.4 s and add a hit-stop on the near miss.
+2. Drop the repeated "GET HOME!" under the board and use a +TREES counter instead.
+3. In the hook, the forest is already grown by the first sampled frame. Start 0.5 s earlier on a visible trail, fire the wave at about 0.5 s, and fill the band under the board before 1.1 s.
+4. The end card is 4 s, and "FOREST OR NEON?" names a biome the video never shows. Use about 2.5 s and "WHICH BIOME IS YOURS?", with woodland turf on the mini-match.
+5. The name card shows twice. Keep only the close-up reveal, bigger, and put "LOOP = LAND" at 1.5 s.
+
+**Pattern (now 61 grades; one 7, s10).** Three of the four say "a new viewer never sees how the game works" (clarity 4-5), and three call the end card too long. Next run's shared fixes:
+- Every video teaches the loop once: show the trail being drawn and closed, with "LOOP HOME = YOUR LAND", inside the first 2 s.
+- Cut end cards to about 2.5 s.
+- Keep particles clear of the hero (a radius of about 1.5 cells).
+
+Next run: s11 (R4), s12 (R4), s13 (R3), s14 (R2). s06 is at R4 and s09 at R3. Then idea #19 (30 Tiers in 30 Beats).

@@ -1,16 +1,14 @@
-s13_rate_my_trail: 12.2s, 108 BPM, 1080x1920 30fps
- 0.00- 1.67s  scene: HOOK: 16x16 board, YOU (Prism Storm legendary, Stardust trail) closes a big loop at ~0.4 s: claim + Lightning; ?/10 chip pulses on the beat; name card PRISM STORM under the board
+s13_rate_my_trail: 10.6s, 108 BPM, 1080x1920 30fps
+ 0.00- 1.67s  scene: HOOK: 16x16 board, YOU (Prism Storm legendary, Stardust trail) closes a big loop at ~0.4 s: claim + Lightning + white flash + +N; lightning replays on beat 2; ?/10 chip pulses on the beat
  0.00- 1.67s  text: RATE MY TRAIL 1-10
- 1.67- 3.33s  scene: 1: default turf, Rainbow Streak trail drawn round a big open loop, the loop closes at ~1.75 beats (+N)
- 1.67- 3.33s  text: 1. RAINBOW STREAK TRAIL
- 3.33- 5.00s  scene: 2: Stardust trail on a big open loop, closes at ~1.75 beats (+N)
- 3.33- 5.00s  text: 2. STARDUST TRAIL
- 5.00- 6.67s  scene: 3: Neon Pulse animated legendary turf, the loop closes with a Hearts capture effect
- 5.00- 6.67s  text: 3. NEON PULSE + HEARTS
- 6.67- 8.33s  scene: 4: Magma Surge animated legendary turf, the loop closes with a Fireworks capture effect
- 6.67- 8.33s  text: 4. MAGMA SURGE + FIREWORKS
- 8.33-10.00s  scene: 5: the full combo again: Prism Storm + Stardust trail + Lightning
- 8.33-10.00s  text: MY FULL COMBO. RATE IT!
- 9.31s  STAMP: 10/10? (+shake, flash)
-10.00-12.22s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, YOUR RATING?
-sound effects: 26 cues; music: {'mode': 'major', 'root': 64, 'seed': 1317, 'prog': [0, 3, 4, 5], 'sections': [(0, 3, {'lead', 'snare', 'arp', 'hat', 'bass', 'kick'}), (3, 9, {'arp', 'hat', 'bass', 'kick'}), (9, 15, {'snare', 'arp', 'hat', 'bass', 'kick'}), (15, 18, {'lead', 'snare', 'arp', 'hat', 'bass', 'kick'}), (18, 22, {'arp', 'hat', 'bass', 'kick'})]}
+ 1.67- 3.33s  scene: 1: Neon Pulse turf, Rainbow Streak trail, the loop closes with Hearts and a white flash; chip ?/10 > 6/10
+ 1.67- 3.33s  text: 1. NEON PULSE + HEARTS
+ 3.33- 5.00s  scene: 2: Galaxy Swirl rare turf, the loop closes with Bubbles and a white flash; chip ?/10 > 7/10
+ 3.33- 5.00s  text: 2. GALAXY + BUBBLES
+ 5.00- 6.67s  scene: 3: Magma Surge turf, the loop closes with Fireworks and a white flash; chip ?/10 > 8/10
+ 5.00- 6.67s  text: 3. MAGMA SURGE + FIREWORKS
+ 6.67- 8.33s  scene: 4: the full combo again: Prism Storm + Stardust trail + Lightning; ?/10 then a big 10/10? stamp
+ 6.67- 8.33s  text: MY FULL COMBO. RATE IT!
+ 7.64s  STAMP: 10/10? (+shake, flash)
+ 8.33-10.56s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, YOUR SCORE 1-10?
+sound effects: 27 cues; music: {'mode': 'major', 'root': 64, 'seed': 1317, 'prog': [0, 3, 4, 5], 'sections': [(0, 3, {'snare', 'lead', 'bass', 'arp', 'hat', 'kick'}), (3, 9, {'arp', 'bass', 'kick', 'hat'}), (9, 15, {'snare', 'bass', 'arp', 'hat', 'kick'}), (15, 18, {'snare', 'lead', 'bass', 'arp', 'hat', 'kick'}), (18, 22, {'arp', 'bass', 'kick', 'hat'})]}

@@ -9,4 +9,4 @@ s08_teacher: 8.5s, 108 BPM, 1080x1920 30fps
  3.61- 6.28s  scene: payoff: no teacher; a huge open loop along the top of the map closes at ~0.7 s for +140 with triple Fireworks, crowned
  4.94- 6.28s  text: NO TEACHER. JUST LOOPS.
  6.28- 8.50s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, EVER CAUGHT?
-sound effects: 16 cues; music: {'mode': 'minor', 'root': 60, 'seed': 512, 'prog': [0, 5, 3, 4], 'sections': [(0, 2, {'hat', 'bass', 'arp', 'kick'}), (2, 3.5, {'kick'}), (3.5, 6.5, {'hat', 'snare', 'bass', 'arp', 'kick'}), (6.5, 7.6, {'kick'}), (7.6, 12.4, {'lead', 'hat', 'snare', 'bass', 'arp', 'kick'}), (12.4, 22, {'hat', 'bass', 'arp', 'kick'})]}
+sound effects: 16 cues; music: {'mode': 'minor', 'root': 60, 'seed': 512, 'prog': [0, 5, 3, 4], 'sections': [(0, 2, {'bass', 'kick', 'arp', 'hat'}), (2, 3.5, {'kick'}), (3.5, 6.5, {'bass', 'snare', 'hat', 'kick', 'arp'}), (6.5, 7.6, {'kick'}), (7.6, 12.4, {'bass', 'snare', 'lead', 'hat', 'kick', 'arp'}), (12.4, 22, {'bass', 'kick', 'arp', 'hat'})]}

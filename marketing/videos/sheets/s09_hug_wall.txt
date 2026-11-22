@@ -11,4 +11,4 @@ s09_hug_wall: 10.8s, 108 BPM, 1080x1920 30fps
  6.78s  STAMP: TOO LATE! (+shake, flash)
  7.22- 8.33s  text: SAME TIP. YOUR SKIN.
  8.33-10.83s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, YOUR BEST TIP?
-sound effects: 17 cues; music: {'mode': 'minor', 'root': 62, 'seed': 613, 'prog': [0, 6, 3, 4], 'sections': [(0, 2.5, {'hat', 'bass', 'kick', 'arp'}), (2.5, 7, {'hat', 'arp', 'bass', 'snare', 'kick'}), (7, 7.5, {'kick'}), (7.5, 15, {'hat', 'arp', 'bass', 'lead', 'snare', 'kick'}), (15, 24, {'hat', 'bass', 'kick', 'arp'})]}
+sound effects: 17 cues; music: {'mode': 'minor', 'root': 62, 'seed': 613, 'prog': [0, 6, 3, 4], 'sections': [(0, 2.5, {'bass', 'kick', 'arp', 'hat'}), (2.5, 7, {'bass', 'snare', 'hat', 'kick', 'arp'}), (7, 7.5, {'kick'}), (7.5, 15, {'bass', 'snare', 'lead', 'hat', 'kick', 'arp'}), (15, 24, {'bass', 'kick', 'arp', 'hat'})]}
