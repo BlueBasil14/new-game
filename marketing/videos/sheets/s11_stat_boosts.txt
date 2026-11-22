@@ -9,4 +9,4 @@ s11_stat_boosts: 12.8s, 108 BPM, 1080x1920 30fps
  8.33-10.56s  scene: stat sheet: big crowned avatar, 4 RPG bars fill to MAX one per 0.75 beat with a level-up chime: SPEED +15%, START 11x11, SHIELD 5.5s, COINS +200%
  8.33-10.56s  text: EARN COINS. LEVEL UP.
 10.56-12.78s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, WHICH FIRST?
-sound effects: 24 cues; music: {'mode': 'major', 'root': 62, 'seed': 815, 'prog': [0, 4, 5, 3], 'sections': [(0, 5, {'hat', 'arp', 'kick', 'bass'}), (5, 10, {'hat', 'kick', 'snare', 'bass'}), (10, 15, {'lead', 'kick', 'snare', 'bass', 'hat', 'arp'}), (15, 19, {'hat', 'arp', 'kick', 'lead'}), (19, 26, {'hat', 'arp', 'kick', 'bass'})]}
+sound effects: 24 cues; music: {'mode': 'major', 'root': 62, 'seed': 815, 'prog': [0, 4, 5, 3], 'sections': [(0, 5, {'kick', 'hat', 'arp', 'bass'}), (5, 10, {'kick', 'hat', 'bass', 'snare'}), (10, 15, {'kick', 'hat', 'bass', 'lead', 'arp', 'snare'}), (15, 19, {'kick', 'lead', 'hat', 'arp'}), (19, 26, {'kick', 'hat', 'arp', 'bass'})]}

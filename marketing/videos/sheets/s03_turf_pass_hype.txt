@@ -19,4 +19,4 @@ s03_turf_pass_hype: 16.1s, 108 BPM, 1080x1920 30fps
 12.78-14.44s  scene: all 4 legendaries animating with an avatar on each, 14 DAYS PER SEASON, SEASON 1 STARTS AT LAUNCH
 12.78-14.44s  text: COMMENT 1-4: WHICH ONE?
 14.44-16.11s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST
-sound effects: 44 cues; music: {'mode': 'minor', 'root': 57, 'seed': 99, 'prog': [0, 5, 2, 6], 'sections': [(0, 3, {'kick', 'arp', 'hat'}), (3, 29, {'bass', 'lead', 'hat', 'snare', 'kick', 'arp'}), (29, 33, {'bass', 'lead', 'hat', 'snare', 'kick'})]}
+sound effects: 44 cues; music: {'mode': 'minor', 'root': 57, 'seed': 99, 'prog': [0, 5, 2, 6], 'sections': [(0, 3, {'arp', 'hat', 'kick'}), (3, 29, {'bass', 'lead', 'snare', 'hat', 'arp', 'kick'}), (29, 33, {'bass', 'lead', 'snare', 'hat', 'kick'})]}

@@ -1,6 +1,6 @@
 # Turf Loop shorts: grades
 
-Running:
+Running: 2026-11-22 09:52 EST
 
 Pass mark 7/10 overall from a fresh grader subagent (`GRADER_PROMPT.md`). Max 6 rework rounds per video (raised from 3 on 2026-11-20: all five plateaued at 6 and the owner asked for 7+), then parked with reasons.
 
@@ -548,3 +548,54 @@ Per video:
 - **End-card logo and ask collide.** Add 10-15 px between them, give COMING SOON a dark plate, and keep the YOU tag off the end mini-board.
 
 Next run: those two shared fixes, then s07 (last round), s08 (R5), s10 (R3), s11 (R2). s06 is at R4, s09 at R2, s01 at R4. Then idea #16 (New Game+ / Rebirth).
+
+## Run 2026-11-22 09:52 (weekend task): s07 R6, s08 R5, s10 R3 reworked, s12 (idea #16 Rebirth) new. FIRST 7: s10 passes.
+**Applied (shared; s01-s12 re-rendered):**
+- `engine.Video.keys`: stamps and `match_scene(freeze=...)` K.O. holds register key moments. Each one replaces the nearest even sample on the contact sheet, which stays 12 frames in time order, so graders see 0.3-0.5 s holds. The video itself is unchanged.
+- `avatar_end`: the ask sits 14 px below the logo (it read as "TURF LOOP EVER CAUGHT?"). COMING SOON TO ROBLOX is on a full-width dark plate with a yellow outline. There is no crown on the end mini-board, so the YOU tag no longer sits on it. The CTA button is taller (326-396), so the 2-line text isn't clipped; this last change came after grading, from 3 of 4 graders.
+- K.O. freezes are 0.5 s (were 0.3-0.35) in s07, s08 and s10.
+
+Per video:
+- **s07:** hook caption "4 THINGS ONLY .IO KIDS GET"; no badge, sub-line or +N on the hook; a dimmed live board behind every list item; Magma Surge instead of Starfall.
+- **s08:** the teacher has glasses and a coffee mug and a bigger tag; WE ALL DID THIS sits mid-screen, off the spreadsheet header; the payoff shows a big centred +142 chip under the board for 1.6 s.
+- **s10:** bigger payoff loop (+14); "GREEDY!" chip; the MAGMA SURGE card sits under the board; SNIPED! ends as THEN LOOP HOME starts.
+- **s12:** new, 108 BPM, 12.2 s, numbers from Config.Rebirth / GDD G3.4 / Catalog crownSkins. The hook is a huge Prism Storm turf with a 150,000 coin chip; REBIRTH is pressed at 0.42 s, then crowns rain, +1 CROWN, +50 GEMS. 1. COINS + UPGRADES RESET: the coins roll to 0, the bar drains, BACK TO 5x5. 2. +25% COINS PER CROWN, FOREVER: a live claim while a crown counter steps x1.25 > x1.50 > x1.75 > x2.00. 3. CROWN-ONLY SKINS: Bronze (1), Silver (3), Gold (5), Diamond (10). End card ask: "REBIRTH OR GRIND?".
+
+| Video | R | Overall | hook | clarity | style | pacing | readability | cta |
+|---|---|---|---|---|---|---|---|---|
+| s07 | R6 | 6 | 7 | 5 | 7 | 7 | 5 | 6 |
+| s08 | R5 | 6 | 7 | 5 | 7 | 6 | 6 | 6 |
+| s10 | R3 | **7** | 8 | 7 | 8 | 8 | 6 | 7 |
+| s12 | R1 | 6 | 6 | 5 | 7 | 7 | 6 | 7 |
+
+**s10 (R3, 7: PASS).** Optional polish from the grader:
+1. The K.O.! box sits on the crossing cell; move it above the board.
+2. The CTA was clipped (fixed after grading).
+3. Hold "ONE STEP = K.O." to 1.9 s.
+4. Make the claim fill solid, with lightning under 50% opacity, and drop the MAGMA SURGE card.
+5. Make the end mini-match bigger.
+
+**s07 (PARKED after 6 rounds, all 6).** Clarity is stuck at 5: the list items read as in-jokes over a dim board, and the mechanic comes late. If reopened:
+1. Bring back a big REMEMBER PAPER.IO? in the empty bottom third and scale the hook board up.
+2. Hide the dim board's name tags during the skits; they collide with LAG! and the name box.
+3. Move the CROSS THEIRS = K.O. caption above the board, clear of the K.O.! banner.
+4. Show item 4 as a real cut with a crash flash.
+5. Hold the payoff loop-close longer.
+
+**s08 (R5, 6; one round left):**
+1. Hook: the TEACHER! tag sits over the play; shrink the teacher ~30% and move the tag above his head.
+2. "CUT THEIR TRAIL..." never shows on the sheet: merge into one caption "CUT THEIR TRAIL = K.O." held 1.94-3.6 s.
+3. Drop the second spreadsheet (FASTER!) so the payoff starts at ~3.6 s.
+4. The K.O.! covers the crossing: delay it 4 frames or move it up (shared with s10 #1).
+5. The end card ask competes with the CTA.
+
+**s12 (R1, 6):**
+1. The CTA was clipped (fixed after grading).
+2. The falling crowns cover the +1 CROWN stamp: draw the crowns under it. The +50 GEMS chip is never sampled: make it bigger or cut it.
+3. The hook is meaningless before launch: lead with the payoff ("RESET EVERYTHING FOR x2 COINS FOREVER?") and add 0.5 s of the core loop before the cost.
+4. Default yellow turf from the first reset frame; the coin drop should be ~0.3 s and red.
+5. Make the caption 2 lines, keep +N off the avatar, make the multiplier counter bigger, and make the end mini-board 1.5x bigger.
+
+**Pattern (now 53 grades, first 7):** the key-moment sampling helped s10 (clarity 7, pacing 8). The next shared fix: K.O.! boxes should sit above the board or appear 4 frames after the contact, not on the crossing cell (s08, s10). The end mini-board is "too small" in every grade: try 1.4x.
+
+Next run: shared K.O. placement and a bigger end mini-board; then s08 (last round), s12 (R2), s11 (R2), s09 (R3). s06 is at R4. Then idea #17 (Rate My Trail).

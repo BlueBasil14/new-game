@@ -491,3 +491,8 @@ Shared hype.py: corner brand tag from frame 0, live mini-match behind every end 
 - Grades: s07 R5 6, s08 R4 6 (hook 8), s10 R2 6, s11 R1 6. Still no 7. Full fix lists are in marketing/videos/GRADES.md.
 - Finding: contact sheets sample every ~0.8-1.1 s, so short key moments (0.3 s freeze) are invisible to graders. The next run should sample key moments or hold them for 0.6 s or more.
 - Checked: each reworked and new contact sheet, read by eye. Not checked: audio by ear.
+
+## 2026-11-22 09:52 Turf Loop shorts weekend run: first video at 7/10
+- Shared changes. `tools/video/engine.py`: contact sheets now sample key moments (stamps and K.O. holds); the video itself is unchanged. `tools/video/hype.py`: end-card gap between the logo and the ask, a plated COMING SOON, a taller CTA button, no crown on the end board. K.O. freeze is 0.5 s. s01-s12 re-rendered.
+- s10 (The Snipe) graded **7/10** at R3, the first pass. s07 graded 6 at R6 and is parked. s08 graded 6 at R5 (one round left). New s12 "Rebirth" (idea #16, numbers from Config.Rebirth and Catalog crown skins) graded 6 at R1.
+- Fix lists are in marketing/videos/GRADES.md. Not verified: only the contact sheets and grader reports; nobody has watched the mp4s with sound. Nothing posted; game code untouched.

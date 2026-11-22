@@ -12,4 +12,4 @@ s01_skins_hype: 23.6s, 108 BPM, 1080x1920 30fps
 18.06-19.72s  text: YOUR TURF GROWS A FOREST
 19.72-21.39s  scene: comment bait: WHICH ONE ARE YOU GETTING? above all 8 skins tiled, COMMENT A NUMBER
 21.39-23.61s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST
-sound effects: 42 cues; music: {'mode': 'major', 'root': 60, 'seed': 77, 'prog': [0, 5, 3, 4], 'sections': [(0, 3.5, {'kick', 'arp', 'hat'}), (3.5, 4, set()), (4, 18, {'bass', 'lead', 'hat', 'snare', 'kick', 'arp'}), (18, 26, {'bass', 'lead', 'hat', 'snare', 'kick', 'arp'}), (26, 39, {'bass', 'lead', 'hat', 'snare', 'kick', 'arp'}), (39, 43, {'bass', 'lead', 'hat', 'snare', 'kick'})]}
+sound effects: 42 cues; music: {'mode': 'major', 'root': 60, 'seed': 77, 'prog': [0, 5, 3, 4], 'sections': [(0, 3.5, {'hat', 'arp', 'kick'}), (3.5, 4, set()), (4, 18, {'bass', 'hat', 'arp', 'kick', 'snare', 'lead'}), (18, 26, {'bass', 'hat', 'arp', 'kick', 'snare', 'lead'}), (26, 39, {'bass', 'hat', 'arp', 'kick', 'snare', 'lead'}), (39, 43, {'bass', 'hat', 'kick', 'snare', 'lead'})]}
