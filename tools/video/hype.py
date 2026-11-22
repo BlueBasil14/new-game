@@ -141,27 +141,37 @@ class Effects:
         self.items = []
         self.rng = random.Random(5)
 
-    def fire(self, kind, cx, cy, t, region):
+    def fire(self, kind, cx, cy, t, region, avoid=None):
+        """avoid=(x, y, r): no spawn or bolt column inside that circle (R15 graders: effects covered the hero)."""
         x0, y0, x1, y1 = region
         rng = self.rng
+
+        def ux(lo, hi):  # x that clears the avoid circle's column
+            for _ in range(20):
+                x = rng.uniform(lo, hi)
+                if not avoid or abs(x - avoid[0]) > avoid[2]:
+                    return x
+            return lo if abs(lo - avoid[0]) > abs(hi - avoid[0]) else hi
         if kind == "FIREWORKS":
             for _ in range(3):  # halved (graders: particles buried the +N numbers)
-                bx, by = rng.uniform(x0, x1), rng.uniform(y0, y1)
+                bx, by = ux(x0, x1), rng.uniform(y0, y1)
                 col = rng.choice([PINK, YELLOW, GEM, GREEN, WHITE])
                 for i in range(16):
                     a = i / 16 * 2 * math.pi
                     self.items.append(("spark", bx, by, math.cos(a) * 190, math.sin(a) * 190, t + rng.uniform(0, 0.3), col))
         elif kind == "BUBBLES":
             for _ in range(13):
-                self.items.append(("bubble", rng.uniform(x0, x1), rng.uniform(y0, y1), rng.uniform(-8, 8), -rng.uniform(30, 60),
+                self.items.append(("bubble", ux(x0, x1), rng.uniform(y0, y1), rng.uniform(-8, 8), -rng.uniform(30, 60),
                                    t + rng.uniform(0, 0.4), (124, 196, 255)))
         elif kind == "LIGHTNING":
             for _ in range(5):
-                self.items.append(("bolt", rng.uniform(x0, x1), y0, rng.uniform(x0, x1), rng.uniform(y0, y1),
+                bx = ux(x0, x1)
+                ex = min(x1, max(x0, bx + rng.uniform(-14, 14))) if avoid else rng.uniform(x0, x1)  # near-vertical when avoiding
+                self.items.append(("bolt", bx, y0, ex, rng.uniform(y0, y1),
                                    t + rng.uniform(0, 0.2), rng.randint(0, 999)))
         elif kind == "HEARTS":
             for _ in range(10):  # R14: bigger, so fewer
-                self.items.append(("heart", rng.uniform(x0, x1), rng.uniform(y0, y1), rng.uniform(-10, 10), -rng.uniform(35, 70),
+                self.items.append(("heart", ux(x0, x1), rng.uniform(y0, y1), rng.uniform(-10, 10), -rng.uniform(35, 70),
                                    t + rng.uniform(0, 0.4), rng.choice([PINK, (255, 184, 224), RED])))
 
     def draw(self, img, t):
@@ -198,25 +208,26 @@ class Effects:
         self.items = keep
 
 
-def name_card(img, name, tier, t_in, t, y=344):
+def name_card(img, name, tier, t_in, t, y=344, tier_size=2):
     """Bottom card: skin name + tier badge, slides up on the beat."""
     if t < t_in:
         return
     k = ease_back(min(1.0, (t - t_in) / 0.22))
     yy = y + (1 - k) * 40
     col = GOLD if "LEGENDARY" in tier or "LIMITED" in tier else (RARE_BLUE if tier == "RARE" else GREEN)
-    hgt = 62 if len(name) <= 13 else 84
+    hgt = (62 if len(name) <= 13 else 84) + 7 * (tier_size - 2)
     plate = Image.new("RGBA", (W - 16, hgt), (14, 16, 26, 230))
     img.paste(plate, (8, int(yy)), plate)
     d = ImageDraw.Draw(img)
     d.rectangle((8, int(yy), W - 9, int(yy) + hgt - 1), outline=col, width=2)
-    draw_text(img, tier, W / 2, yy + 6, 2, col, DARK)
+    draw_text(img, tier, W / 2, yy + 6, tier_size, col, DARK)
+    oy = 7 * (tier_size - 2)
     if len(name) <= 13:
-        draw_text(img, name, W / 2, yy + 28, 3, WHITE, DARK)
+        draw_text(img, name, W / 2, yy + 28 + oy, 3, WHITE, DARK)
     else:  # one size for every name: long names go to a 2-line card
         a, b2 = name.split(" ", 1)
-        draw_text(img, a, W / 2, yy + 24, 3, WHITE, DARK)
-        draw_text(img, b2, W / 2, yy + 50, 3, WHITE, DARK)
+        draw_text(img, a, W / 2, yy + 24 + oy, 3, WHITE, DARK)
+        draw_text(img, b2, W / 2, yy + 50 + oy, 3, WHITE, DARK)
 
 
 # ============================================================ s01 Paper.io callback -> every skin
@@ -2046,14 +2057,12 @@ def s11():
         else:
             m11(img, tl - v.b(UP), tg)
         frame(img, GOLD if b >= UP else DARK)
-        stat_chip(img, "START SIZE", 3 if b >= UP else 0, 3, YELLOW, tg, v.b(UP))
-        if b >= UP:
-            draw_text(img, "5x5 > 11x11", W / 2, Y0 + N * CP + 12, 3, YELLOW, DARK)
+        stat_chip(img, "A: BIG LAND", 3 if b >= UP else 0, 3, YELLOW, tg, v.b(UP))
+        draw_text(img, "LOOP HOME = YOUR LAND", W / 2, Y0 + N * CP + 12, 2, WHITE, DARK)  # R4: the subtitle from 0.0 s; no competing label
 
     v.scene(0, 4, sceneA, "HOOK: 20x20 board, YOU (Neon Pulse) on a 5x5 spawn patch; at 0.42 s LEVEL UP flash: the patch jumps "
             "to 11x11 (START SIZE 3/3 pips fill, '5x5 > 11x11' under the board); then YOU runs a loop off the big base and claims (+N)")
-    v.caption(0, 2, "LEVEL UP: 5x5 > 11x11 START", size=3, color=YELLOW)  # R3: 121/25 is 4.8x, so no "5X"
-    v.caption(2, 4, "LOOP HOME = YOUR LAND", size=3, color=WHITE)
+    v.caption(0, 4, "LEVEL UP: START WITH 4X THE LAND", size=3, color=YELLOW)  # R4: plain words (121/25 = 4.8x, so 4X is safe)
     v.flash(UP)
     v.shake(UP, 0.25, 5)
     v.sound(UP, "levelup")
@@ -2077,14 +2086,15 @@ def s11():
         return ar
 
     aB = arenaB()
-    mB = match_scene(v, aB, X0, Y0, CP, skins, None, hero=1, scale=2, hero_scale=3)
-    HIT = 3.33  # yellow steps onto your trail at step 10 (9, 10), far from YOU
+    PRE = 8  # R4: preroll 8 steps, so the hit lands at ~0.37 s and the loop closes at the end of the 2.5 s shot
+    mB = match_scene(v, aB, X0, Y0, CP, skins, None, hero=1, sim=lambda tl: tl + PRE * dt, scale=2, hero_scale=3)
+    HIT = (10 - PRE) / 3  # yellow steps onto your trail at step 10 (9, 10), far from YOU
 
     def sceneB(img, tl, tg):
         b = tl / v.spb
         mB(img, tl, tg)
         frame(img, (0, 240, 255))
-        stat_chip(img, "SPAWN SHIELD", 5, 5, (0, 240, 255), tg, v.b(B))
+        stat_chip(img, "B: SAFE SHIELD", 5, 5, (0, 240, 255), tg, v.b(B))
         r = aB.runners[1]
         hx, hy = X0 + (r.x + 0.5) * CP, Y0 + (r.y + 0.5) * CP - 14
         d = ImageDraw.Draw(img)
@@ -2095,22 +2105,22 @@ def s11():
             if b < HIT + 1.5:
                 d.ellipse((cx - 16, cy - 16, cx + 16, cy + 16), outline=WHITE if int(b * 8) % 2 else (0, 240, 255), width=3)
                 tim = text_img("BLOCKED!", 3, (0, 240, 255), DARK)  # R2: at the impact point
-                tx, ty = int(cx - tim.width / 2), int(cy + 22)
+                tx, ty = int(cx - tim.width / 2), int(cy - 22 - tim.height)  # R4: above the impact
                 d.rectangle((tx - 4, ty - 3, tx + tim.width + 4, ty + tim.height + 3), fill=(14, 16, 26), outline=(0, 240, 255), width=2)
                 img.paste(tim, (tx, ty), tim)
             draw_text(img, "NO K.O.!", W / 2, Y0 + N * CP + 12, 3, (0, 240, 255), DARK)
         else:
             draw_text(img, "3s > 5.5s", W / 2, Y0 + N * CP + 12, 3, (0, 240, 255), DARK)
 
-    v.scene(B, B + 5, sceneB, "SPAWN SHIELD 5/5: cyan bubble round YOU; yellow runs straight through your open trail at ~2 s: "
+    v.scene(B, B + 4.5, sceneB, "SPAWN SHIELD 5/5: cyan bubble round YOU; yellow runs straight through your open trail at ~2 s: "
             "no K.O., ring flash, 'BLOCKED!'; YOU finishes the loop and claims")
-    v.caption(B, B + 5, "SHIELD: THEY CAN'T CUT YOU", color=(0, 240, 255))  # R3: one true line (the old stake contradicted the picture)
+    v.caption(B, B + 4.5, "SHIELD: THEY CAN'T CUT YOU", color=(0, 240, 255))  # R3: one true line (the old stake contradicted the picture)
     v.sound(B, "levelup")
     v.sound(B + HIT, "hit")
     v.shake(B + HIT, 0.25, 4)
 
     # ---------- C: COIN BOOST. the big loop pays x3 ----------
-    C = 9
+    C = 8.5
     aC = bigloop(dt)
     efx = Effects()
     coins = [None]
@@ -2129,20 +2139,22 @@ def s11():
     def sceneC(img, tl, tg):
         mC(img, tl, tg)
         ImageDraw.Draw(img).rectangle((X0 - 2, Y0 + 14, X0 + 24 * 11 + 1, Y0 + 16 + 25 * 11 + 1), outline=GOLD, width=2)
-        stat_chip(img, "COIN BOOST", 20, 20, GOLD, tg, v.b(C))
-        if coins[0]:  # R3: a coin counter ticks +N > +3N instead of a static 1X > 3X
+        stat_chip(img, "C: COIN BOOST", 20, 20, GOLD, tg, v.b(C))
+        if coins[0]:  # R4: +N first, then "x3 = +3N" lands on the next beat (graders: "+142 > +142" read as a bug)
             t0, n = coins[0]
-            k = min(1.0, max(0.0, (tg - t0 - 0.2) / 0.6))
-            draw_text(img, f"+{n} > +{int(n + 2 * n * k)}", W / 2, Y0 + 16 + 25 * 11 + 12, 3, GOLD if k < 1 else WHITE, DARK)
+            if tg - t0 < v.spb:
+                draw_text(img, f"+{n}", W / 2, Y0 + 16 + 25 * 11 + 10, 4, WHITE, DARK)
+            else:
+                draw_text(img, f"x3 = +{3 * n}", W / 2, Y0 + 16 + 25 * 11 + 10, 4, GOLD, DARK)
         else:
             draw_text(img, "x3 COINS", W / 2, Y0 + 16 + 25 * 11 + 10, 4, GOLD, DARK)
 
-    v.scene(C, C + 4, sceneC, "COIN BOOST 20/20: a huge loop closes at ~0.6 s (+N, Fireworks, coin ticks), caption COIN BOOST: x3 COINS (+200%), crowned")
-    v.caption(C, C + 4, "COIN BOOST: x3 COINS", color=GOLD)
+    v.scene(C, C + 4.5, sceneC, "COIN BOOST 20/20: a huge loop closes at ~0.6 s (+N, Fireworks, coin ticks), caption COIN BOOST: x3 COINS (+200%), crowned")
+    v.caption(C, C + 4.5, "COIN BOOST: x3 COINS", color=GOLD)
 
     # ---------- D: the stat sheet, every bar to MAX on the beat ----------
     D = 13
-    STATS = (("A START", "11x11", YELLOW), ("B SHIELD", "5.5s", (0, 240, 255)), ("C COINS", "x3", GOLD))  # R3: no SPEED (never shown); A/B/C for the ask
+    STATS = (("A LAND", "11x11", YELLOW), ("B SAFE", "5.5s", (0, 240, 255)), ("C COINS", "x3", GOLD))  # R3: no SPEED (never shown); A/B/C for the ask
 
     def sheet(img, tl, tg):
         b = tl / v.spb
@@ -2164,8 +2176,15 @@ def s11():
     for i in range(3):
         v.sound(D + i * 0.35 + 0.3, "levelup")
 
-    avatar_end(v, D + 3.5, D + 9, skin=hero_skin, ask="COMMENT A, B OR C")
-    v.dur = v.b(D + 9)
+    avatar_end(v, D + 3.5, D + 8.5, skin=hero_skin, ask="COMMENT A, B OR C")  # R4: 2.8 s end card
+
+    def abc(img, t):  # R4: the options stay on the end card (graders: the ask had no visible choices)
+        for i, (nm, _, col) in enumerate(STATS):
+            x = 3 + i * 88
+            ImageDraw.Draw(img).rectangle((x, 300, x + 86, 322), fill=(14, 16, 26), outline=col, width=2)
+            draw_text(img, nm, x + 43, 305, 2, col, None)
+    v.overlay(D + 3.5, D + 8.5, abc)
+    v.dur = v.b(D + 8.5)
     return v
 
 
@@ -2184,8 +2203,8 @@ def s12():
     dt = v.spb / 3
     hero_skin = sk(LEGENDS, "PRISM STORM")
     skins = {1: hero_skin, 2: sk(RARES, "CANDY STRIPE"), 3: sk(RARES, "OCEAN WAVES")}
-    TEASE = 0.75  # R3: open on the payoff (crown rain) for 0.4 s, then the back-story
-    PRESS = 2.25  # R2: 0.8 s of the core loop (claim at ~0.4 s) before the press (graders: show what you are giving up)
+    TEASE = 0.0  # R4: no teaser; the claim lands at ~0.37 s and the tap at 0.56 s (graders: the tap came late)
+    PRESS = 1.0
 
     def coin_chip(img, n, x, y, size=3, col=YELLOW):
         txt = f"{n:,}"
@@ -2227,9 +2246,9 @@ def s12():
             crown(img, int(x), int(y0 + age * sp) % 300 + 110, 3)
         avatar(img, W / 2, 380, OUTFITS[1], tg, moving=False, s=7, king=True)
 
-    v.scene(0, 4.5, hook, "HOOK: 0-0.4 s crowns rain over your big crowned avatar (teaser); then a huge Prism Storm turf (crowned), "
+    v.scene(0, 4, hook, "HOOK: 0-0.4 s crowns rain over your big crowned avatar (teaser); then a huge Prism Storm turf (crowned), "
             "coin chip 150,000 under it, a hand taps a big gold REBIRTH button at 1.25 s; hard cut to crowns raining, +1 CROWN stamp")
-    v.caption(0, 4.5, "RESET IT ALL FOR +25% COINS FOREVER?", color=YELLOW)  # R2: lead with the payoff
+    v.caption(0, 4, "RESET EVERYTHING? +25% FOREVER", color=YELLOW)  # R4: shorter hook line  # R2: lead with the payoff
     v.sound(PRESS - 0.25, "click")
     v.keys.append(v.b(PRESS - 0.3))  # the sheet shows the REBIRTH button before the press
     v.flash(PRESS)
@@ -2237,7 +2256,7 @@ def s12():
     v.sound(PRESS + 0.05, "crown")
 
     # ---------- 1: the cost. coins and upgrades reset, back to a 5x5 spawn ----------
-    A = 4.5
+    A = 4
     aA = Arena(20, seed=17)
     aA.dt = dt
     h = aA.add(1, PLAYERS[7], 10, 11, 5)
@@ -2257,21 +2276,21 @@ def s12():
         # upgrades bar drains on the board top
         d.rectangle((14, 130, W - 15, 154), fill=(14, 16, 26), outline=RED, width=2)
         draw_text(img, "UPGRADES", 20, 136, 2, RED, None, align="left")
-        u = 1 - min(1.0, max(0.0, (b - 1.75) / 1.0))
+        u = 1 - min(1.0, max(0.0, (b - 0.9) / 0.7))  # R4: the whole reset fits 1.4 s
         d.rectangle((128, 137, W - 22, 147), fill=(60, 64, 80))
         d.rectangle((128, 137, 128 + int((W - 150) * u), 147), fill=RED)
-        if b > 2.75:
+        if b > 1.6:
             draw_text(img, "BACK TO 5x5", W / 2, 440, 3, WHITE, DARK)
 
-    v.scene(A, A + 4, reset, "1: the cost. fresh 20x20 board, YOU crowned on a 5x5 spawn; coin chip rolls 150,000 > 0 (red), "
+    v.scene(A, A + 2.5, reset, "1: the cost. fresh 20x20 board, YOU crowned on a 5x5 spawn; coin chip rolls 150,000 > 0 (red), "
             "UPGRADES bar drains, BACK TO 5x5")
-    v.caption(A, A + 4, "1. COINS + UPGRADES RESET", color=RED)
+    v.caption(A, A + 2.5, "1. COINS + UPGRADES RESET", color=RED)
     for k in range(3):
         v.sound(A + 0.25 + k * 0.2, "coin")
-    v.sound(A + 1.75, "fail")
+    v.sound(A + 0.9, "fail")
 
     # ---------- 2: the reward. +25% coins per crown, forever, and it stacks ----------
-    B = 8.5
+    B = 6.5
     aB = demo24(dt)
     efx = Effects()
 
@@ -2292,30 +2311,29 @@ def s12():
         nm, mult = STACK[i]
         d = ImageDraw.Draw(img)
         d.rectangle((6, 394, W - 7, 466), fill=(14, 16, 26), outline=WHITE if (b - 1.0) % 1 < 0.15 and b >= 1 else GOLD, width=3)
-        for c in range(i + 1):  # R2: crowns + name on the top line, a big multiplier centred under them
+        for c in range(i + 1):  # crowns on the top line, a big multiplier under them
             crown(img, 18 + c * 18, 401, 2)
-        draw_text(img, nm, W - 16 - text_img(nm, 2, WHITE, None).width, 401, 2, WHITE, None, align="left")
-        mi = text_img(mult, 5, GOLD, DARK)
-        img.paste(mi, (16, 462 - mi.height), mi)
-        per = f"+{round(55 * float(mult[1:]))}"  # R3: the same 55-cell loop pays more per crown
-        draw_text(img, "LOOP", W - 50, 420, 2, WHITE, None)
-        draw_text(img, per, W - 50, 435, 3, YELLOW, DARK)
+        mi = text_img(mult, 4, GOLD, DARK)
+        img.paste(mi, (14, 460 - mi.height), mi)
+        per = f"+{round(55 * float(mult[1:]))}"  # the same 55-cell loop pays more per crown
+        draw_text(img, "+55 >", W - 62, 402, 2, WHITE, None)  # R4: "+55 > +69", 2x bigger (graders: the +N and panel disagreed)
+        draw_text(img, per, W - 62, 424, 4, YELLOW, DARK)
 
-    v.scene(B, B + 5, multi, "2: the reward. live match, Prism Storm, a loop closes at ~0.5 s (+N, Lightning); under the board a "
+    v.scene(B, B + 5.5, multi, "2: the reward. live match, Prism Storm, a loop closes at ~0.5 s (+N, Lightning); under the board a "
             "crown counter steps up one per beat: 1 CROWN x1.25 > 2 x1.50 > 3 x1.75 > 4 x2.00")
-    v.caption(B, B + 5, "2. +25% COINS PER CROWN", color=GOLD)
+    v.caption(B, B + 5.5, "2. +25% COINS PER CROWN", color=GOLD)
     for k in range(4):
         v.sound(B + 1 + k, "crown")
     v.stamp(B + 4, "x2 COINS!", GOLD, y=230, size=5, beats=1, sound="hit", flash=False)  # R3: the top step lands as a stamp
 
     # ---------- 3: crown-only skins, one per beat ----------
-    C = 13.5
+    C = 12
 
     def skinsC(img, tl, tg):
         b = tl / v.spb
         bg_checker(img, tg, speed=20)
-        i = min(3, int(b / 0.75))  # R3: three quick, DIAMOND held as the reveal
-        st = i * 0.75
+        i = min(3, int(b))  # R4: one per beat, DIAMOND held as the reveal
+        st = i * 1.0
         nm, a, c2, pat, anim, need = CROWN_SKINS[i]
         img.paste(skin_board(240, 200, a, c2, pat, anim, tg), (15, 130))
         d = ImageDraw.Draw(img)
@@ -2329,20 +2347,21 @@ def s12():
         if b - st < 0.3:  # lock, then pop to UNLOCKED
             d.rectangle((W / 2 - 22, 170, W / 2 + 22, 206), fill=DARK, outline=WHITE, width=3)
             d.arc((W / 2 - 14, 150, W / 2 + 14, 186), 180, 360, fill=WHITE, width=4)
-        elif b - st < 0.75:
+        elif b - st < 1.0:
             draw_text(img, "UNLOCKED!", W / 2, 180, 3, GREEN, DARK)
-        name_card(img, nm, f"{need} CROWN" + ("S" if need > 1 else ""), v.b(C + st), tg, y=346)
+        # R4: named as turf, not hats (graders: "crown skins" read as headwear)
+        name_card(img, nm.replace(" CROWN", " TURF"), f"{need} CROWN" + ("S" if need > 1 else "") + " TO UNLOCK", v.b(C + st), tg, y=346)
 
-    v.scene(C, C + 4, skinsC, "3: crown-only skins (Catalog crownSkins), one per beat: BRONZE CROWN (1), SILVER (3), GOLD (5), "
+    v.scene(C, C + 5, skinsC, "3: crown-only skins (Catalog crownSkins), one per beat: BRONZE CROWN (1), SILVER (3), GOLD (5), "
             "DIAMOND CROWN (10) as full turf swatches behind your crowned avatar, name card with the crowns needed")
-    v.caption(C, C + 4, "3. CROWN-ONLY SKINS", color=GOLD)
+    v.caption(C, C + 5, "3. CROWN-ONLY TURF SKINS", color=GOLD)
     for k in range(4):
-        v.sound(C + k * 0.75, "whoosh" if k < 3 else "hit")
-    v.keys.append(v.b(C + 2.6))  # the sheet samples the DIAMOND reveal
-    v.notag = [(A, C + 4)]  # R3: no corner brand tag in the mid scenes
+        v.sound(C + k, "whoosh" if k < 3 else "hit")
+    v.keys.append(v.b(C + 3.6))  # the sheet samples the DIAMOND reveal
+    v.notag = [(A, C + 5)]  # R3: no corner brand tag in the mid scenes
 
-    avatar_end(v, C + 4, C + 9, skin=hero_skin, ask="REBIRTH OR GRIND?")
-    v.dur = v.b(C + 9)
+    avatar_end(v, C + 5, C + 9.5, skin=hero_skin, ask="REBIRTH OR GRIND?")  # R4: 2.5 s end card
+    v.dur = v.b(C + 9.5)
     return v
 
 
@@ -2378,11 +2397,13 @@ def s13():
         if skin:
             sks[1] = skin
         region = (X0 + 16, Y0 + 16, X0 + N * CP - 16, Y0 + N * CP - 16)
-        claims, refire = [], [hook]
+        claims, refire, last = [], [hook], [(W / 2, Y0 + N * CP / 2)]
 
         def on(kind, data, cx, cy, tg):
             if kind == "claim" and data["id"] == 1 and data["cells"] > 5 and effect:
-                efx.fire(effect, cx, cy, tg + 0.05, region)
+                r = ar.runners[1]
+                last[0] = (X0 + (r.x + 0.5) * CP, Y0 + (r.y + 0.5) * CP)
+                efx.fire(effect, cx, cy, tg + 0.05, region, avoid=(*last[0], 2 * CP))  # R3: keep effects off the hero
                 claims.append(tg)  # R2: white flash on every claim
                 v.sfx.append((tg, "levelup", 0))
                 v.keys.append(tg + 0.25)  # the sheet samples the capture effect
@@ -2394,17 +2415,17 @@ def s13():
             b = tl / v.spb
             if refire[0] and b >= 2.0:  # R2: the hook replays its lightning on beat 2 so the payoff lasts
                 refire[0] = False
-                efx.fire(effect, W / 2, Y0 + N * CP / 2, tg, region)
+                efx.fire(effect, W / 2, Y0 + N * CP / 2, tg, region, avoid=(*last[0], 2 * CP))
                 claims.append(tg)
                 v.keys.append(tg + 0.2)
             m(img, tl, tg)
-            if any(0 <= tg - c < 0.1 for c in claims):
-                img.paste(Image.blend(img, Image.new("RGB", img.size, WHITE), 0.45))
+            if any(0 <= tg - c < 0.07 for c in claims):  # R3: 2 frames, softer
+                img.paste(Image.blend(img, Image.new("RGB", img.size, WHITE), 0.3))
             ImageDraw.Draw(img).rectangle((X0 - 2, Y0 - 2, X0 + N * CP + 1, Y0 + N * CP + 1), outline=col, width=3)
             # rating chip: ?/10 while it plays, then the item's score lands on the last beat (R2: one muddled ?/10 for all five)
             scored = score and b >= 2.0
             on_beat = (b % 1) < 0.15
-            txt, tc = (score, GREEN) if scored else ("?/10", YELLOW)
+            txt, tc = (score, RED if "?" in score else GREEN) if scored else ("?/10", YELLOW)  # R3: the surprise low score in red
             k = 1.0 + (0.4 * max(0.0, 1 - (b - 2.0) / 0.3) if scored else 0)
             tim = text_img(txt, 4, tc, DARK)
             if k > 1:
@@ -2414,7 +2435,11 @@ def s13():
                                           outline=WHITE if on_beat or scored else YELLOW, width=2)
             img.paste(tim, (x, y), tim)
             if name:
-                name_card(img, name, tier, v.b(b0), tg, y=Y0 + N * CP + 16)
+                name_card(img, name, tier, v.b(b0), tg, y=Y0 + N * CP + 16, tier_size=3)  # R3: rarity 1.5x bigger
+            elif hook:  # R3: teach the loop once, and name the combo
+                draw_text(img, "LOOP HOME = CLAIM", W / 2, Y0 + N * CP + 12, 2, WHITE, DARK)
+                if b >= 2:
+                    draw_text(img, "PRISM STORM + STARDUST", W / 2, Y0 + N * CP + 34, 2, GOLD, DARK)
 
         v.scene(b0, b1, fn, desc)
         v.caption(b0, b1, caption, color=col)
@@ -2433,18 +2458,18 @@ def s13():
     v.flash(0.75)
     v.shake(0.75, 0.25, 5)
     # R2: three items, each a legendary + trail that closes with a capture effect; a score lands on each one's last beat
-    item(3, 6, neon, rainbow, "HEARTS", "NEON PULSE", "LEGENDARY + RAINBOW", "1. NEON PULSE + HEARTS", 16, PINK,
-         "1: Neon Pulse turf, Rainbow Streak trail, the loop closes with Hearts and a white flash; chip ?/10 > 6/10", score="6/10")
+    item(3, 6, neon, rainbow, "HEARTS", "NEON PULSE", "LEGENDARY", "1. NEON PULSE + HEARTS", 16, PINK,
+         "1: Neon Pulse turf, Rainbow Streak trail, the loop closes with Hearts and a white flash; chip ?/10 > 8/10", score="8/10")
     item(6, 9, star, None, "BUBBLES", "GALAXY SWIRL", "RARE", "2. GALAXY + BUBBLES", 16, (124, 196, 255),
-         "2: Galaxy Swirl rare turf, the loop closes with Bubbles and a white flash; chip ?/10 > 7/10", score="7/10")
-    item(9, 12, magma, None, "FIREWORKS", "MAGMA SURGE", "LEGENDARY", "3. MAGMA SURGE + FIREWORKS", 16, RED,
-         "3: Magma Surge turf, the loop closes with Fireworks and a white flash; chip ?/10 > 8/10", score="8/10")
-    item(12, 15, prism, stardust, "LIGHTNING", None, None, "MY FULL COMBO. RATE IT!", 16, GOLD,
+         "2: Galaxy Swirl rare turf, the loop closes with Bubbles and a white flash; chip ?/10 > 3/10?? (the surprise)", score="3/10??")
+    item(9, 12, magma, None, "FIREWORKS", "MAGMA SURGE", "LEGENDARY", "3. MAGMA + FIREWORKS", 16, RED,
+         "3: Magma Surge turf, the loop closes with Fireworks and a white flash; chip ?/10 > 9/10", score="9/10")
+    item(12, 15, prism, stardust, "LIGHTNING", None, None, "COMMENT YOUR SCORE!", 16, GOLD,
          "4: the full combo again: Prism Storm + Stardust trail + Lightning; ?/10 then a big 10/10? stamp")
     v.stamp(13.75, "10/10?", GOLD, y=404, size=5, beats=1.25, sound="hit", flash=False)
 
-    avatar_end(v, 15, 19, skin=prism, ask="YOUR SCORE 1-10?")
-    v.dur = v.b(19)
+    avatar_end(v, 15, 20, skin=prism, ask="YOUR SCORE 1-10?")  # R3: 2.8 s end card
+    v.dur = v.b(20)
     return v
 
 
@@ -2632,7 +2657,111 @@ def s14():
     return v
 
 
-ALL = {"s01": s01, "s02": s02, "s03": s03, "s04": s04, "s05": s05, "s06": s06, "s07": s07, "s08": s08, "s09": s09, "s10": s10, "s11": s11, "s12": s12, "s13": s13, "s14": s14}
+# ============================================================ s15 30 tiers in 30 beats (idea #19)
+def s15():
+    """The whole Season 1 Turf Pass (PASS_TRACK = docs/BATTLEPASS.md), one tier per half beat, each animated legendary
+    (tiers 1/10/20/30) held for a beat and a half on a full skin swatch with your avatar. Hook: a Prism Storm loop claims at 0.37 s."""
+    v = Video("s15_thirty_tiers", 108, 28, music=dict(mode="major", root=63, seed=1519, prog=[0, 5, 3, 4], sections=[
+        (0, 3, {"kick", "snare", "hat", "bass", "arp", "lead"}), (3, 12, {"kick", "hat", "bass", "arp"}),
+        (12, 21, {"kick", "snare", "hat", "bass", "arp"}), (21, 23, {"kick", "snare", "hat", "bass", "arp", "lead"}),
+        (23, 28, {"kick", "hat", "bass", "arp"})]))
+    dt = v.spb / 3
+    purple = dict(c1=(30, 10, 40), c2=(50, 16, 66))
+    prism = sk(LEGENDS, "PRISM STORM")
+    skins = {1: prism, 2: sk(RARES, "CANDY STRIPE"), 3: sk(RARES, "OCEAN WAVES")}
+
+    # ---------- hook: the tier-30 legendary claims a huge loop at 0.37 s with Lightning ----------
+    aH = bigloop(dt)
+    efx = Effects()
+
+    def onH(kind, data, cx, cy, tg):
+        if kind == "claim" and data["id"] == 1 and data["cells"] > 5:
+            r = aH.runners[1]
+            efx.fire("LIGHTNING", cx, cy, tg + 0.05, (25, 134, 245, 364), avoid=(15 + (r.x + 0.5) * 10, 124 + (r.y + 0.5) * 10, 24))
+            v.sfx.append((tg, "levelup", 0))
+            v.keys.append(tg + 0.2)
+
+    mH = match_scene(v, aH, 15, 124, 10, skins, None, hero=1, sim=lambda tl: tl + 42 * dt, scale=2, hero_scale=2,
+                     on_event=onH, effects=efx, bg=lambda img, tg: bg_checker(img, tg, speed=24, **purple))
+
+    def hook(img, tl, tg):
+        mH(img, tl, tg)
+        ImageDraw.Draw(img).rectangle((13, 122, 15 + 24 * 10 + 1, 124 + 25 * 10 + 1), outline=GOLD, width=3)
+        draw_text(img, "LOOP HOME = YOUR LAND", W / 2, 382, 2, WHITE, DARK)
+        draw_text(img, "TIER 30: PRISM STORM", W / 2, 402, 2, GOLD, DARK)
+
+    v.scene(0, 3, hook, "HOOK: 24x24 board, YOU in Prism Storm (the tier-30 animated legendary) closes a huge loop at 0.37 s: "
+            "+N, Lightning (kept off YOU); under the board LOOP HOME = YOUR LAND and TIER 30: PRISM STORM")
+    v.caption(0, 3, "THE WHOLE TURF PASS. GO!", color=YELLOW)
+    v.sound(0, "hit")
+
+    # ---------- the track: one tier per half beat, legendaries held 1.5 beats (tier 30: 2.5) ----------
+    plan, b = [], 3.0
+    for tier in range(1, 31):
+        prem = PASS_TRACK[tier - 1][1]
+        d = 2.5 if tier == 30 else (1.5 if prem.startswith("legend") else 0.5)
+        plan.append((tier, b, d))
+        b += d
+    END = b
+
+    def card2x(label, t, premium):
+        tmp = Image.new("RGB", (53, 61), (26, 30, 46))
+        reward_card(tmp, label, 0, 0, t, premium)
+        return tmp.resize((106, 122), Image.NEAREST)
+
+    def track(img, tl, tg):
+        bb = tg / v.spb
+        bg_checker(img, tg, speed=10, **purple)
+        tier, t0, d = next((p_ for p_ in reversed(plan) if p_[1] <= bb), plan[0])
+        into = bb - t0
+        free, prem = PASS_TRACK[tier - 1]
+        dr = ImageDraw.Draw(img)
+        img.paste(Image.new("RGBA", (W, 24), (255, 200, 61, 255)), (0, 112))
+        draw_text(img, "SEASON 1: NEON RUSH", W / 2, 117, 2, DARK, None)
+        k = ease_back(min(1.0, into / 0.25))
+        draw_text(img, "TIER %d" % tier, W / 2, 144, max(3, int(5 * k)), WHITE, DARK)
+        dr.rectangle((14, 184, W - 15, 196), fill=(14, 16, 26), outline=DARK, width=2)  # 30-tier bar
+        dr.rectangle((16, 186, 16 + int((W - 32) * tier / 30), 194), fill=GOLD)
+        if prem.startswith("legend"):  # the reveal: full swatch, your avatar on it, name card
+            nm = prem.split(" ", 1)[1]
+            a, c2, pat, an = sk(LEGENDS, nm)
+            img.paste(skin_board(W - 20, 160, a, c2, pat, an, tg), (10, 206))
+            dr.rectangle((8, 204, W - 9, 367), outline=WHITE if into < 0.15 else GOLD, width=3)
+            avatar(img, W / 2, 356, OUTFITS[1], tg, moving=True, s=4)
+            name_card(img, nm, "ANIMATED LEGENDARY", v.b(t0), tg, y=378)
+            return
+        sl = int((1 - ease_out(min(1.0, into / 0.12))) * 60)  # cards slide in from the right on the beat
+        for i, (lab, label, prm, col) in enumerate((("FREE", free, False, GREEN), ("PREMIUM", prem, True, GOLD))):
+            x = 22 + i * 120 + sl
+            draw_text(img, lab, x + 53, 210, 2, col, DARK)
+            img.paste(card2x(label, tg, prm), (x, 228))
+        nxt = next((p_[0] for p_ in plan if p_[0] > tier and PASS_TRACK[p_[0] - 1][1].startswith("legend")), None)
+        if nxt:  # what the run is heading for
+            draw_text(img, "NEXT LEGEND: TIER %d" % nxt, W / 2, 372, 2, GOLD, DARK)
+
+    v.scene(3, END, track, "the Turf Pass: SEASON 1: NEON RUSH bar, TIER N slams in one per half beat with a 30-tier bar; FREE and "
+            "PREMIUM reward cards (2x) slide in on each beat; tiers 1/10/20/30 hold 1.5 beats on a full animated legendary swatch "
+            "with your avatar and a name card (Neon Pulse, Magma Surge, Starfall, Prism Storm)")
+    for tier, t0, d in plan:
+        if PASS_TRACK[tier - 1][1].startswith("legend"):
+            v.flash(t0, GOLD, 0.1)
+            v.sound(t0, "crown")
+            v.keys.append(v.b(t0 + 0.6))  # sheet samples every legendary
+        else:
+            v.sound(t0, "blip", (tier % 4) * 2)
+    t10 = plan[9][1]
+    t20 = plan[19][1]
+    v.caption(3, t10, "30 TIERS. FREE + PREMIUM.", color=GOLD)
+    v.caption(t10, t20, "XP FROM DAILY MISSIONS", color=WHITE)
+    v.caption(t20, END, "SEASON 1 AT LAUNCH", color=YELLOW)
+    v.stamp(plan[29][1] + 1.25, "TIER 30!", GOLD, y=250, size=4, beats=1.25, sound="hit", flash=False)
+
+    avatar_end(v, END, END + 4.5, skin=prism, ask="WHICH LEGENDARY?")
+    v.dur = v.b(END + 4.5)
+    return v
+
+
+ALL = {"s01": s01, "s02": s02, "s03": s03, "s04": s04, "s05": s05, "s06": s06, "s07": s07, "s08": s08, "s09": s09, "s10": s10, "s11": s11, "s12": s12, "s13": s13, "s14": s14, "s15": s15}
 
 if __name__ == "__main__":
     for n in sys.argv[1:] or list(ALL):

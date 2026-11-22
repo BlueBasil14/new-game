@@ -512,3 +512,9 @@ Shared hype.py: corner brand tag from frame 0, live mini-match behind every end 
 - New: s14_living_woodland (idea #18). Trees, rocks and mushrooms grow in a wave across each claim, and a red rival misses your trail by one step.
 - Grades: s11 6, s12 6, s13 6, s14 5. No new 7; s10 is still the only pass. The common complaint is that new viewers never see the loop mechanic, plus end cards that run too long. Fix lists are in marketing/videos/GRADES.md.
 - Checked: I read each contact sheet before grading. Not checked: audio by ear. Nothing posted, and the game code is untouched.
+
+## 2026-11-22 18:52 Shorts weekend run (scheduled): s11/s12/s13 reworked, s15 30 Tiers new
+- Shared (`tools/video/hype.py`): `Effects.fire(avoid=)` keeps capture effects off the hero (opt-in, so other videos are unchanged and were not re-rendered); `name_card(tier_size=)`. End cards cut to ~2.5 s in the touched videos.
+- Reworked s11 (R4), s12 (R4), s13 (R3); new s15_thirty_tiers (idea #19, Season 1 Neon Rush track one tier per half beat, legendaries held, 15.3 s).
+- Grader subagents: s11 6, s12 6, s13 6, s15 5. Still one 7 in total (s10). Fix lists in `marketing/videos/GRADES.md`; shared next step: a big plated 1 s "how to play" beat in every video's first 2 s.
+- Verified: each contact sheet read by the lead after render. Not verified: audio by ear. Nothing posted anywhere.

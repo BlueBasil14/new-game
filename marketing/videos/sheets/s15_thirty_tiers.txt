@@ -1,0 +1,10 @@
+s15_thirty_tiers: 15.3s, 108 BPM, 1080x1920 30fps
+ 0.00- 1.67s  scene: HOOK: 24x24 board, YOU in Prism Storm (the tier-30 animated legendary) closes a huge loop at 0.37 s: +N, Lightning (kept off YOU); under the board LOOP HOME = YOUR LAND and TIER 30: PRISM STORM
+ 0.00- 1.67s  text: THE WHOLE TURF PASS. GO!
+ 1.67- 4.72s  text: 30 TIERS. FREE + PREMIUM.
+ 1.67-12.78s  scene: the Turf Pass: SEASON 1: NEON RUSH bar, TIER N slams in one per half beat with a 30-tier bar; FREE and PREMIUM reward cards (2x) slide in on each beat; tiers 1/10/20/30 hold 1.5 beats on a full animated legendary swatch with your avatar and a name card (Neon Pulse, Magma Surge, Starfall, Prism Storm)
+ 4.72- 8.06s  text: XP FROM DAILY MISSIONS
+ 8.06-12.78s  text: SEASON 1 AT LAUNCH
+12.08s  STAMP: TIER 30! (+shake, flash)
+12.78-15.28s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, WHICH LEGENDARY?
+sound effects: 41 cues; music: {'mode': 'major', 'root': 63, 'seed': 1519, 'prog': [0, 5, 3, 4], 'sections': [(0, 3, {'arp', 'kick', 'hat', 'bass', 'snare', 'lead'}), (3, 12, {'arp', 'kick', 'hat', 'bass'}), (12, 21, {'arp', 'kick', 'hat', 'bass', 'snare'}), (21, 23, {'arp', 'kick', 'hat', 'bass', 'snare', 'lead'}), (23, 28, {'arp', 'kick', 'hat', 'bass'})]}

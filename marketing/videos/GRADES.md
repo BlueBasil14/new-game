@@ -1,6 +1,6 @@
 # Turf Loop shorts: grades
 
-Running:
+Running: 2026-11-22 18:52 EST
 
 Pass mark 7/10 overall from a fresh grader subagent (`GRADER_PROMPT.md`). Max 6 rework rounds per video (raised from 3 on 2026-11-20: all five plateaued at 6 and the owner asked for 7+), then parked with reasons.
 
@@ -703,3 +703,54 @@ Per video:
 - Keep particles clear of the hero (a radius of about 1.5 cells).
 
 Next run: s11 (R4), s12 (R4), s13 (R3), s14 (R2). s06 is at R4 and s09 at R3. Then idea #19 (30 Tiers in 30 Beats).
+
+## Run 2026-11-22 18:52 (weekend task): s11 R4, s12 R4, s13 R3 reworked, s15 (idea #19 30 Tiers in 30 Beats) new. No new 7.
+**Applied (shared, `tools/video/hype.py`):**
+- `Effects.fire(..., avoid=(x, y, r))`: particles and bolt columns don't spawn inside that circle, and bolts are near-vertical when avoiding. Without `avoid` the output is unchanged, so the other videos were not re-rendered.
+- `name_card(..., tier_size=)`: the rarity line can be bigger (s13 uses 3).
+- End cards are now 2.5-2.8 s in s11, s12, s13 and s15.
+
+Per video:
+- **s11:** the hook caption is "LEVEL UP: START WITH 4X THE LAND", with LOOP HOME = YOUR LAND under the board from 0.0 s. The shield shot is 2.5 s, the hit lands at ~0.4 s, and BLOCKED! sits above the impact. The coin shot shows +142, then "x3 = +426" on the next beat. The stat chips are A: BIG LAND / B: SAFE SHIELD / C: COIN BOOST, and the end card keeps A LAND / B SAFE / C COINS option chips. 11.9 s.
+- **s12:** there's no teaser now: the claim lands at 0.37 s and REBIRTH is tapped at 0.56 s. The caption is "RESET EVERYTHING? +25% FOREVER". The reset is 1.4 s. The panel reads "+55 > +69 ... +110" with a smaller multiplier. The crown skins come one per beat as "BRONZE/SILVER/GOLD/DIAMOND TURF" with "N CROWNS TO UNLOCK". 11.9 s.
+- **s13:** the hook teaches "LOOP HOME = CLAIM" and names PRISM STORM + STARDUST. Effects stay ~2 cells clear of YOU, and the flash is softer and 2 frames long. Rarity is 1.5x bigger. Scores go 8/10, a red 3/10?? surprise, then 9/10. The last caption is "COMMENT YOUR SCORE!". 11.1 s.
+- **s15:** new, 108 BPM, 15.3 s. The hook is a Prism Storm (tier 30) loop that claims +142 with Lightning at 0.37 s. Then the whole Season 1 Neon Rush track runs one tier per half beat (FREE/PREMIUM cards at 2x size, a 30-tier bar, NEXT LEGEND: TIER N). Tiers 1/10/20/30 hold on a full animated legendary swatch with your avatar and a name card, and a TIER 30! stamp lands. Captions: 30 TIERS. FREE + PREMIUM. / XP FROM DAILY MISSIONS / SEASON 1 AT LAUNCH. End ask: "WHICH LEGENDARY?".
+
+| Video | R | Overall | hook | clarity | style | pacing | readability | cta |
+|---|---|---|---|---|---|---|---|---|
+| s11 | R4 | 6 | 6 | 5 | 7 | 7 | 6 | 8 |
+| s12 | R4 | 6 | 7 | 5 | 7 | 7 | 6 | 6 |
+| s13 | R3 | 6 | 7 | 5 | 8 | 7 | 6 | 7 |
+| s15 | R1 | 5 | 4 | 4 | 7 | 6 | 6 | 6 |
+
+**s11 (R4, 6; cta 8):**
+1. The 5x5 "before" lasts only 0.42 s, so the 4X jump never registers. Hold a tagged 5x5 for ~0.8 s, then slam it to 11x11 on a downbeat with a shake and a big "5x5 > 11x11".
+2. The shield save isn't visible: no BLOCKED! in the samples, and the yellow and blue trails tangle. Freeze 3-4 frames on the cross point with a big BLOCKED! stamp. Change "3S > 5.5S" to "SHIELD 3s > 5.5s".
+3. Coin-boost particles land on the caption and the "+426". Clip them to the board, under the caption layer. The "C: COIN BOOST" label is cut by the meter.
+4. In "B: SAFE SHIELD" the pips run into the text. Shorten it to "B: SHIELD".
+5. Add a "LOOP = CLAIM LAND" ghost line over the hook board. Fill the stat bars within 0.3 s.
+
+**s12 (R4, 6; hook 7):**
+1. The x2 COINS! zoom punch crops the HUD ("{2.00 +11") and pushes the board under the caption. Keep the HUD and caption out of the zoom.
+2. The core loop is never explained. Add a fast trail-loop-claim with +N before the tap, plus "LOOP TO CLAIM".
+3. The crown skins only appear as swatches. Show them painting turf on a board. SILVER barely differs from the grey board. Put UNLOCKED! on a dark plate.
+4. Make the multiplier 1.5x bigger with a gold flash on each step. Drop or shrink +69/+110.
+5. The end ask needs options (chips). Hold the end card still for the last 1 s.
+
+**s13 (R3, 6; style 8):**
+1. "LOOP HOME = CLAIM" is too small: make it 1.5x, white on a panel. Move the combo name into a LEGENDARY rarity box.
+2. The red 3/10?? chip is too wide and low-contrast. Use white with a red outline, the same width, and a "WHAT?!" pop.
+3. The final combo has no rarity box (the layout jumps), and the claim flash washes out Prism Storm. Add a box and cap the flash.
+4. The scores look random. Add a reason tag, or go low to high (3, 8, 9, 10?).
+5. The bots never act. Have one cut try (or a CUT!) in one round to teach the danger.
+
+**s15 (R1, 5):**
+1. "THE WHOLE TURF PASS. GO!" means nothing to a stranger. Lead with a payoff ("FREE ANIMATED SKINS..."), and zoom and shake the +142.
+2. The bottom ~35% of the pass frames is empty. Make the cards and swatches 1.4x bigger and lower, or put a looping gameplay strip there.
+3. The reward cards are cryptic: label them "2X XP 15 MIN", "4,500 COINS", "20 GEMS", "CRATE KEY".
+4. 11 s of menu is too long. Flash tiers 2-9 and 21-29, and spend the time on Prism Storm in a real match. Land TIER 30! by ~8 s.
+5. End card: put space between COMING SOON and FOLLOW, and show the 4 legendaries as answer options.
+
+**Pattern (now 65 grades; one 7, s10).** Every grader again scored clarity 4-5: "a new viewer never learns the game". A small "LOOP HOME = ..." line under the board isn't enough. The shared fix for the next run: a 1 s teaching beat (trail drawn, closes, fills) with a big plated "LOOP HOME = YOUR LAND" in the first 2 s of every video, and option chips on every end ask.
+
+Next run: s11 (R5), s12 (R5), s13 (R4), s15 (R2). s14 is at R2, s06 at R4 and s09 at R3. Then idea #20 (Your Brain on Turf).
