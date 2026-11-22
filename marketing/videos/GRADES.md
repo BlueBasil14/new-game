@@ -1,6 +1,6 @@
 # Turf Loop shorts: grades
 
-Running:
+Running: 2026-11-22 12:53 EST
 
 Pass mark 7/10 overall from a fresh grader subagent (`GRADER_PROMPT.md`). Max 6 rework rounds per video (raised from 3 on 2026-11-20: all five plateaued at 6 and the owner asked for 7+), then parked with reasons.
 
@@ -599,3 +599,53 @@ Per video:
 **Pattern (now 53 grades, first 7):** the key-moment sampling helped s10 (clarity 7, pacing 8). The next shared fix: K.O.! boxes should sit above the board or appear 4 frames after the contact, not on the crossing cell (s08, s10). The end mini-board is "too small" in every grade: try 1.4x.
 
 Next run: shared K.O. placement and a bigger end mini-board; then s08 (last round), s12 (R2), s11 (R2), s09 (R3). s06 is at R4. Then idea #17 (Rate My Trail).
+
+## Run 2026-11-22 12:53 (weekend task): s08 R6, s11 R2, s12 R2 reworked, s13 (idea #17 Rate My Trail) new. No new 7.
+**Applied (shared, `tools/video/hype.py`; s01-s13 re-rendered):**
+- `avatar_end`: the end mini-board is 1.33x bigger (cell 8 px, was 6-7). COMING SOON and the CTA move down to follow it.
+- `match_scene(freeze=...)`: the K.O.! box goes above or below the victim, whichever is farther from the attacker, so it no longer covers the crossing. Putting it above the board was tried first and dropped, because it hid behind the captions.
+
+Per video:
+- **s08:** the teacher is ~30% smaller. The TEACHER!/AGAIN?! tag sits under the board, left of him, off the play. The two captions became one, "CUT THEIR TRAIL = K.O.", held for the whole shot. The second spreadsheet is gone, so the payoff starts at ~3.6 s.
+- **s11:** the 5x5 holds for a beat (0.56 s) before LEVEL UP. Captions: "LEVEL UP: 5X BIGGER SPAWN", then "LOOP HOME = YOUR LAND". On the shield shot, the caption reads "NO SHIELD = 1 TOUCH K.O." and yellow hits your trail 7 cells away from YOU, with BLOCKED! at the impact point and NO K.O.! under the board. The coin shot adds "1X > 3X". The stat bars all fill in ~1 s.
+- **s12:** the hook caption is "RESET IT ALL FOR +25% COINS FOREVER?". The loop claims at ~0.4 s, then the REBIRTH press comes at 0.83 s. The crown rain stays above the +1 CROWN stamp, and the +50 GEMS chip is gone. The reset shows default turf, with the coins crashing to 0 in red in ~0.3 s. The multiplier panel has crowns and a name on top and a big x1.25-x2.00 under them.
+- **s13:** new, 108 BPM, 12.2 s. The hook is the Prism Storm + Stardust combo claiming with Lightning at 0.4 s, under the caption "RATE MY TRAIL 1-10". Then one item every 3 beats on a live loop: Rainbow Streak trail, Stardust trail, Neon Pulse + Hearts, Magma Surge + Fireworks, then the full combo with a 10/10? stamp. A ?/10 chip sits on each board. End card ask: "YOUR RATING?".
+
+| Video | R | Overall | hook | clarity | style | pacing | readability | cta |
+|---|---|---|---|---|---|---|---|---|
+| s08 | R6 | 6 | 7 | 6 | 7 | 7 | 6 | 6 |
+| s11 | R2 | 6 | 6 | 6 | 8 | 6 | 7 | 5 |
+| s12 | R2 | 5 | 6 | 4 | 7 | 7 | 6 | 7 |
+| s13 | R1 | 6 | 6 | 5 | 7 | 6 | 6 | 6 |
+
+**s08 (PARKED after 6 rounds, all 6; clarity went up from 5 to 6).** If reopened:
+1. The hook is busy: cut the caption to 2 lines and drop the tag (the caption already says TEACHER).
+2. The spreadsheet is 0.8 s with no game: add a Turf Loop taskbar tab, and snap back on a downbeat with a swoosh.
+3. The K.O. is small: zoom 1.5x on the cut, and move the THEIR TRAIL label off the trail.
+4. The +142 box is clipped at the bottom of the frame: move it up. Start the payoff on the loop close.
+5. End ask: "WHAT WAS YOUR ALT+TAB GAME?" instead of "EVER CAUGHT?".
+
+**s11 (R2, 6; style 8):**
+1. Open on the LEVEL UP burst at frame 0, and claim by 0.8 s. "5X" over-promises: 121/25 is 4.8x, so say "5x5 > 11x11 START".
+2. "NO SHIELD = 1 TOUCH K.O." contradicts the picture, where the shield is on. Use "SPAWN SHIELD: THEY CAN'T CUT YOU", or show 0.5 s of a no-shield K.O. first.
+3. The coin scene stalls: ~1.8 s, with a coin counter ticking 142 > 426 instead of the static 1X > 3X.
+4. The stat sheet reads as pay-to-win: add "FREE, EARNED IN-GAME", drop SPEED (it's never shown), and cut the sheet to ~1.5 s.
+5. "WHICH FIRST?" has no options: add A/B/C chips (BIG BASE / SHIELD / x3 COINS) and "COMMENT A, B OR C".
+
+**s12 (R2, 5; down from 6):**
+1. The 150,000 chip sits on an avatar and the +142 covers the claim. Move the chip under the board, and make REBIRTH 2x bigger with a visible tap.
+2. Rebirth is late-game, so new viewers lack context. Open on the crown rain at 0.0 s, then the back-story; or add a "LOOP = LAND" tag.
+3. Prove +25% in play: the +N should scale with the multiplier (+55 > +64 on the same claim). The x2.00 step should be a stamp on the beat.
+4. The crown skins read as plain orange and yellow: add shimmer or sparkle and a lock-to-unlock pop, and show all 4 (hold DIAMOND as the reveal).
+5. Drop the corner brand tag in mid scenes. Make the end mini-match avatars bigger.
+
+**s13 (R1, 6):**
+1. One ?/10 over five items is muddled: show a score under each item as it exits (4/10 ... 8/10), and keep ?/10 for the final combo only.
+2. The hook payoff fades by 1.5 s: replay the lightning on beat 2 and add a +N. Drop the hook name card.
+3. Items 1-2 (plain trails on default turf) are weak, and Stardust repeats the hook. Cut to 3 items at ~1.3 s, each closing with an effect.
+4. Capture effects are too small: particles 3-4x bigger, burst from the claim centre, kept off the chip row, with a white flash on each claim.
+5. End card: a bigger COMING SOON, "COMMENT YOUR SCORE 1-10", and one visible claim in the end mini-match.
+
+**Pattern (now 57 grades; one 7 so far, s10).** Repeated across all four: the end card's COMING SOON line is too thin (it is now the main end-card complaint), and capture-effect particles are too small to read. Next run's shared fixes: COMING SOON at size 3 on its own row, and particles 2-3x bigger.
+
+Next run: those two shared fixes, then s11 (R3), s13 (R2), s12 (R3), s09 (R3). s06 is at R4. Then idea #18.

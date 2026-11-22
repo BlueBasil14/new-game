@@ -1,7 +1,8 @@
 s11_stat_boosts: 12.8s, 108 BPM, 1080x1920 30fps
+ 0.00- 1.39s  text: LEVEL UP: 5X BIGGER SPAWN
  0.00- 2.78s  scene: HOOK: 20x20 board, YOU (Neon Pulse) on a 5x5 spawn patch; at 0.42 s LEVEL UP flash: the patch jumps to 11x11 (START SIZE 3/3 pips fill, '5x5 > 11x11' under the board); then YOU runs a loop off the big base and claims (+N)
- 0.00- 2.78s  text: LEVEL UP YOUR RUNNER
- 2.78- 4.63s  text: SHIELD: 3s > 5.5s
+ 1.39- 2.78s  text: LOOP HOME = YOUR LAND
+ 2.78- 4.63s  text: NO SHIELD = 1 TOUCH K.O.
  2.78- 5.56s  scene: SPAWN SHIELD 5/5: cyan bubble round YOU; yellow runs straight through your open trail at ~2 s: no K.O., ring flash, 'BLOCKED!'; YOU finishes the loop and claims
  4.63- 5.56s  text: THEY CAN'T CUT YOU
  5.56- 8.33s  scene: COIN BOOST 20/20: a huge loop closes at ~0.6 s (+N, Fireworks, coin ticks), caption COIN BOOST: x3 COINS (+200%), crowned
@@ -9,4 +10,4 @@ s11_stat_boosts: 12.8s, 108 BPM, 1080x1920 30fps
  8.33-10.56s  scene: stat sheet: big crowned avatar, 4 RPG bars fill to MAX one per 0.75 beat with a level-up chime: SPEED +15%, START 11x11, SHIELD 5.5s, COINS +200%
  8.33-10.56s  text: EARN COINS. LEVEL UP.
 10.56-12.78s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, WHICH FIRST?
-sound effects: 24 cues; music: {'mode': 'major', 'root': 62, 'seed': 815, 'prog': [0, 4, 5, 3], 'sections': [(0, 5, {'kick', 'hat', 'arp', 'bass'}), (5, 10, {'kick', 'hat', 'bass', 'snare'}), (10, 15, {'kick', 'hat', 'bass', 'lead', 'arp', 'snare'}), (15, 19, {'kick', 'lead', 'hat', 'arp'}), (19, 26, {'kick', 'hat', 'arp', 'bass'})]}
+sound effects: 25 cues; music: {'mode': 'major', 'root': 62, 'seed': 815, 'prog': [0, 4, 5, 3], 'sections': [(0, 5, {'hat', 'kick', 'bass', 'arp'}), (5, 10, {'hat', 'kick', 'snare', 'bass'}), (10, 15, {'kick', 'bass', 'hat', 'arp', 'snare', 'lead'}), (15, 19, {'hat', 'kick', 'lead', 'arp'}), (19, 26, {'hat', 'kick', 'bass', 'arp'})]}

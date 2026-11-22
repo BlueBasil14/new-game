@@ -496,3 +496,9 @@ Shared hype.py: corner brand tag from frame 0, live mini-match behind every end 
 - Shared changes. `tools/video/engine.py`: contact sheets now sample key moments (stamps and K.O. holds); the video itself is unchanged. `tools/video/hype.py`: end-card gap between the logo and the ask, a plated COMING SOON, a taller CTA button, no crown on the end board. K.O. freeze is 0.5 s. s01-s12 re-rendered.
 - s10 (The Snipe) graded **7/10** at R3, the first pass. s07 graded 6 at R6 and is parked. s08 graded 6 at R5 (one round left). New s12 "Rebirth" (idea #16, numbers from Config.Rebirth and Catalog crown skins) graded 6 at R1.
 - Fix lists are in marketing/videos/GRADES.md. Not verified: only the contact sheets and grader reports; nobody has watched the mp4s with sound. Nothing posted; game code untouched.
+
+## 2026-11-22 12:53 Turf Loop shorts weekend run: s08/s11/s12 reworked, s13 Rate My Trail new
+- Shared (`tools/video/hype.py`): end mini-board 1.33x bigger; K.O.! box placed above or below the victim, away from the attacker (above the board hid behind captions). s01-s13 re-rendered.
+- s13_rate_my_trail (idea #17) is new: 4 cosmetics plus a full combo, each on a live loop that closes on the beat (Rainbow Streak, Stardust, Neon Pulse + Hearts, Magma Surge + Fireworks, Prism Storm combo).
+- Grades: s08 R6 6 (now parked), s11 R2 6, s12 R2 5, s13 R1 6. No new 7; s10 is still the only pass. Fix lists are in marketing/videos/GRADES.md.
+- Checked: each contact sheet read by the lead before grading. Not checked: audio by ear. Nothing posted; game code untouched.

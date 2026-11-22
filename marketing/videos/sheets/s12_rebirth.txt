@@ -1,7 +1,7 @@
 s12_rebirth: 12.2s, 108 BPM, 1080x1920 30fps
- 0.00- 2.22s  scene: HOOK: a huge Prism Storm turf (crowned), coin chip 150,000, big gold REBIRTH button pressed at 0.42 s; hard cut to crowns raining over your big crowned avatar, +1 CROWN stamp, then +50 GEMS chip at 1.25 s
- 0.00- 2.22s  text: WHAT HAPPENS AT REBIRTH?
- 0.42s  STAMP: +1 CROWN (+shake, flash)
+ 0.00- 2.22s  scene: HOOK: a huge Prism Storm turf (crowned), coin chip 150,000, big gold REBIRTH button pressed at 0.42 s; hard cut to crowns raining over your big crowned avatar, +1 CROWN stamp
+ 0.00- 2.22s  text: RESET IT ALL FOR +25% COINS FOREVER?
+ 0.83s  STAMP: +1 CROWN (+shake, flash)
  2.22- 4.44s  scene: 1: the cost. fresh 20x20 board, YOU crowned on a 5x5 spawn; coin chip rolls 150,000 > 0 (red), UPGRADES bar drains, BACK TO 5x5
  2.22- 4.44s  text: 1. COINS + UPGRADES RESET
  4.44- 7.22s  scene: 2: the reward. live match, Prism Storm, a loop closes at ~0.5 s (+N, Lightning); under the board a crown counter steps up one per beat: 1 CROWN x1.25 > 2 x1.50 > 3 x1.75 > 4 x2.00
@@ -9,4 +9,4 @@ s12_rebirth: 12.2s, 108 BPM, 1080x1920 30fps
  7.22- 9.44s  scene: 3: crown-only skins (Catalog crownSkins), one per beat: BRONZE CROWN (1), SILVER (3), GOLD (5), DIAMOND CROWN (10) as full turf swatches behind your crowned avatar, name card with the crowns needed
  7.22- 9.44s  text: 3. CROWN-ONLY SKINS
  9.44-12.22s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, REBIRTH OR GRIND?
-sound effects: 29 cues; music: {'mode': 'major', 'root': 60, 'seed': 916, 'prog': [0, 5, 3, 4], 'sections': [(0, 0.75, {'kick', 'hat'}), (0.75, 4, {'hat', 'arp', 'bass', 'kick', 'snare', 'lead'}), (4, 8, {'bass', 'kick', 'hat'}), (8, 13, {'hat', 'arp', 'bass', 'kick', 'snare', 'lead'}), (13, 17, {'hat', 'arp', 'kick', 'snare', 'lead'}), (17, 22, {'arp', 'bass', 'kick', 'hat'})]}
+sound effects: 26 cues; music: {'mode': 'major', 'root': 60, 'seed': 916, 'prog': [0, 5, 3, 4], 'sections': [(0, 0.75, {'hat', 'kick'}), (0.75, 4, {'arp', 'snare', 'kick', 'lead', 'hat', 'bass'}), (4, 8, {'bass', 'hat', 'kick'}), (8, 13, {'arp', 'snare', 'kick', 'lead', 'hat', 'bass'}), (13, 17, {'arp', 'snare', 'kick', 'lead', 'hat'}), (17, 22, {'arp', 'hat', 'kick', 'bass'})]}
