@@ -567,3 +567,10 @@ Shared hype.py: corner brand tag from frame 0, live mini-match behind every end 
   - Retro Lab and Royal Carpet appear in the shop as owned Exclusives. Retro Lab and Rush Hour equip.
   - Four `code_redeem` analytics events fired. No script errors.
 - Not done: the codes are not yet in the cloud place or the live game (no sync or publish this turn). The toast text was not seen on screen, because automated clicks can't use the Codes panel.
+
+## Lead session, 2026-11-22: promo codes synced into TurfLoop Main (owner approved "sync & publish")
+- Built from a clean worktree of commit 6af1f0a, so another session's uncommitted ProfileTemplate edit was not included.
+- Loaded Shared, Server and Client into the cloud place 80441552680451.
+- Play-tested: PAPERIO, NEONRUSH, KINGME and BIGLOOP each granted their reward. A repeat PAPERIO was `already_used`. RELEASE still works. Output showed only the usual Studio DataStore and asset noise.
+- Saved to Roblox as place **version 13**.
+- **Not published:** the owner declined desktop control of Studio, so File > Publish to Roblox (Alt+P) is left for the owner. The live game will have the codes once that is done.
