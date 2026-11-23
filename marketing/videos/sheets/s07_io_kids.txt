@@ -1,4 +1,4 @@
-s07_io_kids: 10.0s, 108 BPM, 1080x1920 30fps
+s07_io_kids: 11.7s, 108 BPM, 1080x1920 30fps
  0.00- 1.67s  scene: hook: live 24x24 board in plain colors, 1.5x zoom on YOU, your avatar closes a loop at ~0.3 s (+N pop); REMEMBER PAPER.IO? under it
  0.00- 1.67s  text: 4 THINGS ONLY .IO KIDS GET
  1.67- 2.50s  scene: list item 1: SCHOOL WI-FI LAG
@@ -13,4 +13,5 @@ s07_io_kids: 10.0s, 108 BPM, 1080x1920 30fps
  5.00- 7.78s  scene: payoff: the same board now in Turf Loop: Neon Pulse skin, Fireworks capture effect, friends' avatars; loop home +N at ~0.4 s, cut pink's trail at ~2.2 s (K.O.!), crowned
  6.39- 7.78s  text: CROSS THEIRS = K.O.
  7.78-10.00s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, YOUR .IO NAME?
-sound effects: 26 cues; music: {'mode': 'minor', 'root': 57, 'seed': 411, 'prog': [0, 3, 5, 4], 'sections': [(0, 3, {'bass', 'kick', 'arp', 'hat'}), (3, 14, {'bass', 'snare', 'lead', 'hat', 'kick', 'arp'}), (14, 22, {'bass', 'kick', 'arp', 'hat'})]}
+10.00-11.67s  scene: CODE CARD: PAPERIO typed into a code box, REDEEM, reward: RETRO LAB SKIN +1000 coins +0 gems, WORKS AT LAUNCH
+sound effects: 36 cues; music: {'mode': 'minor', 'root': 57, 'seed': 411, 'prog': [0, 3, 5, 4], 'sections': [(0, 3, {'bass', 'hat', 'kick', 'arp'}), (3, 14, {'lead', 'bass', 'snare', 'hat', 'kick', 'arp'}), (14, 22, {'bass', 'hat', 'kick', 'arp'}), (18, 22, {'bass', 'snare', 'hat', 'kick', 'arp'})]}

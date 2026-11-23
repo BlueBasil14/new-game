@@ -804,3 +804,14 @@ Per video:
 **Pattern (now 69 grades; one 7, s10).** The teaching plate moved clarity up only in s11 and s16 (to 6). New repeated complaints: option chips on the end card are too small (all four), and stacked text blocks in the hook (three of four). Next run's shared fixes: 2x-tall filled option buttons in `avatar_end`, and never more than 2 text blocks in the first second (the teach plate comes in after 0.9 s).
 
 Next run: s11 and s12 (last rounds), s13 (R5), s16 (R2). s15 is at R1, s14 at R1, s09 at R3 and s06 at R4. Then idea #21 (Pick a Colour, Get Your Playstyle).
+
+## Promo codes (2026-11-22, owner request)
+Every video now ends with a 3-beat code card: the code is typed in, REDEEM is pressed, the reward is shown, then "WORKS AT LAUNCH". The card comes from `code_card` in hype.py through `END_HOOKS`.
+- One code per theme (`CODE_FOR`):
+  - PAPERIO (nostalgia and cosmetic videos): Retro Lab skin + 1,000 coins.
+  - NEONRUSH (pass and progression): Rush Hour trail + 25 gems.
+  - KINGME (crown and fights): Royal Carpet skin + 25 gems.
+  - BIGLOOP (strategy): 2,500 coins.
+- New videos default to PAPERIO.
+- `c01_launch_codes` is new: all four codes in one video. Not graded yet.
+- The codes are NOT in the game yet. They are item 0 of the queue in docs/HANDOFF.md. Don't post anything until they work.

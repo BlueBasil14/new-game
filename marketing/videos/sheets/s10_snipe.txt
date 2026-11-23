@@ -1,4 +1,4 @@
-s10_snipe: 9.7s, 108 BPM, 1080x1920 30fps
+s10_snipe: 11.4s, 108 BPM, 1080x1920 30fps
  0.00- 0.83s  text: ONE STEP = K.O.
  0.00- 1.94s  scene: HOOK: 16x16 board, YOU (Magma Surge legendary) waits beside pink's long trail (marked THEIR TRAIL, crosshair on the strike cell); on the drop at 0.83 s YOU steps in: K.O.! on pink, SNIPED! stamp
  0.83s  STAMP: SNIPED! (+shake, flash)
@@ -10,4 +10,5 @@ s10_snipe: 9.7s, 108 BPM, 1080x1920 30fps
  5.00s  STAMP: SNIPED! (+shake, flash)
  5.83- 7.50s  text: THEN LOOP HOME
  7.50- 9.72s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, SNIPER OR GREEDY?
-sound effects: 18 cues; music: {'mode': 'minor', 'root': 55, 'seed': 714, 'prog': [0, 5, 6, 4], 'sections': [(0, 1.5, {'kick', 'hat'}), (1.5, 3.5, {'bass', 'snare', 'lead', 'hat', 'kick', 'arp'}), (3.5, 4, {'kick'}), (4, 8.5, {'bass', 'kick', 'hat'}), (8.5, 13, {'bass', 'snare', 'lead', 'hat', 'kick', 'arp'}), (13, 22, {'bass', 'kick', 'arp', 'hat'})]}
+ 9.72-11.39s  scene: CODE CARD: KINGME typed into a code box, REDEEM, reward: ROYAL CARPET SKIN +0 coins +25 gems, WORKS AT LAUNCH
+sound effects: 27 cues; music: {'mode': 'minor', 'root': 55, 'seed': 714, 'prog': [0, 5, 6, 4], 'sections': [(0, 1.5, {'hat', 'kick'}), (1.5, 3.5, {'lead', 'bass', 'snare', 'hat', 'kick', 'arp'}), (3.5, 4, {'kick'}), (4, 8.5, {'bass', 'hat', 'kick'}), (8.5, 13, {'lead', 'bass', 'snare', 'hat', 'kick', 'arp'}), (13, 22, {'bass', 'hat', 'kick', 'arp'}), (17.5, 21.5, {'bass', 'snare', 'hat', 'kick', 'arp'})]}

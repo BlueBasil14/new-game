@@ -1,4 +1,4 @@
-s14_living_woodland: 12.2s, 108 BPM, 1080x1920 30fps
+s14_living_woodland: 13.9s, 108 BPM, 1080x1920 30fps
  0.00- 2.22s  scene: HOOK: 24x24 board, YOU on grass turf (Living Woodland) closes a huge loop at ~0.4 s: trees, rocks and mushrooms pop up across the new turf in a wave from the closing point; name card LIVING WOODLAND at 1.1 s
  0.00- 2.22s  text: YOUR TURF GROWS A FOREST
  2.22- 5.14s  text: GET HOME. DON'T GET CUT!
@@ -8,4 +8,5 @@ s14_living_woodland: 12.2s, 108 BPM, 1080x1920 30fps
  6.11- 8.33s  scene: 3: close-up of grass turf, big pixel trees, rocks and mushrooms pop in two per beat while your avatar walks across; name card LIVING WOODLAND / LEGENDARY BIOME
  6.11- 8.33s  text: TREES. ROCKS. MUSHROOMS.
  8.33-12.22s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, FOREST OR NEON?
-sound effects: 27 cues; music: {'mode': 'major', 'root': 65, 'seed': 1418, 'prog': [0, 5, 3, 4], 'sections': [(0, 4, {'lead', 'hat', 'arp', 'bass', 'kick', 'snare'}), (4, 9, {'hat', 'arp', 'bass', 'kick'}), (9, 11, {'lead', 'hat', 'arp', 'bass', 'kick', 'snare'}), (11, 15, {'lead', 'hat', 'bass', 'kick', 'snare'}), (15, 22, {'hat', 'arp', 'bass', 'kick'})]}
+12.22-13.89s  scene: CODE CARD: PAPERIO typed into a code box, REDEEM, reward: RETRO LAB SKIN +1000 coins +0 gems, WORKS AT LAUNCH
+sound effects: 37 cues; music: {'mode': 'major', 'root': 65, 'seed': 1418, 'prog': [0, 5, 3, 4], 'sections': [(0, 4, {'lead', 'bass', 'snare', 'hat', 'kick', 'arp'}), (4, 9, {'bass', 'hat', 'kick', 'arp'}), (9, 11, {'lead', 'bass', 'snare', 'hat', 'kick', 'arp'}), (11, 15, {'lead', 'bass', 'snare', 'hat', 'kick'}), (15, 22, {'bass', 'hat', 'kick', 'arp'}), (22, 26, {'bass', 'snare', 'hat', 'kick', 'arp'})]}

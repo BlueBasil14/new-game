@@ -8,6 +8,7 @@ from PIL import Image, ImageDraw, ImageOps
 
 sys.path.insert(0, os.path.dirname(__file__))
 from engine import *  # noqa: E402,F403
+import hype  # noqa: E402,F401  (registers the promo-code card after every end card)
 
 ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 OUT = os.path.join(ROOT, "marketing", "videos", "out")

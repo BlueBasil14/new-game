@@ -1,4 +1,4 @@
-s16_brain_on_turf: 11.7s, 108 BPM, 1080x1920 30fps
+s16_brain_on_turf: 13.3s, 108 BPM, 1080x1920 30fps
  0.00- 2.22s  scene: HOOK: 24x24 board, YOU (Prism Storm legendary) closes a huge loop at ~0.4 s: +N, Lightning capture effect; under the board a pixel brain + FEEL-GOOD meter jumps to 35% with a white flash; big plated LOOP HOME = YOUR LAND
  0.00- 2.22s  text: WHY DOES THIS FEEL SO GOOD?
  2.22- 4.44s  scene: 1 CLOSURE: 16x16, YOU (Neon Pulse) draws a long open trail (the closing cell pulses), the loop snaps shut at 2.75 beats: claim +N, meter +20%, the CLOSURE chip lights green
@@ -9,4 +9,5 @@ s16_brain_on_turf: 11.7s, 108 BPM, 1080x1920 30fps
  6.67- 8.89s  scene: 3 REWARD: YOU in Magma Surge (legendary, animated) with a Rainbow Streak trail closes at 1.25 beats: Fireworks capture effect, meter hits MAX!, REWARD chip lights gold, MAGMA SURGE / LEGENDARY name card on the board top
  6.67- 8.89s  text: 3. REWARD: EPIC SKINS
  8.89-11.67s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, WHICH HOOKS YOU?
-sound effects: 22 cues; music: {'mode': 'major', 'root': 62, 'seed': 2016, 'prog': [0, 5, 3, 4], 'sections': [(0, 4, {'snare', 'kick', 'bass', 'hat', 'arp', 'lead'}), (4, 8, {'bass', 'hat', 'arp', 'kick'}), (8, 12, {'bass', 'hat', 'kick'}), (12, 16, {'snare', 'kick', 'bass', 'hat', 'arp', 'lead'}), (16, 22, {'bass', 'hat', 'arp', 'kick'})]}
+11.67-13.33s  scene: CODE CARD: BIGLOOP typed into a code box, REDEEM, reward:  +2500 coins +0 gems, WORKS AT LAUNCH
+sound effects: 32 cues; music: {'mode': 'major', 'root': 62, 'seed': 2016, 'prog': [0, 5, 3, 4], 'sections': [(0, 4, {'lead', 'bass', 'snare', 'hat', 'kick', 'arp'}), (4, 8, {'bass', 'hat', 'kick', 'arp'}), (8, 12, {'bass', 'hat', 'kick'}), (12, 16, {'lead', 'bass', 'snare', 'hat', 'kick', 'arp'}), (16, 22, {'bass', 'hat', 'kick', 'arp'}), (21, 25, {'bass', 'snare', 'hat', 'kick', 'arp'})]}

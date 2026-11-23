@@ -1,4 +1,4 @@
-s08_teacher: 8.5s, 108 BPM, 1080x1920 30fps
+s08_teacher: 10.2s, 108 BPM, 1080x1920 30fps
  0.00- 1.11s  scene: HOOK: live Turf Loop match (follow camera, Neon Pulse skin), your loop closes at ~0.3 s (+N); a big teacher avatar is already sliding in from the right at frame 0 with a TEACHER! tag
  0.00- 1.11s  text: TEACHER INCOMING. ALT+TAB!
  1.11- 1.94s  scene: hard cut: the panic spreadsheet (BOOK1.XLS), corner tag hidden
@@ -9,4 +9,5 @@ s08_teacher: 8.5s, 108 BPM, 1080x1920 30fps
  3.61- 6.28s  scene: payoff: no teacher; a huge open loop along the top of the map closes at ~0.7 s for +140 with triple Fireworks, crowned
  4.94- 6.28s  text: NO TEACHER. JUST LOOPS.
  6.28- 8.50s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, EVER CAUGHT?
-sound effects: 16 cues; music: {'mode': 'minor', 'root': 60, 'seed': 512, 'prog': [0, 5, 3, 4], 'sections': [(0, 2, {'bass', 'kick', 'arp', 'hat'}), (2, 3.5, {'kick'}), (3.5, 6.5, {'bass', 'snare', 'hat', 'kick', 'arp'}), (6.5, 7.6, {'kick'}), (7.6, 12.4, {'bass', 'snare', 'lead', 'hat', 'kick', 'arp'}), (12.4, 22, {'bass', 'kick', 'arp', 'hat'})]}
+ 8.50-10.17s  scene: CODE CARD: PAPERIO typed into a code box, REDEEM, reward: RETRO LAB SKIN +1000 coins +0 gems, WORKS AT LAUNCH
+sound effects: 26 cues; music: {'mode': 'minor', 'root': 60, 'seed': 512, 'prog': [0, 5, 3, 4], 'sections': [(0, 2, {'bass', 'hat', 'kick', 'arp'}), (2, 3.5, {'kick'}), (3.5, 6.5, {'bass', 'snare', 'hat', 'kick', 'arp'}), (6.5, 7.6, {'kick'}), (7.6, 12.4, {'lead', 'bass', 'snare', 'hat', 'kick', 'arp'}), (12.4, 22, {'bass', 'hat', 'kick', 'arp'}), (15.3, 19.3, {'bass', 'snare', 'hat', 'kick', 'arp'})]}

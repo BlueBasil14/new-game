@@ -1,4 +1,4 @@
-v02_zero_to_hundred: 15.0s, 120 BPM, 1080x1920 30fps
+v02_zero_to_hundred: 16.5s, 120 BPM, 1080x1920 30fps
  0.00- 1.00s  scene: cold open: the finished, fully blue 100% map
  0.00- 1.00s  text: HOW FAST CAN YOU TAKE THE WHOLE MAP?
  0.00s  STAMP: 100% (+shake, flash)
@@ -12,4 +12,5 @@ v02_zero_to_hundred: 15.0s, 120 BPM, 1080x1920 30fps
 11.00-12.50s  scene: 100% stamp, my time 1:50, +5,000 coins
 11.00s  STAMP: 100% (+shake, flash)
 12.50-15.00s  scene: end card: logo, live mini-match, COMING SOON TO ROBLOX / BEAT 1:50? / COMMENT YOUR TIME
-sound effects: 75 cues; music: {'mode': 'major', 'root': 60, 'seed': 22, 'sections': [(0, 2, {'hat', 'kick'}), (2, 24, {'hat', 'snare', 'bass', 'lead', 'arp', 'kick'}), (24, 30, {'hat', 'snare', 'bass', 'lead', 'kick'})]}
+15.00-16.50s  scene: CODE CARD: BIGLOOP typed into a code box, REDEEM, reward:  +2500 coins +0 gems, WORKS AT LAUNCH
+sound effects: 85 cues; music: {'mode': 'major', 'root': 60, 'seed': 22, 'sections': [(0, 2, {'hat', 'kick'}), (2, 24, {'bass', 'arp', 'hat', 'kick', 'lead', 'snare'}), (24, 30, {'bass', 'hat', 'kick', 'lead', 'snare'}), (30, 34, {'bass', 'arp', 'hat', 'kick', 'snare'})]}

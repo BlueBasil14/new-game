@@ -1,4 +1,4 @@
-v06_greed_meter: 13.8s, 128 BPM, 1080x1920 30fps
+v06_greed_meter: 15.2s, 128 BPM, 1080x1920 30fps
  0.00- 0.82s  text: HOW BIG IS TOO BIG?
  0.00- 1.64s  scene: cold open (board zoomed to 70% of the height): the greedy loop at max greed, red steps onto it, CUT at 0.59 s (freeze + zoom), turf goes to 0%, held to 1.6 s
  0.59s  STAMP: CUT! (+shake, flash)
@@ -11,4 +11,5 @@ v06_greed_meter: 13.8s, 128 BPM, 1080x1920 30fps
  9.73-11.02s  text: KNOW WHEN TO GO HOME.
  9.73s  STAMP: K.O.! (+shake, flash)
 11.02-13.83s  scene: end card: logo, live mini-match, COMING SOON TO ROBLOX / HOW BIG DO YOU GO? / FOLLOW TO PLAY FIRST
-sound effects: 30 cues; music: {'mode': 'minor', 'root': 52, 'seed': 66, 'sections': [(0, 3.5, {'arp', 'hat', 'bass', 'kick'}), (3.5, 21, {'hat', 'snare', 'bass', 'lead', 'arp', 'kick'}), (21, 23.5, {'bass'}), (23.5, 29.5, {'hat', 'snare', 'bass', 'lead', 'kick'})]}
+13.83-15.23s  scene: CODE CARD: BIGLOOP typed into a code box, REDEEM, reward:  +2500 coins +0 gems, WORKS AT LAUNCH
+sound effects: 40 cues; music: {'mode': 'minor', 'root': 52, 'seed': 66, 'sections': [(0, 3.5, {'bass', 'arp', 'hat', 'kick'}), (3.5, 21, {'bass', 'arp', 'hat', 'kick', 'lead', 'snare'}), (21, 23.5, {'bass'}), (23.5, 29.5, {'bass', 'hat', 'kick', 'lead', 'snare'}), (29.5, 33.5, {'bass', 'arp', 'hat', 'kick', 'snare'})]}

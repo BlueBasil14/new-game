@@ -1,4 +1,4 @@
-v03_how_to_play: 10.0s, 120 BPM, 1080x1920 30fps
+v03_how_to_play: 11.5s, 120 BPM, 1080x1920 30fps
  0.00- 1.00s  scene: cold open, zoomed so the board fills 70% of the height: the big loop closes and floods at 0.12s
  0.00- 1.00s  text: TURF LOOP IN 10 SECONDS
  0.12s  STAMP: MINE! (+shake, flash)
@@ -12,4 +12,5 @@ v03_how_to_play: 10.0s, 120 BPM, 1080x1920 30fps
  6.50- 8.00s  text: 5. MOST TURF = THE CROWN
  6.50s  STAMP: KING! (+shake, flash)
  8.00-10.00s  scene: end card: logo, live mini-match, COMING SOON TO ROBLOX / WHICH STEP DO YOU FORGET? / FOLLOW TO PLAY FIRST
-sound effects: 20 cues; music: {'mode': 'major', 'root': 62, 'seed': 33, 'sections': [(0, 2, {'arp', 'hat', 'kick'}), (2, 16, {'hat', 'snare', 'bass', 'lead', 'arp', 'kick'}), (16, 20, {'hat', 'snare', 'bass', 'lead', 'kick'})]}
+10.00-11.50s  scene: CODE CARD: BIGLOOP typed into a code box, REDEEM, reward:  +2500 coins +0 gems, WORKS AT LAUNCH
+sound effects: 30 cues; music: {'mode': 'major', 'root': 62, 'seed': 33, 'sections': [(0, 2, {'arp', 'hat', 'kick'}), (2, 16, {'bass', 'arp', 'hat', 'kick', 'lead', 'snare'}), (16, 20, {'bass', 'hat', 'kick', 'lead', 'snare'}), (20, 24, {'bass', 'arp', 'hat', 'kick', 'snare'})]}

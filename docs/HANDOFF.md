@@ -20,6 +20,23 @@ Two read-only reviews found **four Critical** problems (free gamepasses by spoof
 Paid Sky Chest spin, strength of 2x Speed, bot tag, Starter Pack repeats, week-two content, title, art briefs for the grey floor. Do not decide these for him; do apply his answers quickly.
 
 ## 5. Queue, in order
+0. **Promo codes from the videos: do this first (owner, 2026-11-22: "next time we work on the game we put those codes in").** Every promo short in `marketing/videos/` ends on a code card that says "WORKS AT LAUNCH", so these must work before any video is posted.
+   - Codes (the video side is `PROMO_CODES` in `tools/video/hype.py`):
+     - `PAPERIO`: Retro Lab skin + 1,000 coins.
+     - `NEONRUSH`: Rush Hour trail + 25 gems.
+     - `KINGME`: Royal Carpet skin + 25 gems.
+     - `BIGLOOP`: 2,500 coins.
+   - New code-only cosmetics in `Catalog.luau`: exclusive tier, `source = "code"`, never sold, shown in the shop's Exclusive section as "Code".
+     - skin `code_retro_lab` "Retro Lab": #3DDC84 / #0F2A1A, checker.
+     - trail `code_rush_hour` "Rush Hour": #FF2E9A / #FFE14D, stripes.
+     - skin `code_royal_carpet` "Royal Carpet": #B3261E / #FFC83D, stars.
+   - Today `Catalog.codes` rewards are a single currency (`{ currency, amount }`) and `RewardService.redeemCode` only calls `EconomyService.addCoins` or `addGems`. Change the type to allow coins + gems + item ids together, keeping the old shape working for RELEASE, TURF and CROWNRUSH. Grant items through the same path the battle pass uses for item rewards. If the item is already owned, still pay the currency. One redemption per player stays as it is (`profile.codes`).
+   - Log each redemption with its code (AnalyticsService custom event). Each code belongs to one kind of video (`CODE_FOR` in hype.py), so this shows which videos bring players.
+   - Tests:
+     - A spec for the reward shape.
+     - A headless redeem: item plus coins granted once, a second redeem rejected, an already-owned item still pays its currency.
+     - Then `check.mjs`, `xref`, `headless`, and a Studio redeem of each code.
+   - Ask the owner: should the codes expire (suggestion: 30 days after launch, through `Catalog.codeRelease`), and are the amounts right?
 1. Finish and verify the security fixes (section 3). Then one solo Studio pass on the local build: walk, claim, get cut, respawn, press Reset during a death, try to stand outside the wall. Honest play must produce no snap-backs.
 2. ~~Apply the owner's answers from `docs/DECISIONS.md`.~~ Done 2026-11-16 (see `docs/PROGRESS.md`).
 3. Done 2026-11-16 (commit 4ccf764). Balance changes from `docs/BALANCE.md` that need no owner input: rebirth growth 2 → 1.5 through a new `Config.Rebirth.Growth`; playtime rewards and the gentle-bot window keyed to the profile instead of the session; Sky Chest free rate; rare price. Each is a Config value or a small server change with a spec line.

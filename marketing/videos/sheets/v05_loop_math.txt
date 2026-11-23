@@ -1,4 +1,4 @@
-v05_loop_math: 16.0s, 120 BPM, 1080x1920 30fps
+v05_loop_math: 17.5s, 120 BPM, 1080x1920 30fps
  0.00- 2.00s  text: WHICH LOOP GETS MORE TURF? A OR B?
  0.00- 4.00s  scene: A (yellow strip) vs B (blue square), both 25-cell trails drawn at frame 1, cropped close; 3-2-1; close on beat 4: +34 vs +54
  0.50s  STAMP: 3 (+shake, flash)
@@ -13,4 +13,5 @@ v05_loop_math: 16.0s, 120 BPM, 1080x1920 30fps
  8.75-14.00s  scene: the meta: 3 quick small squares [23, 22, 50], risk bar stays low
  8.75-14.00s  text: SMALL + OFTEN: +95 SAFE VS 0
 14.00-16.00s  scene: end card: logo, live mini-match, COMING SOON TO ROBLOX / SQUARE OR GREEDY? / FOLLOW TO PLAY FIRST
-sound effects: 20 cues; music: {'mode': 'major', 'root': 60, 'seed': 55, 'prog': [0, 3, 4, 3], 'sections': [(0, 4, {'arp', 'hat', 'kick'}), (4, 28, {'hat', 'snare', 'bass', 'lead', 'arp', 'kick'}), (28, 32, {'hat', 'snare', 'bass', 'lead', 'kick'})]}
+16.00-17.50s  scene: CODE CARD: BIGLOOP typed into a code box, REDEEM, reward:  +2500 coins +0 gems, WORKS AT LAUNCH
+sound effects: 30 cues; music: {'mode': 'major', 'root': 60, 'seed': 55, 'prog': [0, 3, 4, 3], 'sections': [(0, 4, {'arp', 'hat', 'kick'}), (4, 28, {'bass', 'arp', 'hat', 'kick', 'lead', 'snare'}), (28, 32, {'bass', 'hat', 'kick', 'lead', 'snare'}), (32, 36, {'bass', 'arp', 'hat', 'kick', 'snare'})]}

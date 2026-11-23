@@ -1,4 +1,4 @@
-s05_head_on: 7.2s, 108 BPM, 1080x1920 30fps
+s05_head_on: 8.9s, 108 BPM, 1080x1920 30fps
  0.00- 0.83s  text: WHO WINS?
  0.00- 1.94s  scene: HOOK: 16x16 board, fixed camera on the meeting row: your avatar (Neon Pulse, YOU) and a rival (Candy Stripe, THEM) both run straight at each other with VS between them; heads meet on the same step: both K.O. (freeze + zoom), grey crossed-out ghosts stay where they met and both turfs vanish
  0.83- 1.94s  text: TIE = BOTH OUT
@@ -12,4 +12,5 @@ s05_head_on: 7.2s, 108 BPM, 1080x1920 30fps
  4.72- 5.28s  text: FIRST HOME WINS
  4.72s  STAMP: WINNER! (+shake, flash)
  5.28- 7.22s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, DRAW OR WIN?
-sound effects: 20 cues; music: {'mode': 'minor', 'root': 59, 'seed': 205, 'prog': [0, 5, 3, 6], 'sections': [(0, 3.5, {'bass', 'kick', 'arp', 'hat'}), (3.5, 5, {'kick', 'arp'}), (5, 9.5, {'bass', 'snare', 'lead', 'hat', 'kick', 'arp'}), (9.5, 22, {'bass', 'kick', 'arp', 'hat'})]}
+ 7.22- 8.89s  scene: CODE CARD: KINGME typed into a code box, REDEEM, reward: ROYAL CARPET SKIN +0 coins +25 gems, WORKS AT LAUNCH
+sound effects: 29 cues; music: {'mode': 'minor', 'root': 59, 'seed': 205, 'prog': [0, 5, 3, 6], 'sections': [(0, 3.5, {'bass', 'hat', 'kick', 'arp'}), (3.5, 5, {'kick', 'arp'}), (5, 9.5, {'lead', 'bass', 'snare', 'hat', 'kick', 'arp'}), (9.5, 22, {'bass', 'hat', 'kick', 'arp'}), (13.0, 17.0, {'bass', 'snare', 'hat', 'kick', 'arp'})]}

@@ -531,3 +531,19 @@ Shared hype.py: corner brand tag from frame 0, live mini-match behind every end 
 - New: s16_brain_on_turf (idea #20). A FEEL-GOOD meter beside a pixel brain fills on each claim, through three reasons shown in play: CLOSURE, RISK and REWARD. 108 BPM, 12.2 s.
 - Grades (subagents): s11 6, s12 6, s13 6, s16 6. There is still only one 7 (s10). Fix lists are in `marketing/videos/GRADES.md`. Next shared fixes: 2x-tall end-card option buttons, and at most 2 text blocks in the first second.
 - Checked: I read each contact sheet after rendering and fixed the layout bugs I found (plate overflow, the zoom crop, 3-line captions over the board). Not checked: audio by ear. Nothing was posted, and the game code is untouched.
+
+## Lead session, 2026-11-22: promo codes in the videos (owner request)
+- Owner asked for special codes in the videos that give limited skins, coins and gems, and for them to be added to the game in the next game session.
+- Video side (`tools/video/hype.py`, `engine.py`, `videos.py`):
+  - `PROMO_CODES` / `CODE_FOR`.
+  - A code card after every end card (engine `END_HOOKS`; `videos.py` imports hype to register it).
+  - `c01_launch_codes` with all four codes.
+  - All 23 videos re-rendered, each ends on its code.
+- Codes:
+  - PAPERIO: Retro Lab skin + 1,000 coins.
+  - NEONRUSH: Rush Hour trail + 25 gems.
+  - KINGME: Royal Carpet skin + 25 gems.
+  - BIGLOOP: 2,500 coins.
+  - Amounts are in line with the existing codes (RELEASE 1,000 coins, TURF 25 gems, CROWNRUSH 50 gems).
+- Game side NOT done, as the owner asked: it is queue item 0 in `docs/HANDOFF.md`, with the full spec. The current code reward type only supports one currency, so item rewards plus 3 code-only cosmetics are needed.
+- Open for the owner: should the codes expire (suggestion: 30 days after launch), and are the amounts right?

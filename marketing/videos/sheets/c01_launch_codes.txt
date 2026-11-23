@@ -1,0 +1,9 @@
+c01_launch_codes: 10.0s, 108 BPM, 1080x1920 30fps
+ 0.00- 1.11s  scene: HOOK: 4 FREE CODES / SKINS. TRAILS. COINS. GEMS. with a crowned avatar
+ 0.00- 1.11s  text: SAVE THIS FOR LAUNCH DAY
+ 1.11- 2.78s  scene: code 1/4: PAPERIO
+ 2.78- 4.44s  scene: code 2/4: KINGME
+ 4.44- 6.11s  scene: code 3/4: NEONRUSH
+ 6.11- 7.78s  scene: code 4/4: BIGLOOP
+ 7.78-10.00s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, WHICH CODE FIRST?
+sound effects: 41 cues; music: {'mode': 'major', 'root': 62, 'seed': 101, 'sections': [(0, 2, {'kick', 'arp', 'hat'}), (2, 20, {'kick', 'hat', 'snare', 'lead', 'arp', 'bass'})]}

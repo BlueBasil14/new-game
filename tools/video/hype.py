@@ -812,6 +812,89 @@ def avatar_end(v, b0, b1, skin=("#FF2E9A", "#00F0FF", "stripes", "pulse"), line=
     v.scene(b0, b1, fn, "end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST" + (f", {ask}" if ask else ""))
     v.sound(b0, "hit")
     v.sound(b0 + 0.02, "crown")
+    for hk in END_HOOKS:
+        hk(v, b1)
+
+
+# ------------------------------------------------------------ promo codes (owner 2026-11-22). NOT IN THE GAME YET:
+# docs/HANDOFF.md queue item "Promo codes from the videos" adds them (item rewards + 3 code-only cosmetics).
+PROMO_CODES = {  # code -> (item label, item kind, colours a/b, pattern, anim, coins, gems)
+    "PAPERIO": ("RETRO LAB SKIN", "skin", "#3DDC84", "#0F2A1A", "checker", None, 1000, 0),
+    "NEONRUSH": ("RUSH HOUR TRAIL", "trail", "#FF2E9A", "#FFE14D", "stripes", "flow", 0, 25),
+    "KINGME": ("ROYAL CARPET SKIN", "skin", "#B3261E", "#FFC83D", "stars", None, 0, 25),
+    "BIGLOOP": (None, None, None, None, None, None, 2500, 0),
+}
+CODE_FOR = {  # video id -> code (one code per theme, so redemptions show which kind of video brings players)
+    "v01": "PAPERIO", "v04": "PAPERIO", "s01": "PAPERIO", "s02": "PAPERIO", "s07": "PAPERIO", "s08": "PAPERIO",
+    "s13": "PAPERIO", "s14": "PAPERIO",
+    "s03": "NEONRUSH", "s11": "NEONRUSH", "s12": "NEONRUSH", "s15": "NEONRUSH",
+    "v07": "KINGME", "s04": "KINGME", "s05": "KINGME", "s06": "KINGME", "s10": "KINGME",
+    "v02": "BIGLOOP", "v03": "BIGLOOP", "v05": "BIGLOOP", "v06": "BIGLOOP", "s09": "BIGLOOP", "s16": "BIGLOOP",
+}
+CODE_BEATS = 3
+
+
+def draw_code(img, v, code, tl, tg):
+    """Pixel code box: the code types in on 16ths, REDEEM is pressed, the reward pops."""
+    label, kind, a, b, pat, anim, coins, gems = PROMO_CODES[code]
+    bg_checker(img, tg, c1=(40, 30, 10), c2=(60, 46, 14), speed=18)
+    d = ImageDraw.Draw(img)
+    draw_lines(img, "FREE CODE", 44, 4, YELLOW, DARK)
+    d.rectangle((16, 92, W - 17, 146), fill=WHITE, outline=DARK, width=4)
+    n = min(len(code), int(tl / (v.spb / 4)) + 1)
+    cur = "_" if int(tg * 4) % 2 == 0 and n < len(code) else ""
+    draw_text(img, code[:n] + cur, W / 2, 106, 4 if len(code) <= 8 else 3, DARK, None)
+    pressed = tl >= v.b(1.25)
+    g = 3 if pressed else 0
+    d.rectangle((60, 158 + g, W - 61, 192 + g), fill=shade(GREEN, 0.8) if pressed else GREEN, outline=DARK, width=3)
+    draw_text(img, "REDEEM", W / 2, 166 + g, 3, DARK, None)
+    if tl >= v.b(1.5):
+        k = ease_back(min(1.0, (tl - v.b(1.5)) / 0.25))
+        y = 206
+        if kind:
+            w_, h_ = int(170 * k), int(110 * k)
+            if w_ > 4:
+                pad = skin_board(w_, h_, a, b, pat, anim, tg)
+                img.paste(pad, (int(W / 2 - w_ / 2), y))
+                d.rectangle((W / 2 - w_ / 2 - 2, y - 2, W / 2 + w_ / 2 + 1, y + h_ + 1), outline=GOLD, width=3)
+                avatar(img, W / 2, y + h_ - 8, ((255, 206, 160), (70, 45, 30), (79, 139, 255), (43, 47, 58)), tg, moving=True, s=4)
+            draw_text(img, label, W / 2, y + 118, 2, GOLD, DARK)
+            draw_text(img, "CODE EXCLUSIVE", W / 2, y + 140, 1, CREAM, None)
+            y += 158
+        else:
+            y += 30
+        chips = ([f"+{coins:,} COINS"] if coins else []) + ([f"+{gems} GEMS"] if gems else [])
+        for i, c in enumerate(chips):
+            draw_text(img, c, W / 2, y + i * 30, 3 if not kind else 2, YELLOW if "COINS" in c else GEM, DARK)
+        if not kind:
+            for j, (dx, dy) in enumerate(((-34, 18), (34, 18), (0, 0))):  # a little pile of game coins
+                d.ellipse((W / 2 + dx - 26, 330 + dy, W / 2 + dx + 26, 382 + dy), fill=YELLOW, outline=DARK, width=4)
+                d.ellipse((W / 2 + dx - 14, 342 + dy, W / 2 + dx + 14, 370 + dy), outline=shade(YELLOW, 0.75), width=3)
+    draw_lines(img, "WORKS AT LAUNCH", 440, 2, WHITE, DARK)
+
+
+def code_card(v, b_end, code=None):
+    """Tail scene after the end card: the video's promo code (CODE_FOR) typed, redeemed and revealed."""
+    code = code or CODE_FOR.get(v.name.split("_")[0], "PAPERIO")  # new videos default to the flagship code
+    if not code:
+        return
+    v.scene(b_end, b_end + CODE_BEATS, lambda img, tl, tg: draw_code(img, v, code, tl, tg),
+            f"CODE CARD: {code} typed into a code box, REDEEM, reward: {PROMO_CODES[code][0] or ''} "
+            f"+{PROMO_CODES[code][6]} coins +{PROMO_CODES[code][7]} gems, WORKS AT LAUNCH")
+    v.flash(b_end, YELLOW, 0.1)
+    for i in range(len(code)):
+        v.sound(b_end + i / 4, "blip")
+    v.sound(b_end + 1.25, "click")
+    v.sound(b_end + 1.5, "levelup")
+    v.sound(b_end + 1.75, "coin")
+    v.min_dur = v.b(b_end + CODE_BEATS)
+    secs = (v.music or {}).get("sections") if isinstance(v.music, dict) else None
+    if secs is not None:
+        secs.append((b_end, b_end + CODE_BEATS + 1, {"kick", "snare", "hat", "bass", "arp"}))
+
+
+if code_card not in END_HOOKS:
+    END_HOOKS.append(code_card)
 
 
 def skin_of(skin):
@@ -2978,7 +3061,39 @@ def s16():
     v.dur = v.b(C + 9)
     return v
 
-ALL = {"s01": s01, "s02": s02, "s03": s03, "s04": s04, "s05": s05, "s06": s06, "s07": s07, "s08": s08, "s09": s09, "s10": s10, "s11": s11, "s12": s12, "s13": s13, "s14": s14, "s15": s15, "s16": s16}
+# ============================================================ c01 Launch codes (all four promo codes)
+def c01():
+    v = Video("c01_launch_codes", 108, 2 + 4 * CODE_BEATS + 4, music=dict(mode="major", root=62, seed=101, sections=[
+        (0, 2, {"kick", "hat", "arp"}), (2, 20, {"kick", "snare", "hat", "bass", "arp", "lead"})]))
+
+    def hook(img, tl, tg):
+        bg_checker(img, tg, c1=(40, 30, 10), c2=(60, 46, 14), speed=30)
+        k = ease_back(min(1.0, tl / 0.3))
+        draw_lines(img, "4 FREE CODES", 170 - (1 - k) * 60, 5, YELLOW, DARK)
+        draw_lines(img, "SKINS. TRAILS. COINS. GEMS.", 280, 3, WHITE, DARK)
+        avatar(img, W / 2, 420, OUTFITS[1], tg, moving=True, s=4, king=True)
+
+    v.scene(0, 2, hook, "HOOK: 4 FREE CODES / SKINS. TRAILS. COINS. GEMS. with a crowned avatar")
+    v.caption(0, 2, "SAVE THIS FOR LAUNCH DAY", y=58, size=3, color=WHITE)
+    v.sound(0, "hit")
+    for i, code in enumerate(("PAPERIO", "KINGME", "NEONRUSH", "BIGLOOP")):
+        b0 = 2 + i * CODE_BEATS
+        v.scene(b0, b0 + CODE_BEATS, (lambda c: lambda img, tl, tg: draw_code(img, v, c, tl, tg))(code), f"code {i + 1}/4: {code}")
+        v.flash(b0, YELLOW, 0.08)
+        for j in range(len(code)):
+            v.sound(b0 + j / 4, "blip")
+        v.sound(b0 + 1.25, "click")
+        v.sound(b0 + 1.5, "levelup")
+    end = 2 + 4 * CODE_BEATS
+    END_HOOKS.remove(code_card)  # this video IS the codes: no extra code card after its end card
+    try:
+        avatar_end(v, end, end + 4, skin=("#3DDC84", "#0F2A1A", "checker", None), ask="WHICH CODE FIRST?")
+    finally:
+        END_HOOKS.append(code_card)
+    return v
+
+
+ALL = {"c01": c01, "s01": s01, "s02": s02, "s03": s03, "s04": s04, "s05": s05, "s06": s06, "s07": s07, "s08": s08, "s09": s09, "s10": s10, "s11": s11, "s12": s12, "s13": s13, "s14": s14, "s15": s15, "s16": s16}
 
 if __name__ == "__main__":
     for n in sys.argv[1:] or list(ALL):

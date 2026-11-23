@@ -1,4 +1,4 @@
-s01_skins_hype: 23.6s, 108 BPM, 1080x1920 30fps
+s01_skins_hype: 25.3s, 108 BPM, 1080x1920 30fps
  0.00- 1.39s  text: REMEMBER PLAYING PAPER.IO IN CLASS?
  0.00- 2.22s  scene: HOOK: big green retro school-computer screen; a square closes its loop on beat 1 (+N at 0.56 s); CRT powers off at 1.9 s
  1.39- 2.22s  text: IT GREW UP...
@@ -12,4 +12,5 @@ s01_skins_hype: 23.6s, 108 BPM, 1080x1920 30fps
 18.06-19.72s  text: YOUR TURF GROWS A FOREST
 19.72-21.39s  scene: comment bait: WHICH ONE ARE YOU GETTING? above all 8 skins tiled, COMMENT A NUMBER
 21.39-23.61s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST
-sound effects: 42 cues; music: {'mode': 'major', 'root': 60, 'seed': 77, 'prog': [0, 5, 3, 4], 'sections': [(0, 3.5, {'kick', 'arp', 'hat'}), (3.5, 4, set()), (4, 18, {'bass', 'snare', 'lead', 'hat', 'kick', 'arp'}), (18, 26, {'bass', 'snare', 'lead', 'hat', 'kick', 'arp'}), (26, 39, {'bass', 'snare', 'lead', 'hat', 'kick', 'arp'}), (39, 43, {'bass', 'snare', 'lead', 'hat', 'kick'})]}
+23.61-25.28s  scene: CODE CARD: PAPERIO typed into a code box, REDEEM, reward: RETRO LAB SKIN +1000 coins +0 gems, WORKS AT LAUNCH
+sound effects: 52 cues; music: {'mode': 'major', 'root': 60, 'seed': 77, 'prog': [0, 5, 3, 4], 'sections': [(0, 3.5, {'hat', 'kick', 'arp'}), (3.5, 4, set()), (4, 18, {'lead', 'bass', 'snare', 'hat', 'kick', 'arp'}), (18, 26, {'lead', 'bass', 'snare', 'hat', 'kick', 'arp'}), (26, 39, {'lead', 'bass', 'snare', 'hat', 'kick', 'arp'}), (39, 43, {'lead', 'bass', 'snare', 'hat', 'kick'}), (42.5, 46.5, {'bass', 'snare', 'hat', 'kick', 'arp'})]}

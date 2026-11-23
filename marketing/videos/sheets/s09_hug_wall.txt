@@ -1,4 +1,4 @@
-s09_hug_wall: 10.8s, 108 BPM, 1080x1920 30fps
+s09_hug_wall: 12.5s, 108 BPM, 1080x1920 30fps
  0.00- 1.39s  scene: HOOK: 16x16 board, your avatar (Neon Pulse) closes a loop along the glowing left wall at ~0.4 s (+N, Fireworks); thick glowing wall strip with a big WALL label
  0.00- 1.39s  text: PRO TIP: HUG THE WALL
  1.39- 3.06s  text: OPEN FIELD = 4 SIDES TO GUARD
@@ -11,4 +11,5 @@ s09_hug_wall: 10.8s, 108 BPM, 1080x1920 30fps
  6.78s  STAMP: TOO LATE! (+shake, flash)
  7.22- 8.33s  text: SAME TIP. YOUR SKIN.
  8.33-10.83s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, YOUR BEST TIP?
-sound effects: 17 cues; music: {'mode': 'minor', 'root': 62, 'seed': 613, 'prog': [0, 6, 3, 4], 'sections': [(0, 2.5, {'bass', 'kick', 'arp', 'hat'}), (2.5, 7, {'bass', 'snare', 'hat', 'kick', 'arp'}), (7, 7.5, {'kick'}), (7.5, 15, {'bass', 'snare', 'lead', 'hat', 'kick', 'arp'}), (15, 24, {'bass', 'kick', 'arp', 'hat'})]}
+10.83-12.50s  scene: CODE CARD: BIGLOOP typed into a code box, REDEEM, reward:  +2500 coins +0 gems, WORKS AT LAUNCH
+sound effects: 27 cues; music: {'mode': 'minor', 'root': 62, 'seed': 613, 'prog': [0, 6, 3, 4], 'sections': [(0, 2.5, {'bass', 'hat', 'kick', 'arp'}), (2.5, 7, {'bass', 'snare', 'hat', 'kick', 'arp'}), (7, 7.5, {'kick'}), (7.5, 15, {'lead', 'bass', 'snare', 'hat', 'kick', 'arp'}), (15, 24, {'bass', 'hat', 'kick', 'arp'}), (19.5, 23.5, {'bass', 'snare', 'hat', 'kick', 'arp'})]}

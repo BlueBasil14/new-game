@@ -1,4 +1,4 @@
-s13_rate_my_trail: 11.1s, 108 BPM, 1080x1920 30fps
+s13_rate_my_trail: 12.8s, 108 BPM, 1080x1920 30fps
  0.00- 1.67s  scene: HOOK: 16x16 board, YOU (Prism Storm legendary, Stardust trail) closes a big loop at ~0.4 s: claim + Lightning + white flash + +N; lightning replays on beat 2; ?/10 chip pulses on the beat
  0.00- 1.67s  text: RATE MY TRAIL 1-10
  1.67- 3.33s  scene: 1: Galaxy Swirl rare turf, the loop closes with Bubbles and a white flash; chip ?/10 > 3/10?? (white on red, WHAT?! pop)
@@ -11,4 +11,5 @@ s13_rate_my_trail: 11.1s, 108 BPM, 1080x1920 30fps
  6.67- 8.33s  text: COMMENT YOUR SCORE!
  7.64s  STAMP: 10/10? (+shake, flash)
  8.33-11.11s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, YOUR SCORE 1-10?
-sound effects: 27 cues; music: {'mode': 'major', 'root': 64, 'seed': 1317, 'prog': [0, 3, 4, 5], 'sections': [(0, 3, {'lead', 'snare', 'bass', 'hat', 'arp', 'kick'}), (3, 9, {'kick', 'hat', 'bass', 'arp'}), (9, 15, {'snare', 'bass', 'hat', 'arp', 'kick'}), (15, 18, {'lead', 'snare', 'bass', 'hat', 'arp', 'kick'}), (18, 22, {'kick', 'hat', 'bass', 'arp'})]}
+11.11-12.78s  scene: CODE CARD: PAPERIO typed into a code box, REDEEM, reward: RETRO LAB SKIN +1000 coins +0 gems, WORKS AT LAUNCH
+sound effects: 37 cues; music: {'mode': 'major', 'root': 64, 'seed': 1317, 'prog': [0, 3, 4, 5], 'sections': [(0, 3, {'lead', 'bass', 'snare', 'hat', 'kick', 'arp'}), (3, 9, {'bass', 'hat', 'kick', 'arp'}), (9, 15, {'bass', 'snare', 'hat', 'kick', 'arp'}), (15, 18, {'lead', 'bass', 'snare', 'hat', 'kick', 'arp'}), (18, 22, {'bass', 'hat', 'kick', 'arp'}), (20, 24, {'bass', 'snare', 'hat', 'kick', 'arp'})]}

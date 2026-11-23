@@ -1,4 +1,4 @@
-v01_computer_lab: 12.0s, 120 BPM, 1080x1920 30fps
+v01_computer_lab: 13.5s, 120 BPM, 1080x1920 30fps
  0.00- 0.75s  text: REMEMBER THIS GAME?
  0.00- 2.50s  scene: classroom CRT fills the frame; a runner closes a big loop and floods it at beat 2; teacher walks past, ALT+TAB to a spreadsheet
  0.50s  STAMP: MINE! (+shake, flash)
@@ -18,4 +18,5 @@ v01_computer_lab: 12.0s, 120 BPM, 1080x1920 30fps
  9.00-10.00s  text: MOST TURF WEARS THE CROWN
  9.00s  STAMP: KING! (+shake, flash)
 10.00-12.00s  scene: end card: logo, live mini-match, COMING SOON TO ROBLOX / WHAT COLOR WERE YOU? / FOLLOW TO PLAY FIRST
-sound effects: 24 cues; music: {'mode': 'minor', 'root': 57, 'seed': 11, 'sections': [(0, 5, {'arp', 'hat', 'bass', 'kick'}), (5, 7, {'arp', 'hat'}), (7, 20, {'hat', 'snare', 'bass', 'lead', 'arp', 'kick'}), (20, 24, {'hat', 'snare', 'bass', 'lead', 'kick'})]}
+12.00-13.50s  scene: CODE CARD: PAPERIO typed into a code box, REDEEM, reward: RETRO LAB SKIN +1000 coins +0 gems, WORKS AT LAUNCH
+sound effects: 34 cues; music: {'mode': 'minor', 'root': 57, 'seed': 11, 'sections': [(0, 5, {'bass', 'arp', 'hat', 'kick'}), (5, 7, {'arp', 'hat'}), (7, 20, {'bass', 'arp', 'hat', 'kick', 'lead', 'snare'}), (20, 24, {'bass', 'hat', 'kick', 'lead', 'snare'}), (24, 28, {'bass', 'arp', 'hat', 'kick', 'snare'})]}

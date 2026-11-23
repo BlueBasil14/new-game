@@ -1,4 +1,4 @@
-s02_avatar_hype: 11.9s, 108 BPM, 1080x1920 30fps
+s02_avatar_hype: 13.6s, 108 BPM, 1080x1920 30fps
  0.00- 0.89s  text: REMEMBER PAPER.IO?
  0.00- 6.11s  scene: HOOK on the game: 24x24 match, camera zoomed 1.6x following YOU (Neon Pulse turf, solid cyan trail): your loop is 4 steps from closing (claim +N at ~0.9 s), yellow (DANGER! tag) arrives a beat too late, pink draws a trail (CUT IT! tag), you cut it (K.O.), claim again, crown
  0.89- 1.78s  text: LOOP HOME = IT'S YOURS
@@ -14,4 +14,5 @@ s02_avatar_hype: 11.9s, 108 BPM, 1080x1920 30fps
  8.06-10.28s  scene: wardrobe: the same YOU avatar on a pad that swaps skin on every beat (Galaxy Swirl, Magma Surge, Prism Storm, Starfall)
  8.06-10.28s  text: YOUR AVATAR. ANY SKIN.
 10.28-11.94s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST
-sound effects: 23 cues; music: {'mode': 'major', 'root': 62, 'seed': 88, 'prog': [0, 4, 5, 3], 'sections': [(0, 10.5, {'bass', 'snare', 'lead', 'hat', 'kick', 'arp'}), (10.5, 11, set()), (11, 19, {'bass', 'snare', 'lead', 'hat', 'kick', 'arp'}), (19, 22, {'bass', 'snare', 'lead', 'hat', 'kick'})]}
+11.94-13.61s  scene: CODE CARD: PAPERIO typed into a code box, REDEEM, reward: RETRO LAB SKIN +1000 coins +0 gems, WORKS AT LAUNCH
+sound effects: 33 cues; music: {'mode': 'major', 'root': 62, 'seed': 88, 'prog': [0, 4, 5, 3], 'sections': [(0, 10.5, {'lead', 'bass', 'snare', 'hat', 'kick', 'arp'}), (10.5, 11, set()), (11, 19, {'lead', 'bass', 'snare', 'hat', 'kick', 'arp'}), (19, 22, {'lead', 'bass', 'snare', 'hat', 'kick'}), (21.5, 25.5, {'bass', 'snare', 'hat', 'kick', 'arp'})]}

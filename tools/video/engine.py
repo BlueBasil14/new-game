@@ -822,6 +822,7 @@ class Video:
         tmp_v = os.path.join(out_dir, f"_{self.name}_v.mp4")
         tmp_a = os.path.join(out_dir, f"_{self.name}_a.wav")
         final = os.path.join(out_dir, f"{self.name}.mp4")
+        self.dur = max(self.dur, getattr(self, "min_dur", 0.0))  # tail scenes (code card) extend the video
         frames = int(self.dur * FPS)
         ff = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24",
                                "-s", f"{W}x{H}", "-r", str(FPS), "-i", "-", "-vf",
@@ -966,6 +967,9 @@ def arena_scene(video, ar, b0, x0, y0, cp, view=None, hero=None, fx=None, sim_sp
     return fn
 
 
+END_HOOKS = []  # called as hook(video, b_end) after every end card (hype.py adds the promo-code card)
+
+
 def end_card(video, b0, b1, line1="COMING SOON TO ROBLOX", line2="FOLLOW TO PLAY FIRST", line3=None,
              colors=(PLAYERS[7], PLAYERS[0])):
     t0 = video.b(b0)
@@ -992,6 +996,8 @@ def end_card(video, b0, b1, line1="COMING SOON TO ROBLOX", line2="FOLLOW TO PLAY
     video.scene(b0, b1, fn, "end card: logo, live mini-match, " + line1 + " / " + line2 + (" / " + line3 if line3 else ""))
     video.sound(b0, "hit")
     video.sound(b0 + 0.02, "crown")
+    for hk in END_HOOKS:
+        hk(video, b1)
 
 
 def path_from(points):

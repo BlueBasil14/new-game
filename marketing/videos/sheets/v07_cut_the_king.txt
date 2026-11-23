@@ -1,4 +1,4 @@
-v07_cut_the_king: 10.0s, 120 BPM, 1080x1920 30fps
+v07_cut_the_king: 11.5s, 120 BPM, 1080x1920 30fps
  0.00- 0.88s  text: POV: THE KING GOT GREEDY
  0.00- 1.75s  scene: cold open (board at 70% of the height): you step on the pink King's long trail at 0.5 s (freeze + zoom), the King's whole turf vanishes, the crown arcs onto your head
  0.55s  STAMP: KING K.O.! (+shake, flash)
@@ -12,4 +12,5 @@ v07_cut_the_king: 10.0s, 120 BPM, 1080x1920 30fps
  5.00- 7.00s  text: KING K.O. = 2X COINS
  5.00s  STAMP: 2X COINS! (+shake, flash)
  7.00-10.00s  scene: end card: logo, live mini-match, COMING SOON TO ROBLOX / WHO WAS KING IN YOUR CLASS? / FOLLOW TO PLAY FIRST
-sound effects: 27 cues; music: {'mode': 'major', 'root': 57, 'seed': 77, 'sections': [(0, 3.5, {'kick', 'bass', 'arp', 'hat'}), (3.5, 5.5, {'kick', 'bass', 'arp', 'hat'}), (5.5, 7.5, {'bass', 'hat'}), (7.5, 14, {'lead', 'hat', 'kick', 'snare', 'bass', 'arp'}), (14, 20, {'lead', 'hat', 'kick', 'snare', 'bass'})]}
+10.00-11.50s  scene: CODE CARD: KINGME typed into a code box, REDEEM, reward: ROYAL CARPET SKIN +0 coins +25 gems, WORKS AT LAUNCH
+sound effects: 36 cues; music: {'mode': 'major', 'root': 57, 'seed': 77, 'sections': [(0, 3.5, {'bass', 'arp', 'hat', 'kick'}), (3.5, 5.5, {'bass', 'arp', 'hat', 'kick'}), (5.5, 7.5, {'bass', 'hat'}), (7.5, 14, {'bass', 'arp', 'hat', 'kick', 'lead', 'snare'}), (14, 20, {'bass', 'hat', 'kick', 'lead', 'snare'}), (20, 24, {'bass', 'arp', 'hat', 'kick', 'snare'})]}

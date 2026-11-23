@@ -1,4 +1,4 @@
-s03_turf_pass_hype: 16.1s, 108 BPM, 1080x1920 30fps
+s03_turf_pass_hype: 17.8s, 108 BPM, 1080x1920 30fps
  0.00- 1.67s  scene: HOOK: 1.5 beats of full-frame animated legendaries with your avatar and a TURF LOOP badge, then your avatar closes a loop and its turf fills with PRISM STORM (+N pop)
  0.00- 1.67s  text: 4 LEGENDARIES. FREE TRACK.
  1.67- 2.78s  text: TURF PASS. SEASON 1.
@@ -19,4 +19,5 @@ s03_turf_pass_hype: 16.1s, 108 BPM, 1080x1920 30fps
 12.78-14.44s  scene: all 4 legendaries animating with an avatar on each, 14 DAYS PER SEASON, SEASON 1 STARTS AT LAUNCH
 12.78-14.44s  text: COMMENT 1-4: WHICH ONE?
 14.44-16.11s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST
-sound effects: 44 cues; music: {'mode': 'minor', 'root': 57, 'seed': 99, 'prog': [0, 5, 2, 6], 'sections': [(0, 3, {'kick', 'arp', 'hat'}), (3, 29, {'bass', 'snare', 'lead', 'hat', 'kick', 'arp'}), (29, 33, {'bass', 'snare', 'lead', 'hat', 'kick'})]}
+16.11-17.78s  scene: CODE CARD: NEONRUSH typed into a code box, REDEEM, reward: RUSH HOUR TRAIL +0 coins +25 gems, WORKS AT LAUNCH
+sound effects: 55 cues; music: {'mode': 'minor', 'root': 57, 'seed': 99, 'prog': [0, 5, 2, 6], 'sections': [(0, 3, {'hat', 'kick', 'arp'}), (3, 29, {'lead', 'bass', 'snare', 'hat', 'kick', 'arp'}), (29, 33, {'lead', 'bass', 'snare', 'hat', 'kick'}), (29, 33, {'bass', 'snare', 'hat', 'kick', 'arp'})]}
