@@ -36,7 +36,7 @@ Paid Sky Chest spin, strength of 2x Speed, bot tag, Starter Pack repeats, week-t
      - A spec for the reward shape.
      - A headless redeem: item plus coins granted once, a second redeem rejected, an already-owned item still pays its currency.
      - Then `check.mjs`, `xref`, `headless`, and a Studio redeem of each code.
-   - Ask the owner: should the codes expire (suggestion: 30 days after launch, through `Catalog.codeRelease`), and are the amounts right?
+   - Owner decided 2026-11-22: these codes **never expire**, so add no `codeRelease` window for them. Still ask whether the amounts are right.
 1. Finish and verify the security fixes (section 3). Then one solo Studio pass on the local build: walk, claim, get cut, respawn, press Reset during a death, try to stand outside the wall. Honest play must produce no snap-backs.
 2. ~~Apply the owner's answers from `docs/DECISIONS.md`.~~ Done 2026-11-16 (see `docs/PROGRESS.md`).
 3. Done 2026-11-16 (commit 4ccf764). Balance changes from `docs/BALANCE.md` that need no owner input: rebirth growth 2 → 1.5 through a new `Config.Rebirth.Growth`; playtime rewards and the gentle-bot window keyed to the profile instead of the session; Sky Chest free rate; rare price. Each is a Config value or a small server change with a spec line.
