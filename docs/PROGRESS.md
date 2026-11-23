@@ -518,3 +518,16 @@ Shared hype.py: corner brand tag from frame 0, live mini-match behind every end 
 - Reworked s11 (R4), s12 (R4), s13 (R3); new s15_thirty_tiers (idea #19, Season 1 Neon Rush track one tier per half beat, legendaries held, 15.3 s).
 - Grader subagents: s11 6, s12 6, s13 6, s15 5. Still one 7 in total (s10). Fix lists in `marketing/videos/GRADES.md`; shared next step: a big plated 1 s "how to play" beat in every video's first 2 s.
 - Verified: each contact sheet read by the lead after render. Not verified: audio by ear. Nothing posted anywhere.
+
+## 2026-11-22 21:53 Shorts weekend run (scheduled): s11/s12/s13 reworked, s16 Your Brain on Turf new
+- Shared changes in `tools/video/hype.py`:
+  - `teach()`: a big plated "LOOP HOME = YOUR LAND" rule, used in the first seconds of the touched videos.
+  - `avatar_end(opts=)`: answer chips on the end card.
+  - Both are opt-in, so the other videos are unchanged and were not re-rendered.
+- Reworked:
+  - s11 (R5): a held 5x5, then a 5x5 > 11x11 slam, and a BLOCKED! hold.
+  - s12 (R5): a bigger multiplier with gold flashes; the K.O. zoom that cropped the panel is off.
+  - s13 (R4): scores now run 3?!, then 8, then 9, and the final combo has a rarity box.
+- New: s16_brain_on_turf (idea #20). A FEEL-GOOD meter beside a pixel brain fills on each claim, through three reasons shown in play: CLOSURE, RISK and REWARD. 108 BPM, 12.2 s.
+- Grades (subagents): s11 6, s12 6, s13 6, s16 6. There is still only one 7 (s10). Fix lists are in `marketing/videos/GRADES.md`. Next shared fixes: 2x-tall end-card option buttons, and at most 2 text blocks in the first second.
+- Checked: I read each contact sheet after rendering and fixed the layout bugs I found (plate overflow, the zoom crop, 3-line captions over the board). Not checked: audio by ear. Nothing was posted, and the game code is untouched.

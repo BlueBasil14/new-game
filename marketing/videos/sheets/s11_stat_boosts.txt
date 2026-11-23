@@ -1,11 +1,13 @@
 s11_stat_boosts: 11.9s, 108 BPM, 1080x1920 30fps
- 0.00- 2.22s  scene: HOOK: 20x20 board, YOU (Neon Pulse) on a 5x5 spawn patch; at 0.42 s LEVEL UP flash: the patch jumps to 11x11 (START SIZE 3/3 pips fill, '5x5 > 11x11' under the board); then YOU runs a loop off the big base and claims (+N)
- 0.00- 2.22s  text: LEVEL UP: START WITH 4X THE LAND
- 2.22- 4.72s  scene: SPAWN SHIELD 5/5: cyan bubble round YOU; yellow runs straight through your open trail at ~2 s: no K.O., ring flash, 'BLOCKED!'; YOU finishes the loop and claims
+ 0.00- 2.22s  scene: HOOK: 20x20 board, YOU (Neon Pulse) on a 5x5 spawn patch tagged '5x5' for 0.83 s; on the downbeat a big '5x5 > 11x11' stamp slams (shake, flash, level-up chime) and the patch jumps to 11x11; YOU runs a loop off the big base and claims (+N) at ~1.6 s; big plated LOOP HOME = YOUR LAND under the board from 0.0 s
+ 0.00- 2.22s  text: LEVEL UP = 4X THE LAND
+ 0.83s  STAMP: 5x5 > 11x11 (+shake, flash)
+ 2.22- 4.72s  scene: SPAWN SHIELD 5/5: cyan bubble round YOU; yellow runs straight through your open trail at ~0.4 s: the game holds 0.4 s on the contact with a big BLOCKED! stamp, no K.O.; YOU finishes the loop and claims
  2.22- 4.72s  text: SHIELD: THEY CAN'T CUT YOU
+ 2.59s  STAMP: BLOCKED! (+shake, flash)
  4.72- 7.22s  scene: COIN BOOST 20/20: a huge loop closes at ~0.6 s (+N, Fireworks, coin ticks), caption COIN BOOST: x3 COINS (+200%), crowned
  4.72- 7.22s  text: COIN BOOST: x3 COINS
  7.22- 9.17s  scene: stat sheet: big crowned avatar, 3 RPG bars fill to MAX with a level-up chime: A START 11x11, B SHIELD 5.5s, C COINS x3
  7.22- 9.17s  text: FREE. EARNED IN-GAME.
  9.17-11.94s  scene: end card: logo, COMING SOON TO ROBLOX, live looping mini-match, pulsing FOLLOW TO PLAY FIRST, COMMENT A, B OR C
-sound effects: 24 cues; music: {'mode': 'major', 'root': 62, 'seed': 815, 'prog': [0, 4, 5, 3], 'sections': [(0, 5, {'arp', 'hat', 'kick', 'bass'}), (5, 10, {'hat', 'kick', 'snare', 'bass'}), (10, 15, {'hat', 'kick', 'snare', 'bass', 'lead', 'arp'}), (15, 19, {'lead', 'arp', 'hat', 'kick'}), (19, 26, {'arp', 'hat', 'kick', 'bass'})]}
+sound effects: 23 cues; music: {'mode': 'major', 'root': 62, 'seed': 815, 'prog': [0, 4, 5, 3], 'sections': [(0, 5, {'kick', 'arp', 'bass', 'hat'}), (5, 10, {'kick', 'hat', 'bass', 'snare'}), (10, 15, {'kick', 'hat', 'arp', 'bass', 'snare', 'lead'}), (15, 19, {'kick', 'arp', 'hat', 'lead'}), (19, 26, {'kick', 'arp', 'bass', 'hat'})]}

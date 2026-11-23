@@ -1,6 +1,6 @@
 # Turf Loop shorts: grades
 
-Running:
+Running: 2026-11-22 21:53 EST
 
 Pass mark 7/10 overall from a fresh grader subagent (`GRADER_PROMPT.md`). Max 6 rework rounds per video (raised from 3 on 2026-11-20: all five plateaued at 6 and the owner asked for 7+), then parked with reasons.
 
@@ -754,3 +754,53 @@ Per video:
 **Pattern (now 65 grades; one 7, s10).** Every grader again scored clarity 4-5: "a new viewer never learns the game". A small "LOOP HOME = ..." line under the board isn't enough. The shared fix for the next run: a 1 s teaching beat (trail drawn, closes, fills) with a big plated "LOOP HOME = YOUR LAND" in the first 2 s of every video, and option chips on every end ask.
 
 Next run: s11 (R5), s12 (R5), s13 (R4), s15 (R2). s14 is at R2, s06 at R4 and s09 at R3. Then idea #20 (Your Brain on Turf).
+
+## Run 2026-11-22 21:53 (weekend task): s11 R5, s12 R5, s13 R4 reworked, s16 (idea #20 Your Brain on Turf) new. No new 7.
+**Applied (shared, `tools/video/hype.py`):**
+- New `teach(img, y, text)`: a big plated white rule ("LOOP HOME = YOUR LAND", size 3, wrapped to 2 lines) for the first seconds of a video. Used in s11, s12, s13 and s16.
+- `avatar_end(..., opts=[(label, colour), ...])`: answer chips for the ask on the mini-board's bottom row (s11, s12, s13, s16). Without `opts` the output is unchanged, so the other videos were not re-rendered.
+
+Per video:
+- **s11:** a tagged 5x5 holds 0.83 s, then a "5x5 > 11x11" stamp slams (shake, flash) and the claim lands at ~1.6 s. The hook caption is "LEVEL UP = 4X THE LAND" on 2 lines. The shield shot holds 0.4 s on the contact with a big BLOCKED! stamp. Shorter labels: "B: SHIELD", "SHIELD 3s > 5.5s". The coin numbers sit on a dark plate, and the stat bar is narrower so "C: COIN BOOST" isn't cut. The stat bars all fill within ~0.3 s.
+- **s12:** "LOOP = LAND" plate on the hook. The K.O. zoom in the multiplier scene is off (it cropped the panel). The multiplier is 1.5x bigger with a gold flash on each step, and x2 COINS! sits inside the panel, not as a stamp. The skins wipe across the swatch. UNLOCKED! is on a dark plate. End chips are REBIRTH / GRIND.
+- **s13:** the teach plate on the hook, then a LEGENDARY COMBO name card. The scores run 3/10?? (white on a red chip, with a WHAT?! pop), then 8/10, then 9/10. The claim flash is capped at 15%. The final combo gets a rarity box, and 10/10? sits over the board. End chips are 1-3 / 4-7 / 8-10.
+- **s16:** new, 108 BPM, 12.2 s. The hook is a Prism Storm loop that claims +142 with Lightning at ~0.4 s, captioned "WHY DOES THIS FEEL SO GOOD?". Under the board a pixel brain sits next to a FEEL-GOOD meter that jumps on every claim. Three reasons, each shown in play and lit as a chip: 1. CLOSURE (the trail is drawn and snaps shut), 2. RISK (red hunts your open trail, DANGER!, you get home one step ahead, SAFE!), 3. REWARD (Magma Surge + Rainbow Streak + Fireworks, the meter hits MAX!). End ask: "WHICH HOOKS YOU?" with CLOSURE / RISK / REWARD chips.
+
+| Video | R | Overall | hook | clarity | style | pacing | readability | cta |
+|---|---|---|---|---|---|---|---|---|
+| s11 | R5 | 6 | 5 | 6 | 8 | 7 | 6 | 7 |
+| s12 | R5 | 6 | 6 | 5 | 7 | 6 | 5 | 6 |
+| s13 | R4 | 6 | 6 | 5 | 8 | 6 | 5 | 7 |
+| s16 | R1 | 6 | 6 | 6 | 7 | 6 | 6 | 7 |
+
+**s11 (R5, 6; clarity up from 5 to 6, one round left):**
+1. The hook is abstract before the stamp, and two captions compete. Fire 5x5 > 11x11 at ~0.3 s, and hide the teach plate until 0.9 s.
+2. The coin scene shows +142 twice, and grey and green particles read as glitches. Show the number once, on the plate only; make the particles yellow coins or drop them.
+3. BLOCKED! covers the contact point. Put it above the contact, smaller, with a flash on the touch.
+4. C COINS has no value at 7.4 s: land all three values by 7.6 s.
+5. The end option chips are tiny, and "C COINS" is clipped. Use 2x buttons, with one primary ask.
+
+**s12 (R5, 6; one round left):**
+1. The hook top is crowded: drop LOOP = LAND, use a 2-line caption, and bring the crown rain to ~0.3 s.
+2. x2 COINS! overlaps x2.00, and the ochre flash muddies the digits. Put the tag above the panel, keep navy, and make the crown pips 2x.
+3. SILVER is grey on grey, and the DIAMOND hold is dead. Paint each skin on the real board with the avatar looping.
+4. The teach card covers the loop it describes. Move it under the board, and add a clean 0.5 s close before the multiplier.
+5. Make the REBIRTH/GRIND chips big filled buttons with "COMMENT ONE", and put COMING SOON on one line.
+
+**s13 (R4, 6; style 8):**
+1. Three text blocks compete in the hook: delay the teach plate, move +46 off the trail, make ?/10 big from frame 0.
+2. "LEGENDARY COMBO" overflows its box: split it or shrink it.
+3. The 1.35 s label says PRISM STORM over plain yellow turf. Make the shown skin match.
+4. 3, 8, 9 still reads as predictable: try 8, 3?!, 9, at ~1.1 s each, plus one cut to show elimination.
+5. Hide ?/10 under the 10/10? stamp, and make the end vote chips 2x taller.
+
+**s16 (R1, 6):**
+1. Lightning hides the loop closing: show the snap and fill for 0.3 s first, and tag YOU in the hook.
+2. Ownership colours: YOU is blue but claims pink/cyan land, the same as the pink bot. Give the bots colours that never appear in YOU's land.
+3. The RISK attacker looks orange with a red trail. Make it red, and move SAFE! off the closing point (≤0.4 s).
+4. REWARD is crowded: add a 0.5 s close-up with a big name card. Cut the end card to ~1.8 s.
+5. Make the meter label and chips 1.5x bigger, raise the contrast of inactive chips, add a % number, and make TURF LOOP as big as the ask.
+
+**Pattern (now 69 grades; one 7, s10).** The teaching plate moved clarity up only in s11 and s16 (to 6). New repeated complaints: option chips on the end card are too small (all four), and stacked text blocks in the hook (three of four). Next run's shared fixes: 2x-tall filled option buttons in `avatar_end`, and never more than 2 text blocks in the first second (the teach plate comes in after 0.9 s).
+
+Next run: s11 and s12 (last rounds), s13 (R5), s16 (R2). s15 is at R1, s14 at R1, s09 at R3 and s06 at R4. Then idea #21 (Pick a Colour, Get Your Playstyle).
