@@ -192,7 +192,7 @@ function RewardService.redeemCode(player: Player, code: any): (boolean, any)
 		return false, "bad_args"
 	end
 	local key = string.upper(code)
-	local reward = (Catalog.codes :: { [string]: Catalog.Reward })[key]
+	local reward = (Catalog.codes :: { [string]: Catalog.CodeReward })[key]
 	if reward == nil or not Catalog.isReleaseOpen(Catalog.codeRelease[key], os.time()) then
 		return false, "invalid_code"
 	end
@@ -206,8 +206,23 @@ function RewardService.redeemCode(player: Player, code: any): (boolean, any)
 	DataService.update(player, function(p)
 		p.codes[key] = true
 	end)
-	grant(player, reward, "code")
-	return true, { currency = reward.currency, amount = reward.amount }
+	-- Any mix of coins, gems and cosmetics. An item the player already owns is skipped; its currency still pays.
+	local coins, gems = reward.coins or 0, reward.gems or 0
+	if coins > 0 then
+		grant(player, { currency = "coins", amount = coins }, "code")
+	end
+	if gems > 0 then
+		grant(player, { currency = "gems", amount = gems }, "code")
+	end
+	local newItems = {}
+	for _, itemId in reward.items or {} do
+		if ShopService.grantItem(player, itemId) then
+			table.insert(newItems, itemId)
+		end
+	end
+	-- currency/amount kept for older UI text (coins first, else gems)
+	local main = if coins > 0 then "coins" else "gems"
+	return true, { coins = coins, gems = gems, items = newItems, currency = main, amount = if coins > 0 then coins else gems }
 end
 
 -- Playtime rewards claimed today as a dense array (sparse tables do not survive remotes).

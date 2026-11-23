@@ -27,7 +27,7 @@ local expect = {
 	["skin:common"] = 8, ["skin:rare"] = 23 + 6, ["skin:legendary"] = 1 + 4, ["skin:crown"] = 4,
 	["trail:common"] = 2 + 1, ["trail:rare"] = 7 + 1, ["trail:legendary"] = 4,
 	["effect:legendary"] = 4,
-	["skin:exclusive"] = 10, ["trail:exclusive"] = 3, -- skin +streak_month (T-RET-02, departs from GDD G3.6)
+	["skin:exclusive"] = 10 + 2, ["trail:exclusive"] = 3 + 1, -- skin +streak_month (T-RET-02, departs from GDD G3.6); + promo-code Retro Lab, Royal Carpet, Rush Hour (2026-11-22)
 }
 for k, v in expect do
 	eq(counts[k], v, "count " .. k)
@@ -36,8 +36,8 @@ for k, v in counts do
 	eq(expect[k], v, "unexpected bucket " .. k)
 end
 eq(#Catalog.ofType("effect"), 5, "effects incl default") -- sparkle + 4
-eq(#Catalog.ofType("trail"), 8 + 1 + 2, "trails")
-eq(#Catalog.ofType("skin"), 1 + 34 + 10, "skins")
+eq(#Catalog.ofType("trail"), 8 + 1 + 2 + 1, "trails") -- + Rush Hour (promo code)
+eq(#Catalog.ofType("skin"), 1 + 34 + 10 + 2, "skins") -- + Retro Lab, Royal Carpet (promo codes)
 for _, item in Catalog.items do
 	if item.default ~= true and item.source == nil and item.crownsRequired == nil then
 		local want = if item.biome or item.type == "effect" then "legendary" elseif item.colorB == nil then "common" else "rare"
@@ -132,8 +132,31 @@ eq(Catalog.nextDailyMilestone(1, { ["14"] = true, ["21"] = true, ["28"] = true }
 eq(#Catalog.playtime, 5, "playtime")
 eq(Catalog.playtime[1].seconds, 120, "playtime first")
 eq(Catalog.playtime[5].seconds, 1800, "playtime last")
-eq(Catalog.codes.RELEASE.amount, 1000, "code release")
-eq(Catalog.codes.TURF.currency, "gems", "code turf")
+eq(Catalog.codes.RELEASE.coins, 1000, "code release")
+eq(Catalog.codes.TURF.gems, 25, "code turf")
+-- Promo-video codes (owner 2026-11-22): never expire; their items exist, are code-only and never sold.
+do
+	local want = { PAPERIO = { 1000, 0, "code_retro_lab" }, NEONRUSH = { 0, 25, "code_rush_hour" },
+		KINGME = { 0, 25, "code_royal_carpet" }, BIGLOOP = { 2500, 0, nil } }
+	for code, w in want do
+		local r = Catalog.codes[code]
+		eq(r ~= nil, true, "code " .. code)
+		eq(r.coins or 0, w[1], code .. " coins")
+		eq(r.gems or 0, w[2], code .. " gems")
+		eq(Catalog.codeRelease[code], nil, code .. " has no release window")
+		if w[3] then
+			eq(r.items and r.items[1], w[3], code .. " item")
+			local item = Catalog.byId(w[3]) :: Catalog.Item
+			eq(item ~= nil and item.source, "code", w[3] .. " source")
+			eq(Catalog.isPurchasable(item), false, w[3] .. " for sale")
+		end
+	end
+	for code, r in Catalog.codes do
+		for _, id in r.items or {} do
+			eq(Catalog.byId(id) ~= nil, true, code .. " unknown item " .. id)
+		end
+	end
+end
 eq(#Catalog.badges, 8, "badges")
 for _, bd in Catalog.badges do
 	eq((Config.Ids.Badges :: any)[bd.key] ~= nil, true, "badge key " .. bd.key)

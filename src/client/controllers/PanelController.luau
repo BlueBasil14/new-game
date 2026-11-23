@@ -79,6 +79,7 @@ local S = {
 		daily28 = "28-day streak",
 		crownRush = "Crown Rush event",
 		pass = "Turf Pass",
+		code = "Promo code",
 	},
 	rarity = {
 		common = "Common",
@@ -160,6 +161,8 @@ local S = {
 	codeRedeem = "Redeem",
 	codeEmpty = "Type a code first",
 	codeOk = "Code redeemed",
+	codeItem = "%s %s", -- item name + type word, e.g. "Retro Lab skin"
+	itemWord = { skin = "skin", trail = "trail", effect = "effect" },
 
 	settingNames = {
 		music = "Music",
@@ -334,6 +337,29 @@ function PanelController.rewardText(result: any, fallback: string): string
 		return string.format(S.rewardText, UiKit.formatNumber(result.amount), currencyWord(result.currency))
 	end
 	return fallback
+end
+
+-- Promo-code result: "+1,000 coins + Retro Lab skin" (any mix of coins, gems and new items).
+local function codeRewardText(result: any): string
+	if type(result) ~= "table" then
+		return S.codeOk
+	end
+	local parts = {}
+	if type(result.coins) == "number" and result.coins > 0 then
+		table.insert(parts, string.format(S.rewardText, UiKit.formatNumber(result.coins), currencyWord("coins")))
+	end
+	if type(result.gems) == "number" and result.gems > 0 then
+		table.insert(parts, string.format(S.rewardText, UiKit.formatNumber(result.gems), currencyWord("gems")))
+	end
+	if type(result.items) == "table" then
+		for _, id in result.items do
+			local item = if type(id) == "string" then Catalog.byId(id) else nil
+			if item then
+				table.insert(parts, string.format(S.codeItem, item.name, S.itemWord[item.type] or item.type))
+			end
+		end
+	end
+	return if #parts > 0 then table.concat(parts, " + ") else PanelController.rewardText(result, S.codeOk)
 end
 
 -- Helpers -----------------------------------------------------------------------------------
@@ -1856,7 +1882,7 @@ local function buildCodes(): PanelEntry
 				squash(redeem)
 				sound("reward")
 				box.Text = ""
-				toastGood(PanelController.rewardText(result, S.codeOk))
+				toastGood(codeRewardText(result))
 			else
 				sound("error")
 				toastBad(errorText(result))

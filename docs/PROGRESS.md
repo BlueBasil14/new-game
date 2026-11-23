@@ -547,3 +547,23 @@ Shared hype.py: corner brand tag from frame 0, live mini-match behind every end 
   - Amounts are in line with the existing codes (RELEASE 1,000 coins, TURF 25 gems, CROWNRUSH 50 gems).
 - Game side NOT done, as the owner asked: it is queue item 0 in `docs/HANDOFF.md`, with the full spec. The current code reward type only supports one currency, so item rewards plus 3 code-only cosmetics are needed.
 - Open for the owner: should the codes expire (suggestion: 30 days after launch), and are the amounts right?
+
+## Lead session, 2026-11-22: promo codes added to the game (owner: "add the codes to the game now")
+- `Catalog.luau`:
+  - New `CodeReward` type (`coins`, `gems` and `items`, in any mix). The existing RELEASE, TURF and CROWNRUSH codes moved to it with the same rewards.
+  - Four new codes, which never expire (owner): PAPERIO (Retro Lab skin + 1,000 coins), NEONRUSH (Rush Hour trail + 25 gems), KINGME (Royal Carpet skin + 25 gems), BIGLOOP (2,500 coins).
+  - Three code-only cosmetics: exclusive tier, `source = "code"`, never sold. They are `code_retro_lab`, `code_rush_hour` and `code_royal_carpet`.
+- `RewardService.redeemCode` pays coins and gems, then grants items through `ShopService.grantItem`. An item the player already owns is skipped, but its currency is still paid. The result carries `coins`, `gems` and `items`, plus the old `currency` / `amount` fields. Analytics `code_redeem` was already logged by `Main.server`.
+- `PanelController`:
+  - The redeem toast lists everything granted ("+1,000 coins + Retro Lab skin").
+  - The shop shows the source as "Promo code".
+- Tests:
+  - catalog spec: code shapes, no release window, items exist, code-only and not for sale, updated item counts.
+  - headless `d_requests`: an item plus currency is granted once, a repeat is `already_used`, an already-owned item still pays gems, BIGLOOP gives coins only.
+- Checks: 51 files compile, specs pass, xref 0, headless 17/17.
+- **Seen in Studio** (scratch build, solo):
+  - Redeemed PAPERIO, NEONRUSH, KingMe (mixed case) and BIGLOOP with the right results. `paperio` was `already_used`, NOPE was `invalid_code`.
+  - The wallet went up by 3,500 coins and 50 gems.
+  - Retro Lab and Royal Carpet appear in the shop as owned Exclusives. Retro Lab and Rush Hour equip.
+  - Four `code_redeem` analytics events fired. No script errors.
+- Not done: the codes are not yet in the cloud place or the live game (no sync or publish this turn). The toast text was not seen on screen, because automated clicks can't use the Codes panel.

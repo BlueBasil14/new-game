@@ -11,7 +11,7 @@ export type Item = {
 	colorB: string?,
 	pattern: string, -- "solid" | "stripes" | "dots" | "checker" | "waves" | "stars" | "hex"
 	crownsRequired: number?,
-	source: string?, -- "vip" | "neonPack" | "starterPack" | "group" | "daily7" | "daily28" | "crownRush" | "pass"
+	source: string?, -- "vip" | "neonPack" | "starterPack" | "group" | "daily7" | "daily28" | "crownRush" | "pass" | "code"
 	default: boolean?,
 	release: string?, -- "weekTwo": hidden until Config.WeekTwo.Start
 	priceTier: string?, -- Config.Prices key when it differs from rarity (biome skins)
@@ -20,6 +20,8 @@ export type Item = {
 }
 
 export type Reward = { currency: string, amount: number }
+-- Promo-code reward: any mix of coins, gems and cosmetics (owner 2026-11-22: the codes shown in the promo videos).
+export type CodeReward = { coins: number?, gems: number?, items: { string }? }
 export type Quest = { id: string, kind: string, target: number, reward: Reward }
 
 local Catalog = {}
@@ -151,6 +153,10 @@ add("trail", "exclusive", "neon_trail", "Neon Trail", "#00F0FF", "#FF2E9A", "str
 add("skin", "exclusive", "team", "Team Colours", "#4F8BFF", "#FFFFFF", "stripes", { source = "group" })
 add("skin", "exclusive", "streak_week", "Week Streak", "#FF5CD6", "#FFE88A", "stars", { source = "daily7" })
 add("skin", "exclusive", "streak_month", "Month Streak", "#3DDCFF", "#FFC83D", "hex", { source = "daily28" })
+-- Promo-code exclusives (owner 2026-11-22): only from the codes in Catalog.codes, never sold.
+add("skin", "exclusive", "code_retro_lab", "Retro Lab", "#3DDC84", "#0F2A1A", "checker", { source = "code" })
+add("trail", "exclusive", "code_rush_hour", "Rush Hour", "#FF2E9A", "#FFE14D", "stripes", { source = "code" })
+add("skin", "exclusive", "code_royal_carpet", "Royal Carpet", "#B3261E", "#FFC83D", "stars", { source = "code" })
 
 -- Week-two update: hidden until Config.WeekTwo.Start (Crown Rush trail is won, never sold)
 local WEEK_TWO = { release = "weekTwo" }
@@ -354,10 +360,15 @@ Catalog.playtime = {
 
 -- Keys are upper-case; compare against string.upper(input)
 Catalog.codes = {
-	RELEASE = { currency = "coins", amount = 1000 },
-	TURF = { currency = "gems", amount = 25 },
-	CROWNRUSH = { currency = "gems", amount = 50 }, -- week-two code, works from Config.WeekTwo.Start
-}
+	RELEASE = { coins = 1000 },
+	TURF = { gems = 25 },
+	CROWNRUSH = { gems = 50 }, -- week-two code, works from Config.WeekTwo.Start
+	-- Promo-video codes (owner 2026-11-22). Never expire. Shown in marketing/videos (tools/video/hype.py PROMO_CODES).
+	PAPERIO = { coins = 1000, items = { "code_retro_lab" } },
+	NEONRUSH = { gems = 25, items = { "code_rush_hour" } },
+	KINGME = { gems = 25, items = { "code_royal_carpet" } },
+	BIGLOOP = { coins = 2500 },
+} :: { [string]: CodeReward }
 -- Codes that only work once their release is open (Catalog.isReleaseOpen).
 Catalog.codeRelease = { CROWNRUSH = "weekTwo" } :: { [string]: string }
 
